@@ -43,7 +43,13 @@ interface NavItem {
   href: string;
 }
 
-const modules: { name: string; items: NavItem[] }[] = [
+interface ModuleGroup {
+  name: string;
+  items: NavItem[];
+  status?: "coming-soon";
+}
+
+const modules: ModuleGroup[] = [
   {
     name: "Gestão",
     items: [
