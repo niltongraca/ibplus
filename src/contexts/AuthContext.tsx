@@ -28,9 +28,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      setUser(JSON.parse(stored));
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        setUser(JSON.parse(stored));
+      }
+    } catch {
+      localStorage.removeItem(STORAGE_KEY);
     }
     setLoading(false);
   }, []);

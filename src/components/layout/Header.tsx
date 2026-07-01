@@ -15,7 +15,7 @@ const moduleNames: Record<string, string> = {
 };
 
 export function Header() {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
   const currentModule = segments[0] || "";
@@ -60,20 +60,26 @@ export function Header() {
           </button>
 
           <div className="flex items-center gap-2 pl-4 border-l border-gray-200">
-            <div className="h-8 w-8 rounded-full bg-ib-accent flex items-center justify-center text-white text-sm font-medium">
-              {user?.name?.charAt(0)?.toUpperCase() || "A"}
-            </div>
-            <div className="text-sm hidden sm:block">
-              <p className="font-medium text-ib-primary">{user?.name || "Admin"}</p>
-              <p className="text-ib-muted text-xs">{user?.email || "admin@ibplus.ao"}</p>
-            </div>
-            <button
-              onClick={logout}
-              className="ml-2 p-2 text-ib-muted hover:text-ib-danger rounded-lg hover:bg-gray-100 transition-colors"
-              title="Sair"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
+            {loading ? (
+              <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
+            ) : (
+              <>
+                <div className="h-8 w-8 rounded-full bg-ib-accent flex items-center justify-center text-white text-sm font-medium">
+                  {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                </div>
+                <div className="text-sm hidden sm:block">
+                  <p className="font-medium text-ib-primary">{user?.name || "Utilizador"}</p>
+                  <p className="text-ib-muted text-xs">{user?.email || ""}</p>
+                </div>
+                <button
+                  onClick={logout}
+                  className="ml-2 p-2 text-ib-muted hover:text-ib-danger rounded-lg hover:bg-gray-100 transition-colors"
+                  title="Sair"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
