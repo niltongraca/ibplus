@@ -15,37 +15,37 @@ const features = [
     icon: LayoutDashboard,
     title: "Gestão Total",
     desc: "Dashboard, clientes, produtos, stock, vendas e fluxo de caixa num só lugar.",
-    href: "/gestao/dashboard",
+    href: "/login",
   },
   {
     icon: BarChart3,
     title: "Financeiro Inteligente",
     desc: "Faturação, cobranças, contas a pagar e receber com relatórios automáticos.",
-    href: "/finance/faturacao",
+    href: "/login",
   },
   {
     icon: Users,
     title: "CRM Completo",
     desc: "Gestão de clientes, funil de vendas, propostas e follow-up integrados.",
-    href: "/crm/clientes",
+    href: "/login",
   },
   {
     icon: Store,
     title: "Loja Online",
     desc: "Catálogo digital, encomendas e pagamentos para vender 24/7.",
-    href: "/store/loja",
+    href: "/login",
   },
   {
     icon: Bot,
     title: "Assistente IA",
     desc: "Análise de vendas, previsões e recomendações inteligentes para o seu negócio.",
-    href: "/ia/assistente",
+    href: "/login",
   },
   {
     icon: Megaphone,
     title: "Marketing Integrado",
     desc: "Campanhas WhatsApp, e-mail marketing e gestão de promoções e fidelização.",
-    href: "/marketing/campanhas",
+    href: "/login",
   },
 ];
 
@@ -73,13 +73,13 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-6">
             <Link
-              href="/gestao/dashboard"
+              href="/login"
               className="text-sm text-ib-muted hover:text-white transition-colors"
             >
               Plataforma
             </Link>
             <Link
-              href="/gestao/dashboard"
+              href="/login"
               className="bg-ib-accent hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
             >
               Acessar Plataforma
@@ -105,7 +105,7 @@ export default function Home() {
           </p>
           <div className="flex items-center justify-center gap-4">
             <Link
-              href="/gestao/dashboard"
+              href="/cadastro"
               className="bg-ib-accent hover:bg-blue-700 text-white px-8 py-3 rounded-lg text-lg font-medium transition-colors inline-flex items-center gap-2"
             >
               Começar Gratuitamente
@@ -202,10 +202,10 @@ export default function Home() {
                 gerir e fazer crescer os seus negócios.
               </p>
               <Link
-                href="/gestao/dashboard"
-                className="inline-flex items-center gap-2 bg-white text-ib-primary px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors"
-              >
-                Começar Agora
+              href="/cadastro"
+              className="inline-flex items-center gap-2 bg-white text-ib-primary px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+            >
+              Começar Agora
                 <ArrowRight className="h-5 w-5" />
               </Link>
             </div>
