@@ -64,7 +64,7 @@ export default function Home() {
       <header className="bg-ib-primary text-white">
         <nav className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-ib-accent flex items-center justify-center font-bold text-lg">
+            <div className="h-8 w-8 rounded-lg bg-ib-accent flex items-center justify-center font-bold text-lg text-white">
               IB
             </div>
             <span className="font-semibold text-lg">
@@ -156,9 +156,7 @@ export default function Home() {
                 key={m.name}
                 className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/10"
               >
-                <div
-                  className={`h-3 w-3 rounded-full ${m.color} shrink-0`}
-                />
+                <div className={`h-3 w-3 rounded-full ${m.color} shrink-0`} />
                 <div>
                   <p className="font-medium">{m.name}</p>
                   <p className="text-sm text-ib-muted">
@@ -202,10 +200,10 @@ export default function Home() {
                 gerir e fazer crescer os seus negócios.
               </p>
               <Link
-              href="/cadastro"
-              className="inline-flex items-center gap-2 bg-white text-ib-primary px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors"
-            >
-              Começar Agora
+                href="/cadastro"
+                className="inline-flex items-center gap-2 bg-white text-ib-primary px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+              >
+                Começar Agora
                 <ArrowRight className="h-5 w-5" />
               </Link>
             </div>
@@ -224,7 +222,7 @@ export default function Home() {
             </span>
           </div>
           <p className="text-sm">
-            © {new Date().getFullYear()} IBPlus. Todos os direitos reservados.
+            &copy; {new Date().getFullYear()} IBPlus. Todos os direitos reservados.
           </p>
         </div>
       </footer>
