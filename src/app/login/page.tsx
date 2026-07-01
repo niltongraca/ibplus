@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -25,7 +25,7 @@ export default function LoginPage() {
     setLoading(false);
 
     if (result.success) {
-      const redirect = searchParams.get("redirect") || "/gestao/dashboard";
+      const redirect = searchParams?.get("redirect") || "/gestao/dashboard";
       router.push(redirect);
     } else {
       setError(result.error || "Erro ao fazer login.");
@@ -113,5 +113,17 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-ib-surface flex items-center justify-center px-4">
+        <div className="animate-pulse text-ib-muted">A carregar...</div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

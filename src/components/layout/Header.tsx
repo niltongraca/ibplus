@@ -17,7 +17,7 @@ const moduleNames: Record<string, string> = {
 export function Header() {
   const { user, loading, logout } = useAuth();
   const pathname = usePathname();
-  const segments = pathname.split("/").filter(Boolean);
+  const segments = (pathname || "").split("/").filter(Boolean);
   const currentModule = segments[0] || "";
   const currentPage = segments[1] || "";
 
