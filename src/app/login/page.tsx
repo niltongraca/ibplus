@@ -26,7 +26,7 @@ function LoginForm() {
 
     if (result.success) {
       const { user: u } = await fetch("/api/auth/me").then((r) => r.json());
-      const defaultRoute = u?.role === "admin" ? "/gestao/admin" : "/gestao/dashboard";
+      const defaultRoute = u?.role === "admin" ? "/admin" : "/gestao/dashboard";
       const redirect = searchParams?.get("redirect") || defaultRoute;
       router.push(redirect);
     } else {

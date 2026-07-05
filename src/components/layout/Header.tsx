@@ -95,7 +95,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           {user && (
             <div className="hidden sm:flex items-center gap-3 pl-3 border-l border-gray-200">
               {user.role === "admin" && (
-                <Link href="/gestao/admin" className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-600 text-xs font-medium hover:bg-amber-500/20 transition-colors" title="Painel Admin">
+                <Link href="/admin" className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-600 text-xs font-medium hover:bg-amber-500/20 transition-colors" title="Painel Admin">
                   <Shield className="w-3.5 h-3.5" /> Admin
                 </Link>
               )}

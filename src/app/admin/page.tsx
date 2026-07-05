@@ -58,10 +58,10 @@ export default function AdminPage() {
           </div>
           <div className="space-y-2">
             {[
-              { icon: Users, label: "Utilizadores", desc: "Gerir contas, permissões e estados", href: "/gestao/admin/usuarios", color: "text-blue-600" },
-              { icon: Building2, label: "Empresas", desc: "Visualizar e administrar organizações", href: "/gestao/admin/empresas", color: "text-emerald-600" },
-              { icon: Wrench, label: "Serviços", desc: "Configurar serviços disponíveis", href: "/gestao/admin/servicos", color: "text-purple-600" },
-              { icon: Activity, label: "Logs do Sistema", desc: "Auditar actividades da plataforma", href: "/gestao/admin/logs", color: "text-orange-600" },
+              { icon: Users, label: "Utilizadores", desc: "Gerir contas, permissões e estados", href: "/admin/usuarios", color: "text-blue-600" },
+              { icon: Building2, label: "Empresas", desc: "Visualizar e administrar organizações", href: "/admin/empresas", color: "text-emerald-600" },
+              { icon: Wrench, label: "Serviços", desc: "Configurar serviços disponíveis", href: "/admin/servicos", color: "text-purple-600" },
+              { icon: Activity, label: "Logs do Sistema", desc: "Auditar actividades da plataforma", href: "/admin/logs", color: "text-orange-600" },
             ].map((item) => (
               <Link key={item.label} href={item.href} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
                 <div className={`w-9 h-9 rounded-lg ${item.color.replace("text-", "bg-")} bg-opacity-10 flex items-center justify-center shrink-0`}>

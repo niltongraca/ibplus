@@ -8,11 +8,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 
 const adminNav = [
-  { label: "Dashboard", icon: LayoutDashboard, href: "/gestao/admin", desc: "Visão geral da plataforma" },
-  { label: "Utilizadores", icon: Users, href: "/gestao/admin/usuarios", desc: "Gerir contas de utilizadores" },
-  { label: "Empresas", icon: Building2, href: "/gestao/admin/empresas", desc: "Organizações registadas" },
-  { label: "Serviços", icon: Wrench, href: "/gestao/admin/servicos", desc: "Serviços da plataforma" },
-  { label: "Logs", icon: Activity, href: "/gestao/admin/logs", desc: "Registo de actividades" },
+  { label: "Dashboard", icon: LayoutDashboard, href: "/admin", desc: "Visão geral da plataforma" },
+  { label: "Utilizadores", icon: Users, href: "/admin/usuarios", desc: "Gerir contas de utilizadores" },
+  { label: "Empresas", icon: Building2, href: "/admin/empresas", desc: "Organizações registadas" },
+  { label: "Serviços", icon: Wrench, href: "/admin/servicos", desc: "Serviços da plataforma" },
+  { label: "Logs", icon: Activity, href: "/admin/logs", desc: "Registo de actividades" },
 ];
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -46,7 +46,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       )}>
         {/* Logo */}
         <div className={cn("flex items-center border-b border-white/10", collapsed ? "justify-center px-2 py-4" : "justify-between px-5 py-5")}>
-          <Link href="/gestao/admin" className="flex items-center gap-2.5">
+          <Link href="/admin" className="flex items-center gap-2.5">
             <div className="h-8 w-8 rounded-lg bg-ib-accent flex items-center justify-center font-bold text-sm text-white shrink-0 shadow-sm">IB</div>
             {!collapsed && (
               <div>

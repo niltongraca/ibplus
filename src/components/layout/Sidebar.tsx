@@ -186,11 +186,11 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           <ul className="space-y-0.5">
             <li>
               <Link
-                href="/gestao/admin"
+                href="/admin"
                 onClick={onClose}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors min-h-[44px]",
-                  pathname.startsWith("/gestao/admin")
+                  pathname.startsWith("/admin")
                     ? "bg-ib-accent/20 text-ib-light font-medium"
                     : "text-ib-muted hover:text-white hover:bg-white/5"
                 )}
