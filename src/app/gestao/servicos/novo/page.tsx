@@ -27,6 +27,7 @@ export default function NovoServicoPage() {
   }
 
   return (
+    <>
       <h1 className="text-2xl font-bold text-ib-primary mb-6">Novo Serviço</h1>
       <form onSubmit={handleSubmit} className="max-w-lg space-y-4 bg-white p-6 rounded-xl border border-gray-200">
         <div>
@@ -69,5 +70,6 @@ export default function NovoServicoPage() {
           {loading ? "A criar..." : "Criar Serviço"}
         </button>
       </form>
+    </>
   );
 }

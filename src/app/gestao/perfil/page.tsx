@@ -151,6 +151,5 @@ export default function PerfilPage() {
           </button>
         </form>
       </div>
-    </AppLayout>
   );
 }
