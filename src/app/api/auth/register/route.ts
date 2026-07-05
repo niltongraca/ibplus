@@ -1,143 +1,226 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { signToken } from "@/lib/auth";
+
+const accountTypeEnum = z.enum(["EMPREENDEDOR", "EMPRESA", "ONG", "ASSOCIACAO", "EDUCACAO", "COOPERATIVA"]);
+
+const baseSchema = z.object({
+  accountType: accountTypeEnum,
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+  telefone: z.string().optional(),
+  nome: z.string().min(1, "O nome é obrigatório"),
+});
+
+const empresaSchema = baseSchema.extend({
+  accountType: z.literal("EMPRESA"),
+  nomeEmpresa: z.string().min(1, "Nome da empresa é obrigatório"),
+  nif: z.string().optional(),
+  registoComercial: z.string().optional(),
+  anoFundacao: z.string().optional(),
+  numColaboradores: z.string().optional(),
+  descricao: z.string().optional(),
+  missao: z.string().optional(),
+  visao: z.string().optional(),
+  valores: z.string().optional(),
+  pais: z.string().optional(),
+  provincia: z.string().optional(),
+  municipio: z.string().optional(),
+  bairro: z.string().optional(),
+  endereco: z.string().optional(),
+  gpsLocation: z.string().optional(),
+  ramoActividade: z.string().optional(),
+  categoria: z.string().optional(),
+  website: z.string().optional(),
+  facebook: z.string().optional(),
+  instagram: z.string().optional(),
+  linkedin: z.string().optional(),
+});
+
+const ongSchema = baseSchema.extend({
+  accountType: z.literal("ONG"),
+  nomeInstituicao: z.string().optional(),
+  missao: z.string().optional(),
+  areaActuacao: z.string().optional(),
+  website: z.string().optional(),
+  nif: z.string().optional(),
+  descricao: z.string().optional(),
+  redesSociais: z.string().optional(),
+  pais: z.string().optional(),
+  provincia: z.string().optional(),
+  municipio: z.string().optional(),
+  bairro: z.string().optional(),
+  endereco: z.string().optional(),
+});
+
+const educacaoSchema = baseSchema.extend({
+  accountType: z.literal("EDUCACAO"),
+  nomeInstituicao: z.string().optional(),
+  tipoInstituicao: z.string().optional(),
+  cursos: z.string().optional(),
+  website: z.string().optional(),
+  nif: z.string().optional(),
+  descricao: z.string().optional(),
+  redesSociais: z.string().optional(),
+  pais: z.string().optional(),
+  provincia: z.string().optional(),
+  municipio: z.string().optional(),
+  bairro: z.string().optional(),
+  endereco: z.string().optional(),
+});
+
+const otherSchema = baseSchema.extend({
+  accountType: z.enum(["EMPREENDEDOR", "ASSOCIACAO", "COOPERATIVA"]),
+  nomeComercial: z.string().optional(),
+  nif: z.string().optional(),
+  bi: z.string().optional(),
+  dataNascimento: z.string().optional(),
+  sexo: z.string().optional(),
+  pais: z.string().optional(),
+  provincia: z.string().optional(),
+  municipio: z.string().optional(),
+  bairro: z.string().optional(),
+  endereco: z.string().optional(),
+  areaActividade: z.string().optional(),
+  profissao: z.string().optional(),
+  servicosDescricao: z.string().optional(),
+  redesSociais: z.string().optional(),
+  descricao: z.string().optional(),
+  gpsLocation: z.string().optional(),
+  nomeInstituicao: z.string().optional(),
+  ramoActividade: z.string().optional(),
+  missao: z.string().optional(),
+  areaActuacao: z.string().optional(),
+  website: z.string().optional(),
+});
+
+const registerSchema = z.discriminatedUnion("accountType", [
+  empresaSchema,
+  ongSchema,
+  educacaoSchema,
+  otherSchema,
+]);
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { accountType, email, password } = body;
 
-    if (!email || !password || !accountType) {
-      return NextResponse.json({ error: "Email, senha e tipo de conta são obrigatórios." }, { status: 400 });
+    const parsed = registerSchema.safeParse(body);
+    if (!parsed.success) {
+      const firstError = parsed.error.errors[0];
+      return NextResponse.json({ error: firstError.message }, { status: 400 });
     }
 
-    if (password.length < 6) {
-      return NextResponse.json({ error: "A senha deve ter pelo menos 6 caracteres." }, { status: 400 });
-    }
+    const data = parsed.data;
 
-    const validTypes = ["EMPREENDEDOR", "EMPRESA", "ONG", "ASSOCIACAO", "EDUCACAO", "COOPERATIVA"];
-    if (!validTypes.includes(accountType)) {
-      return NextResponse.json({ error: "Tipo de conta inválido." }, { status: 400 });
-    }
-
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const existing = await prisma.user.findUnique({ where: { email: data.email } });
     if (existing) {
       return NextResponse.json({ error: "Este email já está registado." }, { status: 409 });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(data.password, 10);
 
-    const {
-      nome, telefone,
-      nomeComercial, nif, bi, dataNascimento, sexo,
-      pais, provincia, municipio, bairro, endereco,
-      areaActividade, profissao, servicosDescricao, redesSociais, descricao,
-      // empresa-specific
-      nomeEmpresa, registoComercial, anoFundacao, numColaboradores,
-      missao, visao, valores, gpsLocation, ramoActividade, categoria,
-      website, facebook, instagram, linkedin,
-      // ONG-specific
-      areaActuacao,
-      // education-specific
-      nomeInstituicao, tipoInstituicao, cursos,
-    } = body;
+    const user = await prisma.$transaction(async (tx) => {
+      let companyId: string | undefined;
 
-    let user;
-
-    if (accountType === "EMPRESA") {
-      if (!nome || !nomeEmpresa) {
-        return NextResponse.json({ error: "Nome do responsável e nome da empresa são obrigatórios." }, { status: 400 });
-      }
-
-      const company = await prisma.company.create({
-        data: { name: nomeEmpresa, nif, phone: telefone, address: endereco },
-      });
-
-      user = await prisma.user.create({
-        data: {
-          name: nome,
-          email,
-          password: hashedPassword,
-          phone: telefone,
-          accountType: "EMPRESA",
-          role: "user",
-          companyId: company.id,
-          profile: {
-            create: { nome, nif, telefone, endereco, provincia, municipio, bairro, descricao },
-          },
-          companyProfile: {
-            create: {
-              nomeEmpresa, nif, registoComercial,
-              anoFundacao: anoFundacao ? parseInt(anoFundacao) : null,
-              numColaboradores: numColaboradores ? parseInt(numColaboradores) : null,
-              descricao, missao, visao, valores,
-              pais, provincia, municipio, bairro, endereco, gpsLocation,
-              ramoActividade, categoria, website, facebook, instagram, linkedin,
-            },
-          },
-        },
-        include: { profile: true, companyProfile: true },
-      });
-    } else {
-      if (!nome) {
-        return NextResponse.json({ error: "O nome é obrigatório." }, { status: 400 });
+      if (data.accountType === "EMPRESA") {
+        const company = await tx.company.create({
+          data: { name: data.nomeEmpresa!, nif: data.nif, phone: data.telefone, address: data.endereco },
+        });
+        companyId = company.id;
       }
 
       const profileData: any = {
-        nome,
-        nomeComercial, nif, bi, telefone,
-        dataNascimento: dataNascimento ? new Date(dataNascimento) : null,
-        sexo, pais, provincia, municipio, bairro, endereco,
-        areaActividade, profissao, servicosDescricao, redesSociais, descricao,
+        nome: data.nome,
+        nif: data.nif,
+        telefone: data.telefone,
+        endereco: data.endereco,
+        provincia: data.provincia,
+        municipio: data.municipio,
+        bairro: data.bairro,
+        descricao: data.descricao,
       };
 
-      const extra: any = { profile: { create: profileData } };
-
-      if (accountType === "ONG") {
-        extra.ngoProfile = {
-          create: { nome, missao: missao || "", areaActuacao: areaActuacao || "", website, facebook, instagram },
-        };
+      if (data.accountType !== "EMPRESA" && data.accountType !== "ONG" && data.accountType !== "EDUCACAO") {
+        profileData.nomeComercial = (data as any).nomeComercial;
+        profileData.bi = (data as any).bi;
+        profileData.dataNascimento = (data as any).dataNascimento ? new Date((data as any).dataNascimento) : null;
+        profileData.sexo = (data as any).sexo;
+        profileData.pais = data.pais;
+        profileData.areaActividade = (data as any).areaActividade;
+        profileData.profissao = (data as any).profissao;
+        profileData.servicosDescricao = (data as any).servicosDescricao;
+        profileData.redesSociais = (data as any).redesSociais;
+      } else {
+        profileData.pais = data.pais;
+        profileData.redesSociais = (data as any).redesSociais;
       }
 
-      if (accountType === "EDUCACAO") {
-        extra.educationProfile = {
+      const createData: any = {
+        name: data.nome,
+        email: data.email,
+        password: hashedPassword,
+        phone: data.telefone,
+        accountType: data.accountType,
+        role: "user",
+        companyId: companyId || null,
+        profile: { create: profileData },
+      };
+
+      if (data.accountType === "EMPRESA") {
+        const ed = data as z.infer<typeof empresaSchema>;
+        createData.companyProfile = {
           create: {
-            nomeInstituicao: nomeInstituicao || nome,
-            tipo: tipoInstituicao || "",
-            cursos, website, facebook, instagram,
+            nomeEmpresa: ed.nomeEmpresa,
+            nif: ed.nif, registoComercial: ed.registoComercial,
+            anoFundacao: ed.anoFundacao ? parseInt(ed.anoFundacao) : null,
+            numColaboradores: ed.numColaboradores ? parseInt(ed.numColaboradores) : null,
+            descricao: ed.descricao, missao: ed.missao, visao: ed.visao, valores: ed.valores,
+            pais: ed.pais, provincia: ed.provincia, municipio: ed.municipio,
+            bairro: ed.bairro, endereco: ed.endereco, gpsLocation: ed.gpsLocation,
+            ramoActividade: ed.ramoActividade, categoria: ed.categoria,
+            website: ed.website, facebook: ed.facebook, instagram: ed.instagram, linkedin: ed.linkedin,
           },
         };
       }
 
-      user = await prisma.user.create({
-        data: {
-          name: nome,
-          email,
-          password: hashedPassword,
-          phone: telefone,
-          accountType,
-          role: "user",
-          ...extra,
-        },
-        include: { profile: true, companyProfile: true, ngoProfile: true, educationProfile: true },
+      if (data.accountType === "ONG") {
+        const od = data as z.infer<typeof ongSchema>;
+        createData.ngoProfile = {
+          create: {
+            nome: od.nomeInstituicao || od.nome,
+            missao: od.missao || "",
+            areaActuacao: od.areaActuacao || "",
+            website: od.website,
+          },
+        };
+      }
+
+      if (data.accountType === "EDUCACAO") {
+        const ed = data as z.infer<typeof educacaoSchema>;
+        createData.educationProfile = {
+          create: {
+            nomeInstituicao: ed.nomeInstituicao || ed.nome,
+            tipo: ed.tipoInstituicao || "",
+            cursos: ed.cursos,
+            website: ed.website,
+          },
+        };
+      }
+
+      return tx.user.create({
+        data: createData,
+        select: { id: true, name: true, email: true, phone: true, accountType: true, plan: true, role: true, companyId: true },
       });
-    }
-
-    const token = signToken({ userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType });
-
-    const response = NextResponse.json({
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        accountType: user.accountType,
-        plan: user.plan,
-        role: user.role,
-        companyId: user.companyId,
-      },
     });
+
+    const token = signToken({
+      userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType,
+    });
+
+    const response = NextResponse.json({ user });
 
     response.cookies.set("ibplus_session", token, {
       httpOnly: true,
@@ -149,7 +232,7 @@ export async function POST(request: Request) {
 
     return response;
   } catch (err) {
-    console.error(err);
+    console.error("Register error:", err);
     return NextResponse.json({ error: "Erro interno do servidor." }, { status: 500 });
   }
 }
