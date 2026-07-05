@@ -1,26 +1,25 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 interface User {
   id: string;
   name: string;
   email: string;
-  company?: string;
+  companyId?: string | null;
+  role: string;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (data: { name: string; email: string; password: string; confirmPassword: string }) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
+  register: (data: { name: string; email: string; password: string; confirmPassword: string; role: string }) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const STORAGE_KEY = "ibplus_user";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -28,82 +27,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        setUser(JSON.parse(stored));
-      }
-    } catch {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-    setLoading(false);
+    fetch("/api/auth/me")
+      .then((res) => {
+        if (!res.ok) throw new Error("Not authenticated");
+        return res.json();
+      })
+      .then((data) => setUser(data.user))
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const users = JSON.parse(localStorage.getItem("ibplus_users") || "[]");
-    const found = users.find((u: User & { password: string }) => u.email === email && u.password === password);
+  const login = useCallback(async (email: string, password: string) => {
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (!found) {
-      return { success: false, error: "Email ou senha inválidos." };
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.error };
+
+      setUser(data.user);
+      return { success: true };
+    } catch {
+      return { success: false, error: "Erro de conexão." };
     }
+  }, []);
 
-    const userData: User = {
-      id: found.id,
-      name: found.name,
-      email: found.email,
-      company: found.company,
-    };
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
-    document.cookie = "ibplus_session=" + userData.id + ";path=/;max-age=86400";
-    setUser(userData);
-    return { success: true };
-  };
-
-  const register = async (data: { name: string; email: string; password: string; confirmPassword: string }) => {
+  const register = useCallback(async (data: { name: string; email: string; password: string; confirmPassword: string; role: string }) => {
     if (data.password !== data.confirmPassword) {
       return { success: false, error: "As senhas não coincidem." };
     }
 
-    if (data.password.length < 6) {
-      return { success: false, error: "A senha deve ter pelo menos 6 caracteres." };
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: data.name, email: data.email, password: data.password, role: data.role }),
+      });
+
+      const result = await res.json();
+      if (!res.ok) return { success: false, error: result.error };
+
+      setUser(result.user);
+      return { success: true };
+    } catch {
+      return { success: false, error: "Erro de conexão." };
     }
+  }, []);
 
-    const users = JSON.parse(localStorage.getItem("ibplus_users") || "[]");
-
-    if (users.some((u: User) => u.email === data.email)) {
-      return { success: false, error: "Este email já está registado." };
-    }
-
-    const newUser = {
-      id: crypto.randomUUID(),
-      name: data.name,
-      email: data.email,
-      password: data.password,
-      company: "",
-    };
-
-    users.push(newUser);
-    localStorage.setItem("ibplus_users", JSON.stringify(users));
-
-    const userData: User = {
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-    };
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
-    document.cookie = "ibplus_session=" + userData.id + ";path=/;max-age=86400";
-    setUser(userData);
-    return { success: true };
-  };
-
-  const logout = () => {
-    localStorage.removeItem(STORAGE_KEY);
-    document.cookie = "ibplus_session=;path=/;max-age=0";
+  const logout = useCallback(async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
     setUser(null);
     router.push("/login");
-  };
+  }, [router]);
 
   return (
     <AuthContext.Provider value={{ user, loading, login, register, logout }}>

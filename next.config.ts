@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  serverExternalPackages: ["@prisma/client", "@prisma/adapter-libsql", "@libsql/client", "@prisma/adapter-neon", "@neondatabase/serverless", "ws"],
 };
 
 export default nextConfig;

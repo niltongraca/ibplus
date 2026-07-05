@@ -25,7 +25,9 @@ function LoginForm() {
     setLoading(false);
 
     if (result.success) {
-      const redirect = searchParams?.get("redirect") || "/gestao/dashboard";
+      const { user: u } = await fetch("/api/auth/me").then((r) => r.json());
+      const defaultRoute = u?.role === "admin" ? "/gestao/admin" : "/gestao/dashboard";
+      const redirect = searchParams?.get("redirect") || defaultRoute;
       router.push(redirect);
     } else {
       setError(result.error || "Erro ao fazer login.");
@@ -33,7 +35,11 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-ib-surface flex items-center justify-center px-4">
+    <div className="min-h-screen bg-ib-surface flex items-center justify-center px-4 relative">
+      <Link href="/" className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2 text-ib-muted hover:text-ib-primary transition-colors">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+        <span className="text-sm">Voltar ao início</span>
+      </Link>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-2">

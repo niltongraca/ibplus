@@ -1,12 +1,24 @@
+import "dotenv/config";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
+import { PrismaNeon } from "@prisma/adapter-neon";
+import { neonConfig } from "@neondatabase/serverless";
+import WebSocket from "ws";
 import bcrypt from "bcryptjs";
 
-const adapter = new PrismaLibSql({
-  url: process.env.DATABASE_URL || "file:./dev.db",
-});
+neonConfig.webSocketConstructor = WebSocket as any;
 
-const prisma = new PrismaClient({ adapter });
+function createPrisma() {
+  const url = process.env.DATABASE_URL || "file:./dev.db";
+  if (url.startsWith("postgres")) {
+    const adapter = new PrismaNeon({ connectionString: url });
+    return new PrismaClient({ adapter });
+  }
+  const adapter = new PrismaLibSql({ url });
+  return new PrismaClient({ adapter });
+}
+
+const prisma = createPrisma();
 
 async function main() {
   const password = await bcrypt.hash("123456", 10);
@@ -67,7 +79,7 @@ async function main() {
 
   const customers = await prisma.customer.findMany({ where: { companyId: company.id } });
 
-  await prisma.sale.create({
+  const sale1 = await prisma.sale.create({
     data: {
       companyId: company.id,
       customerId: customers[0].id,
@@ -75,16 +87,16 @@ async function main() {
       status: "completed",
       paymentMethod: "dinheiro",
       date: new Date("2026-06-28"),
-      items: {
-        create: [
-          { productId: products[0].id, quantity: 1, unitPrice: 18500, total: 18500 },
-          { productId: products[1].id, quantity: 2, unitPrice: 4500, total: 9000 },
-        ],
-      },
     },
   });
+  await prisma.saleItem.createMany({
+    data: [
+      { saleId: sale1.id, productId: products[0].id, quantity: 1, unitPrice: 18500, total: 18500 },
+      { saleId: sale1.id, productId: products[1].id, quantity: 2, unitPrice: 4500, total: 9000 },
+    ],
+  });
 
-  await prisma.sale.create({
+  const sale2 = await prisma.sale.create({
     data: {
       companyId: company.id,
       customerId: customers[1].id,
@@ -92,46 +104,46 @@ async function main() {
       status: "completed",
       paymentMethod: "multicaixa",
       date: new Date("2026-06-29"),
-      items: {
-        create: [
-          { productId: products[5].id, quantity: 12, unitPrice: 350, total: 4200 },
-          { productId: products[7].id, quantity: 3, unitPrice: 250, total: 750 },
-          { productId: products[8].id, quantity: 1, unitPrice: 300, total: 300 },
-        ],
-      },
     },
   });
+  await prisma.saleItem.createMany({
+    data: [
+      { saleId: sale2.id, productId: products[5].id, quantity: 12, unitPrice: 350, total: 4200 },
+      { saleId: sale2.id, productId: products[7].id, quantity: 3, unitPrice: 250, total: 750 },
+      { saleId: sale2.id, productId: products[8].id, quantity: 1, unitPrice: 300, total: 300 },
+    ],
+  });
 
-  await prisma.sale.create({
+  const sale3 = await prisma.sale.create({
     data: {
       companyId: company.id,
       customerId: customers[3].id,
-      total: 35000,
+      total: 37000,
       status: "pending",
       paymentMethod: "transferencia",
       date: new Date("2026-06-30"),
-      items: {
-        create: [
-          { productId: products[0].id, quantity: 2, unitPrice: 18500, total: 37000 },
-        ],
-      },
     },
   });
+  await prisma.saleItem.createMany({
+    data: [
+      { saleId: sale3.id, productId: products[0].id, quantity: 2, unitPrice: 18500, total: 37000 },
+    ],
+  });
 
-  await prisma.purchase.create({
+  const purchase1 = await prisma.purchase.create({
     data: {
       companyId: company.id,
       supplier: "Distribuidora Angolar Lda",
       total: 180000,
       status: "completed",
       date: new Date("2026-06-25"),
-      items: {
-        create: [
-          { productId: products[0].id, quantity: 10, unitPrice: 15000, total: 150000 },
-          { productId: products[1].id, quantity: 5, unitPrice: 6000, total: 30000 },
-        ],
-      },
     },
+  });
+  await prisma.purchaseItem.createMany({
+    data: [
+      { purchaseId: purchase1.id, productId: products[0].id, quantity: 10, unitPrice: 15000, total: 150000 },
+      { purchaseId: purchase1.id, productId: products[1].id, quantity: 5, unitPrice: 6000, total: 30000 },
+    ],
   });
 
   await prisma.expense.createMany({
@@ -152,21 +164,21 @@ async function main() {
     ],
   });
 
-  await prisma.invoice.create({
+  const inv1 = await prisma.invoice.create({
     data: {
       companyId: company.id,
       number: "FAT-2026-0001",
       customer: "Mega Store SA",
-      total: 35000,
+      total: 37000,
       status: "pending",
       date: new Date("2026-06-30"),
       dueDate: new Date("2026-07-30"),
-      items: {
-        create: [
-          { description: "Arroz Fardão 25kg x 2", quantity: 2, unitPrice: 18500, total: 37000 },
-        ],
-      },
     },
+  });
+  await prisma.invoiceItem.createMany({
+    data: [
+      { invoiceId: inv1.id, description: "Arroz Fardão 25kg x 2", quantity: 2, unitPrice: 18500, total: 37000 },
+    ],
   });
 
   console.log("Seed completed successfully!");

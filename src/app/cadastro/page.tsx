@@ -12,6 +12,7 @@ export default function CadastroPage() {
     email: "",
     password: "",
     confirmPassword: "",
+    role: "particular",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -41,7 +42,11 @@ export default function CadastroPage() {
   };
 
   return (
-    <div className="min-h-screen bg-ib-surface flex items-center justify-center px-4">
+    <div className="min-h-screen bg-ib-surface flex items-center justify-center px-4 relative">
+      <Link href="/" className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2 text-ib-muted hover:text-ib-primary transition-colors">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+        <span className="text-sm">Voltar ao início</span>
+      </Link>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-2">
@@ -88,6 +93,28 @@ export default function CadastroPage() {
               required
               className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-ib-primary mb-1.5">
+              Tipo de conta
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { value: "particular", label: "Particular", desc: "Para uso individual" },
+                { value: "empresa", label: "Empresa", desc: "Para negócios e equipas" },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setForm({ ...form, role: opt.value })}
+                  className={`p-3 rounded-lg border-2 text-left transition-all ${form.role === opt.value ? "border-ib-accent bg-ib-accent/5" : "border-gray-200 hover:border-gray-300"}`}
+                >
+                  <span className="block text-sm font-medium text-ib-primary">{opt.label}</span>
+                  <span className="block text-xs text-ib-muted mt-0.5">{opt.desc}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           <div>

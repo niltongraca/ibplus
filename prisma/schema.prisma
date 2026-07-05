@@ -4,19 +4,19 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   name      String
-  email     String   @unique
+  email     String    @unique
   password  String
   companyId String?
-  company   Company? @relation(fields: [companyId], references: [id])
-  role      String   @default("admin")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  company   Company?  @relation(fields: [companyId], references: [id])
+  role      String    @default("particular")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Company {
@@ -28,6 +28,7 @@ model Company {
   address   String?
   logo      String?
   users     User[]
+  services  Service[]
   customers Customer[]
   products  Product[]
   sales     Sale[]
@@ -36,6 +37,7 @@ model Company {
   invoices  Invoice[]
   campaigns Campaign[]
   employees Employee[]
+  quotes    Quote[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -183,6 +185,45 @@ model InvoiceItem {
   quantity  Int
   unitPrice Float
   total     Float
+}
+
+model Quote {
+  id        String      @id @default(cuid())
+  companyId String
+  company   Company     @relation(fields: [companyId], references: [id])
+  number    String      @unique
+  customer  String?
+  date      DateTime    @default(now())
+  validUntil DateTime?
+  total     Float
+  status    String      @default("draft")
+  notes     String?
+  items     QuoteItem[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model QuoteItem {
+  id        String  @id @default(cuid())
+  quoteId   String
+  quote     Quote   @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  description String
+  quantity  Int
+  unitPrice Float
+  total     Float
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  name        String
+  description String?
+  price       Float
+  duration    String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Campaign {

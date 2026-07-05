@@ -10,10 +10,66 @@
   --color-ib-danger: #ef4444;
   --color-ib-surface: #f8fafc;
   --color-ib-muted: #94a3b8;
+
+  --breakpoint-xs: 480px;
+  --breakpoint-sm: 768px;
+  --breakpoint-md: 1024px;
+  --breakpoint-lg: 1280px;
+  --breakpoint-xl: 1536px;
+
+  --container-mobile: 100%;
+  --container-tablet: 720px;
+  --container-laptop: 960px;
+  --container-desktop: 1200px;
+  --container-desktop-xl: 1440px;
 }
 
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background-color: var(--color-ib-surface);
   color: var(--color-ib-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .tablet-only, .desktop-only {
+    display: none !important;
+  }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .desktop-only {
+    display: none !important;
+  }
+}
+@media (min-width: 1024px) {
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slide-in {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+.animate-fade-in {
+  animation: fade-in 200ms ease-out;
+}
+.animate-slide-in {
+  animation: slide-in 250ms ease-out;
 }

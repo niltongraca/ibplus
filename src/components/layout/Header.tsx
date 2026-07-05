@@ -1,8 +1,9 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { Bell, Search, Settings, LogOut } from "lucide-react";
+import { Menu, Bell, LogOut, Shield } from "lucide-react";
 
 const moduleNames: Record<string, string> = {
   gestao: "Gestão",
@@ -14,73 +15,107 @@ const moduleNames: Record<string, string> = {
   rh: "RH",
 };
 
-export function Header() {
-  const { user, loading, logout } = useAuth();
+const pageNames: Record<string, string> = {
+  "gestao/dashboard": "Dashboard",
+  "gestao/clientes": "Clientes",
+  "gestao/produtos": "Produtos",
+  "gestao/stock": "Stock",
+  "gestao/compras": "Compras",
+  "gestao/vendas": "Vendas",
+  "gestao/despesas": "Despesas",
+  "gestao/fluxo-caixa": "Fluxo de Caixa",
+  "finance/faturacao": "Faturação",
+  "finance/orcamentos": "Orçamentos",
+  "finance/cobrancas": "Cobranças",
+  "finance/contas-pagar": "Contas a Pagar",
+  "finance/contas-receber": "Contas a Receber",
+  "finance/relatorios": "Relatórios",
+  "crm/clientes": "Clientes",
+  "crm/funil-vendas": "Funil de Vendas",
+  "crm/propostas": "Propostas",
+  "crm/agenda": "Agenda",
+  "crm/follow-up": "Follow-up",
+  "store/loja": "Loja Online",
+  "store/catalogo": "Catálogo",
+  "store/encomendas": "Encomendas",
+  "store/pagamentos": "Pagamentos",
+  "ia/assistente": "Assistente",
+  "ia/analise-vendas": "Análise de Vendas",
+  "ia/previsoes": "Previsões",
+  "ia/recomendacoes": "Recomendações",
+  "ia/relatorios": "Relatórios",
+  "marketing/campanhas": "Campanhas",
+  "marketing/email-marketing": "E-mail Marketing",
+  "marketing/promocoes": "Promoções",
+  "marketing/fidelizacao": "Fidelização",
+  "rh/funcionarios": "Funcionários",
+  "rh/salarios": "Salários",
+  "rh/ferias": "Férias",
+  "rh/presencas": "Presenças",
+};
+
+interface HeaderProps {
+  onMenuClick: () => void;
+}
+
+export function Header({ onMenuClick }: HeaderProps) {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
+
   const segments = (pathname || "").split("/").filter(Boolean);
-  const currentModule = segments[0] || "";
-  const currentPage = segments[1] || "";
-
-  const moduleLabel = moduleNames[currentModule] || "IBPlus";
-
-  const pageLabel = currentPage
-    ? currentPage
-        .split("-")
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(" ")
-    : "Dashboard";
+  const moduleKey = segments[0] || "";
+  const pageKey = segments.join("/");
+  const moduleName = moduleNames[moduleKey] || "";
+  const pageName = pageNames[pageKey] || "";
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
-      <div className="flex items-center justify-between px-6 py-3">
-        <div>
-          <h1 className="text-xl font-semibold text-ib-primary">
-            {moduleLabel}
-          </h1>
-          <p className="text-sm text-ib-muted">{pageLabel}</p>
+      <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            onClick={onMenuClick}
+            className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label="Abrir menu"
+          >
+            <Menu className="w-5 h-5 text-ib-primary" />
+          </button>
+          <div className="min-w-0">
+            <h1 className="text-lg font-bold text-ib-primary truncate">
+              {moduleName ? `${moduleName}${pageName ? ` — ${pageName}` : ""}` : "IBPlus"}
+            </h1>
+          </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="relative hidden sm:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ib-muted" />
-            <input
-              type="text"
-              placeholder="Pesquisar..."
-              className="pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg bg-ib-surface focus:outline-none focus:ring-2 focus:ring-ib-accent/40 w-64"
-            />
-          </div>
-
-          <button className="relative p-2 text-ib-muted hover:text-ib-primary rounded-lg hover:bg-gray-100 transition-colors">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-ib-danger" />
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Notificações">
+            <Bell className="w-5 h-5 text-ib-muted" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-ib-danger rounded-full" />
           </button>
 
-          <button className="p-2 text-ib-muted hover:text-ib-primary rounded-lg hover:bg-gray-100 transition-colors">
-            <Settings className="h-5 w-5" />
-          </button>
+          {user && (
+            <div className="hidden sm:flex items-center gap-3 pl-3 border-l border-gray-200">
+              {user.role === "admin" && (
+                <Link href="/gestao/admin" className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-600 text-xs font-medium hover:bg-amber-500/20 transition-colors" title="Painel Admin">
+                  <Shield className="w-3.5 h-3.5" /> Admin
+                </Link>
+              )}
+              <div className="w-8 h-8 rounded-lg bg-ib-accent/10 flex items-center justify-center text-sm font-bold text-ib-accent">
+                {user.name?.charAt(0)?.toUpperCase() || "U"}
+              </div>
+              <div className="hidden lg:block">
+                <p className="text-sm font-medium text-ib-primary leading-tight">{user.name}</p>
+                <p className="text-xs text-ib-muted">{user.email}</p>
+              </div>
+            </div>
+          )}
 
-          <div className="flex items-center gap-2 pl-4 border-l border-gray-200">
-            {loading ? (
-              <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
-            ) : (
-              <>
-                <div className="h-8 w-8 rounded-full bg-ib-accent flex items-center justify-center text-white text-sm font-medium">
-                  {user?.name?.charAt(0)?.toUpperCase() || "U"}
-                </div>
-                <div className="text-sm hidden sm:block">
-                  <p className="font-medium text-ib-primary">{user?.name || "Utilizador"}</p>
-                  <p className="text-ib-muted text-xs">{user?.email || ""}</p>
-                </div>
-                <button
-                  onClick={logout}
-                  className="ml-2 p-2 text-ib-muted hover:text-ib-danger rounded-lg hover:bg-gray-100 transition-colors"
-                  title="Sair"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
-              </>
-            )}
-          </div>
+          <button
+            onClick={logout}
+            className="p-2 hover:bg-red-50 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label="Sair"
+          >
+            <LogOut className="w-5 h-5 text-ib-muted hover:text-ib-danger transition-colors" />
+          </button>
         </div>
       </div>
     </header>

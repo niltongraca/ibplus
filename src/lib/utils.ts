@@ -9,6 +9,6 @@ export function formatCurrency(value: number): string {
   }).format(value);
 }
 
-export function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat("pt-AO").format(date);
+export function formatDate(date: Date | string): string {
+  return new Intl.DateTimeFormat("pt-AO").format(new Date(date));
 }
