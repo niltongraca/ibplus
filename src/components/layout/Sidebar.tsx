@@ -136,7 +136,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ open, onClose }: SidebarProps) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const { user } = useAuth();
 
   const sidebarContent = (
