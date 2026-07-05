@@ -5,8 +5,19 @@ import { getAuthUser } from "@/lib/auth";
 export async function GET() {
   try {
     const user = await getAuthUser();
-    if (!user?.companyId) {
-      return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+    if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+
+    if (!user.companyId) {
+      return NextResponse.json({
+        totalRevenue: 0,
+        todaySales: 0,
+        totalCustomers: 0,
+        totalProducts: 0,
+        pendingInvoices: 0,
+        pendingInvoicesTotal: 0,
+        productsLowStock: 0,
+        recentSales: [],
+      });
     }
 
     const today = new Date();
