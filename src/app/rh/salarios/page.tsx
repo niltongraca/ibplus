@@ -20,7 +20,7 @@ export default function SalariosPage() {
     fetch("/api/employees")
       .then((r) => r.json())
       .then((d) => setEmployees(d.employees))
-      .catch(() => {})
+      .catch((err) => console.error("Erro ao carregar salários:", err))
       .finally(() => setLoading(false));
   }, []);
 

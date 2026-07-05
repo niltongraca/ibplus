@@ -46,7 +46,7 @@ export default function NovaVendaPage() {
         setCustomers(cData.customers || []);
         setProducts(pData.products || []);
       })
-      .catch(() => {});
+      .catch((err) => console.error("Erro ao carregar dados para venda:", err));
   }, []);
 
   function addItem() {

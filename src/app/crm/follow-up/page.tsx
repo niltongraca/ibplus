@@ -25,7 +25,7 @@ export default function FollowUpPage() {
     fetch("/api/customers")
       .then((r) => r.json())
       .then((d) => setCustomers(d.customers || []))
-      .catch(() => {})
+      .catch((err) => console.error("Erro ao carregar follow-up:", err))
       .finally(() => setLoading(false));
   }, []);
 

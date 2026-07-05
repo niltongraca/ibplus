@@ -23,7 +23,7 @@ export default function RelatoriosPage() {
     fetch("/api/dashboard")
       .then((r) => r.json())
       .then((d) => setData(d))
-      .catch(() => {})
+      .catch((err) => console.error("Erro ao carregar relatórios financeiros:", err))
       .finally(() => setLoading(false));
   }, []);
 

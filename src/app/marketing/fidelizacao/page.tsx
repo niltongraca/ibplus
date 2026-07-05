@@ -34,7 +34,7 @@ export default function FidelizacaoPage() {
       });
       setCustomers(custList.map((c: Customer) => ({ ...c, totalSales: salesByCustomer[c.id] || 0 })));
       setSales(salesList);
-    }).catch(() => {}).finally(() => setLoading(false));
+    }).catch((err) => console.error("Erro ao carregar fidelização:", err)).finally(() => setLoading(false));
   }, []);
 
   const topCustomers = [...customers].sort((a, b) => (b.totalSales || 0) - (a.totalSales || 0));

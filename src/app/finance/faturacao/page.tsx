@@ -24,7 +24,7 @@ export default function FaturacaoPage() {
     fetch("/api/invoices")
       .then((r) => r.json())
       .then((d) => setInvoices(d.invoices))
-      .catch(() => {})
+      .catch((err) => console.error("Erro ao carregar faturação:", err))
       .finally(() => setLoading(false));
   }, []);
 

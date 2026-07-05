@@ -40,7 +40,7 @@ export default function LojaOnlinePage() {
     fetch("/api/products")
       .then((r) => r.json())
       .then((d) => setProducts(d.products))
-      .catch(() => {})
+      .catch((err) => console.error("Erro ao carregar loja:", err))
       .finally(() => setLoading(false));
   }, []);
 

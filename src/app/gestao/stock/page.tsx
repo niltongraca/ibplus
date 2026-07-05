@@ -26,7 +26,7 @@ export default function StockPage() {
     fetch("/api/products")
       .then((r) => r.json())
       .then((d) => setProducts(d.products))
-      .catch(() => {})
+      .catch((err) => console.error("Erro ao carregar stock:", err))
       .finally(() => setLoading(false));
   }, []);
 

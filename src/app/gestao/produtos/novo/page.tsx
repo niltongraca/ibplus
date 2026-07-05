@@ -31,7 +31,7 @@ export default function NovoProdutoPage() {
     fetch("/api/categories")
       .then((r) => r.json())
       .then((d) => setCategories(d.categories || []))
-      .catch(() => {});
+      .catch((err) => console.error("Erro ao carregar categorias:", err));
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {

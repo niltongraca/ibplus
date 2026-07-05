@@ -24,7 +24,7 @@ export default function OrcamentosPage() {
     fetch("/api/quotes")
       .then((r) => r.json())
       .then((d) => setQuotes(d.quotes))
-      .catch(() => {})
+      .catch((err) => console.error("Erro ao carregar orçamentos:", err))
       .finally(() => setLoading(false));
   }, []);
 

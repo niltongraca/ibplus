@@ -48,7 +48,7 @@ export default function PresencasPage() {
     ]).then(([aData, eData]) => {
       setAttendances(aData.attendances || []);
       setEmployees(eData.employees || []);
-    }).catch(() => {}).finally(() => setLoading(false));
+    }).catch((err) => console.error("Erro ao carregar presenças:", err)).finally(() => setLoading(false));
   }, []);
 
   const filtered = attendances.filter((a) =>

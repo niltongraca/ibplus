@@ -27,7 +27,7 @@ export default function AnaliseVendasPage() {
     fetch("/api/dashboard")
       .then((r) => r.json())
       .then((d) => setData(d))
-      .catch(() => {})
+      .catch((err) => console.error("Erro ao carregar análise de vendas:", err))
       .finally(() => setLoading(false));
   }, []);
 

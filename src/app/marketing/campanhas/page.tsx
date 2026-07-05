@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Megaphone, Search, Plus, Calendar, DollarSign, Tag, MoreHorizontal } from "lucide-react";
+import { Megaphone, Search, Plus, Calendar, DollarSign, MoreHorizontal } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 
@@ -43,7 +43,7 @@ export default function CampanhasPage() {
     fetch("/api/campaigns")
       .then((r) => r.json())
       .then((d) => setCampaigns(d.campaigns))
-      .catch(() => {})
+      .catch((err) => console.error("Erro ao carregar campanhas:", err))
       .finally(() => setLoading(false));
   }, []);
 

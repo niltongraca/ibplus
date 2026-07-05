@@ -46,7 +46,7 @@ export default function FeriasPage() {
     ]).then(([vData, eData]) => {
       setVacations(vData.vacations || []);
       setEmployees(eData.employees || []);
-    }).catch(() => {}).finally(() => setLoading(false));
+    }).catch((err) => console.error("Erro ao carregar férias:", err)).finally(() => setLoading(false));
   }, []);
 
   const filtered = vacations.filter((v) =>

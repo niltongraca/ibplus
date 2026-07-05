@@ -22,7 +22,7 @@ export default function PerfilPage() {
         .then((d) => {
           if (d.company) setCompany({ name: d.company.name || "", nif: d.company.nif || "", phone: d.company.phone || "", address: d.company.address || "" });
         })
-        .catch(() => {});
+        .catch((err) => console.error("Erro ao carregar empresa:", err));
     }
   }, [user]);
 

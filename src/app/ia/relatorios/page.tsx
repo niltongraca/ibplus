@@ -21,7 +21,7 @@ export default function RelatoriosIAPage() {
     fetch("/api/dashboard")
       .then((r) => r.json())
       .then((d) => setData(d))
-      .catch(() => {})
+      .catch((err) => console.error("Erro ao carregar relatórios IA:", err))
       .finally(() => setLoading(false));
   }, []);
 

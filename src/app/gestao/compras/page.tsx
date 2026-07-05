@@ -23,7 +23,7 @@ export default function ComprasPage() {
     fetch("/api/purchases")
       .then((r) => r.json())
       .then((d) => setPurchases(d.purchases))
-      .catch(() => {})
+      .catch((err) => console.error("Erro ao carregar compras:", err))
       .finally(() => setLoading(false));
   }, []);
 

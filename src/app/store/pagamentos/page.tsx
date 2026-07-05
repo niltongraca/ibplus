@@ -23,7 +23,7 @@ export default function PagamentosStorePage() {
     fetch("/api/invoices")
       .then((r) => r.json())
       .then((d) => setInvoices(d.invoices))
-      .catch(() => {})
+      .catch((err) => console.error("Erro ao carregar pagamentos:", err))
       .finally(() => setLoading(false));
   }, []);
 

@@ -35,7 +35,7 @@ export default function CatalogoPage() {
         setProducts(pData.products);
         setCategories(cData.categories);
       })
-      .catch(() => {})
+      .catch((err) => console.error("Erro ao carregar catálogo:", err))
       .finally(() => setLoading(false));
   }, []);
 

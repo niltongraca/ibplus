@@ -29,7 +29,7 @@ export default function NovaFaturaPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("/api/services").then(r => r.json()).then(d => setServices(d.services || [])).catch(() => {});
+    fetch("/api/services").then(r => r.json()).then(d => setServices(d.services || [])).catch((err) => console.error("Erro ao carregar serviços:", err));
   }, []);
 
   const addItem = () => setItems([...items, { description: "", quantity: 1, unitPrice: 0 }]);

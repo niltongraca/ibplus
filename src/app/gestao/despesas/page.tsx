@@ -25,7 +25,7 @@ export default function DespesasPage() {
     fetch("/api/expenses")
       .then((r) => r.json())
       .then((d) => setExpenses(d.expenses))
-      .catch(() => {})
+      .catch((err) => console.error("Erro ao carregar despesas:", err))
       .finally(() => setLoading(false));
   }, []);
 

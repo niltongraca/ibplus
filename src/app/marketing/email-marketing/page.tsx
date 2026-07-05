@@ -38,7 +38,7 @@ export default function EmailMarketingPage() {
     fetch("/api/campaigns")
       .then((r) => r.json())
       .then((d) => setCampaigns((d.campaigns || []).filter((c: Campaign) => c.type === "email")))
-      .catch(() => {})
+      .catch((err) => console.error("Erro ao carregar email marketing:", err))
       .finally(() => setLoading(false));
   }, []);
 

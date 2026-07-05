@@ -24,7 +24,7 @@ export default function VendasPage() {
     fetch("/api/sales")
       .then((r) => r.json())
       .then((d) => setSales(d.sales))
-      .catch(() => {})
+      .catch((err) => console.error("Erro ao carregar vendas:", err))
       .finally(() => setLoading(false));
   }, []);
 

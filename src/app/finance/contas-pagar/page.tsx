@@ -32,7 +32,7 @@ export default function ContasPagarPage() {
     fetch("/api/expenses")
       .then((r) => r.json())
       .then((d) => setExpenses(d.expenses))
-      .catch(() => {})
+      .catch((err) => console.error("Erro ao carregar contas a pagar:", err))
       .finally(() => setLoading(false));
   }, []);
 

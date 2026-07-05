@@ -59,7 +59,7 @@ interface HeaderProps {
 }
 
 export function Header({ onMenuClick }: HeaderProps) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const { user, logout } = useAuth();
 
   const segments = (pathname || "").split("/").filter(Boolean);

@@ -36,7 +36,7 @@ export default function FluxoCaixaPage() {
       ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
       setItems(mapped);
-    }).catch(() => {}).finally(() => setLoading(false));
+    }).catch((err) => console.error("Erro ao carregar fluxo de caixa:", err)).finally(() => setLoading(false));
   }, []);
 
   const balance = revenue - expenses;

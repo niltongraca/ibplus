@@ -24,7 +24,7 @@ export default function DashboardPage() {
     fetch("/api/dashboard")
       .then((r) => r.json())
       .then(setData)
-      .catch(() => {})
+      .catch((err) => console.error("Erro ao carregar dashboard:", err))
       .finally(() => setLoading(false));
   }, []);
 

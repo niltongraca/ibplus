@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Users, UserPlus, Mail, Briefcase, DollarSign } from "lucide-react";
+import { Search, Users } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 
@@ -23,7 +23,7 @@ export default function FuncionariosPage() {
     fetch("/api/employees")
       .then((r) => r.json())
       .then((d) => setEmployees(d.employees))
-      .catch(() => {})
+      .catch((err) => console.error("Erro ao carregar funcionários:", err))
       .finally(() => setLoading(false));
   }, []);
 

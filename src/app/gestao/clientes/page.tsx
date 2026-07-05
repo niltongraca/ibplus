@@ -26,7 +26,7 @@ export default function ClientesPage() {
     fetch("/api/customers")
       .then((r) => r.json())
       .then((d) => setCustomers(d.customers))
-      .catch(() => {})
+      .catch((err) => console.error("Erro ao carregar clientes:", err))
       .finally(() => setLoading(false));
   }, []);
 

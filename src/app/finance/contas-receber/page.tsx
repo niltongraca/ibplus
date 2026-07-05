@@ -33,7 +33,7 @@ export default function ContasReceberPage() {
     fetch("/api/invoices")
       .then((r) => r.json())
       .then((d) => setInvoices(d.invoices))
-      .catch(() => {})
+      .catch((err) => console.error("Erro ao carregar contas a receber:", err))
       .finally(() => setLoading(false));
   }, []);
 
