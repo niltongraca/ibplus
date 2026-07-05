@@ -39,7 +39,7 @@ export default function ClienteDetailPage() {
     fetch(`/api/customers/${id}`)
       .then((r) => r.json())
       .then((d) => setCustomer(d.customer))
-      .catch(() => router.push("/gestao/clientes"))
+      .catch((err) => { console.error(err); router.push("/gestao/clientes"); })
       .finally(() => setLoading(false));
   }, [id, router]);
 

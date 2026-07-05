@@ -2,31 +2,32 @@
 
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { Building2, Search, Users, Mail, FileText } from "lucide-react";
+import { Building2, Search, Mail, FileText } from "lucide-react";
 
-interface Company {
+interface EmpresaUser {
   id: string;
   name: string;
-  nif: string | null;
   email: string | null;
   phone: string | null;
-  address: string | null;
-  _count: { users: number };
+  companyId: string | null;
+  company: { id: string; name: string; nif: string | null; email: string | null } | null;
+  empresa: { nomeCompleto: string | null; NIF: string | null; BI: string | null; registoComercial: string | null } | null;
+  _count: { products: number; customers: number; sales: number };
 }
 
 export default function AdminEmpresas() {
-  const [companies, setCompanies] = useState<Company[]>([]);
+  const [empresas, setEmpresas] = useState<EmpresaUser[]>([]);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
     fetch("/api/admin/empresas")
       .then((r) => r.json())
-      .then((d) => setCompanies(d.companies));
+      .then((d) => setEmpresas(d.empresas));
   }, []);
 
-  const filtered = companies.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    (c.email && c.email.toLowerCase().includes(search.toLowerCase()))
+  const filtered = empresas.filter((e) =>
+    e.name.toLowerCase().includes(search.toLowerCase()) ||
+    (e.email && e.email.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
@@ -58,33 +59,37 @@ export default function AdminEmpresas() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((c) => (
-                <tr key={c.id} className="border-b border-gray-50 text-ib-primary hover:bg-gray-50 transition-colors">
+              {filtered.map((e) => {
+                const companyName = e.company?.name || e.name;
+                const nif = e.empresa?.NIF || e.company?.nif;
+                return (
+                <tr key={e.id} className="border-b border-gray-50 text-ib-primary hover:bg-gray-50 transition-colors">
                   <td className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold text-xs shrink-0">{c.name.charAt(0)}</div>
+                      <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold text-xs shrink-0">{companyName.charAt(0)}</div>
                       <div>
-                        <span className="font-medium">{c.name}</span>
-                        {c.address && <p className="text-xs text-ib-muted">{c.address}</p>}
+                        <span className="font-medium">{companyName}</span>
+                        <p className="text-xs text-ib-muted">{e.empresa?.nomeCompleto || e.name}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="p-4 text-ib-muted font-mono text-sm">{c.nif || "—"}</td>
+                  <td className="p-4 text-ib-muted font-mono text-sm">{nif || "—"}</td>
                   <td className="p-4">
-                    {c.email && (
+                    {e.email && (
                       <span className="flex items-center gap-1.5 text-ib-muted">
-                        <Mail className="w-3 h-3" /> {c.email}
+                        <Mail className="w-3 h-3" /> {e.email}
                       </span>
                     )}
-                    {!c.email && <span className="text-ib-muted">—</span>}
+                    {!e.email && <span className="text-ib-muted">—</span>}
                   </td>
                   <td className="p-4 text-center">
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-                      <Users className="w-3 h-3" /> {c._count.users}
+                      <FileText className="w-3 h-3" /> {e._count.products} produtos
                     </span>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
               {filtered.length === 0 && (
                 <tr><td colSpan={4} className="p-12 text-center text-ib-muted">Nenhuma empresa encontrada.</td></tr>
               )}

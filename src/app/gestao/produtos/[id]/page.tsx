@@ -34,7 +34,7 @@ export default function ProdutoDetailPage() {
     fetch(`/api/products/${id}`)
       .then((r) => r.json())
       .then((d) => setProduct(d.product))
-      .catch(() => router.push("/gestao/produtos"))
+      .catch((err) => { console.error(err); router.push("/gestao/produtos"); })
       .finally(() => setLoading(false));
   }, [id, router]);
 

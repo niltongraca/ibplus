@@ -38,7 +38,7 @@ export default function OrcamentoDetailPage() {
     fetch(`/api/quotes/${id}`)
       .then((r) => r.json())
       .then((d) => setQuote(d.quote))
-      .catch(() => router.push("/finance/orcamentos"))
+      .catch((err) => { console.error(err); router.push("/finance/orcamentos"); })
       .finally(() => setLoading(false));
   }, [id, router]);
 

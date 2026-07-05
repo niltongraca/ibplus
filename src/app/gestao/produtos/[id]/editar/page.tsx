@@ -49,7 +49,7 @@ export default function EditarProdutoPage() {
           categoryId: p.categoryId || "",
         });
       })
-      .catch(() => router.push("/gestao/produtos"))
+      .catch((err) => { console.error(err); router.push("/gestao/produtos"); })
       .finally(() => setLoading(false));
   }, [id, router]);
 

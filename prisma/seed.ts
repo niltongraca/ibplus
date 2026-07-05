@@ -31,6 +31,7 @@ async function main() {
       password,
       companyId: company.id,
       role: "admin",
+      tipo: "empresa",
     },
   });
 

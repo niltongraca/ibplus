@@ -37,7 +37,7 @@ export default function FaturaDetailPage() {
     fetch(`/api/invoices/${id}`)
       .then((r) => r.json())
       .then((d) => setInvoice(d.invoice))
-      .catch(() => router.push("/finance/faturacao"))
+      .catch((err) => { console.error(err); router.push("/finance/faturacao"); })
       .finally(() => setLoading(false));
   }, [id, router]);
 

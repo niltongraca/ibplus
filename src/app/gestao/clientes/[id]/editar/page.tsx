@@ -38,7 +38,7 @@ export default function EditarClientePage() {
           notes: c.notes || "",
         });
       })
-      .catch(() => router.push("/gestao/clientes"))
+      .catch((err) => { console.error(err); router.push("/gestao/clientes"); })
       .finally(() => setLoading(false));
   }, [id, router]);
 
