@@ -9,6 +9,7 @@ export interface JwtPayload {
   companyId: string | null;
   email: string;
   role: string;
+  accountType: string;
 }
 
 export function signToken(payload: JwtPayload): string {
@@ -33,7 +34,7 @@ export async function getAuthUser() {
 
   const user = await prisma.user.findUnique({
     where: { id: payload.userId },
-    select: { id: true, name: true, email: true, phone: true, tipo: true, companyId: true, role: true },
+    select: { id: true, name: true, email: true, phone: true, accountType: true, plan: true, companyId: true, role: true },
   });
 
   return user;

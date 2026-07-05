@@ -8,7 +8,8 @@ interface User {
   name: string;
   email: string;
   phone?: string | null;
-  tipo?: string;
+  accountType?: string;
+  plan?: string;
   companyId?: string | null;
   role: string;
 }
@@ -58,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const register = useCallback(async (data: Record<string, string>) => {
-    if (data.tipo === "empreendedor" && data.password !== data.confirmPassword) {
+    if (data.accountType === "EMPREENDEDOR" && data.password !== data.confirmPassword) {
       return { success: false, error: "As senhas não coincidem." };
     }
 

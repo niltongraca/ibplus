@@ -9,51 +9,80 @@ datasource db {
   directUrl  = env("DIRECT_URL")
 }
 
-model User {
-  id             String         @id @default(cuid())
-  name           String
-  email          String         @unique
-  password       String
-  phone          String?
-  avatar         String?
-  tipo           String         @default("empreendedor")
-  role           String         @default("user")
-  companyId      String?
-  company        Company?       @relation(fields: [companyId], references: [id])
-  empreendedor   Empreendedor?
-  empresa        Empresa?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+enum AccountType {
+  EMPREENDEDOR
+  EMPRESA
+  ONG
+  ASSOCIACAO
+  EDUCACAO
+  COOPERATIVA
 }
 
-model Empreendedor {
+enum PlanType {
+  FREE
+  PREMIUM
+  BUSINESS
+}
+
+model User {
+  id           String      @id @default(cuid())
+  name         String
+  email        String      @unique
+  password     String
+  phone        String?
+  avatar       String?
+  accountType  AccountType @default(EMPREENDEDOR)
+  role         String      @default("user")
+  plan         PlanType    @default(FREE)
+  companyId    String?
+  company      Company?    @relation(fields: [companyId], references: [id])
+
+  profile         Profile?
+  companyProfile  CompanyProfile?
+  ngoProfile      NGOProfile?
+  educationProfile EducationProfile?
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Profile {
   id              String   @id @default(cuid())
   userId          String   @unique
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  nomeCompleto    String
-  nomeComercial   String?
+
+  // Dados comuns
+  nome            String
   nif             String?
+  telefone        String?
+  endereco        String?
+  provincia       String?
+  municipio       String?
+  bairro          String?
+  descricao       String?
+  logo            String?
+
+  // Dados pessoais (empreendedor, associacao, cooperativa)
+  nomeComercial   String?
   bi              String?
   dataNascimento  DateTime?
   sexo            String?
   pais            String?
-  provincia       String?
-  municipio       String?
-  bairro          String?
-  endereco        String?
   areaActividade  String?
   profissao       String?
   servicosDescricao String?
   redesSociais    String?
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
 
-model Empresa {
+model CompanyProfile {
   id               String   @id @default(cuid())
   userId           String   @unique
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  nome             String
+
+  nomeEmpresa      String
   nif              String?
   registoComercial String?
   anoFundacao      Int?
@@ -74,6 +103,39 @@ model Empresa {
   facebook         String?
   instagram        String?
   linkedin         String?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model NGOProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  nome         String
+  missao       String
+  areaActuacao String
+  website      String?
+  facebook     String?
+  instagram    String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model EducationProfile {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  nomeInstituicao  String
+  tipo             String   // escola, universidade, centro
+  cursos           String?
+  website          String?
+  facebook         String?
+  instagram        String?
+
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }

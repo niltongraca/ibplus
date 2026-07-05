@@ -8,7 +8,7 @@ export async function GET() {
     if (!user || user.role !== "admin") return NextResponse.json({ error: "Não autorizado." }, { status: 403 });
 
     const empresas = await prisma.user.findMany({
-      where: { tipo: "empresa" },
+      where: { accountType: "EMPRESA" },
       select: {
         id: true,
         name: true,
@@ -16,7 +16,7 @@ export async function GET() {
         phone: true,
         companyId: true,
         company: { select: { id: true, name: true, nif: true, email: true } },
-        empresa: { select: { nomeCompleto: true, NIF: true, BI: true, registoComercial: true } },
+        companyProfile: { select: { nomeEmpresa: true, nif: true, registoComercial: true } },
         _count: { select: { products: true, customers: true, sales: true } },
       },
       orderBy: { createdAt: "desc" },

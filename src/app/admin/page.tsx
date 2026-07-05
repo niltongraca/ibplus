@@ -2,13 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { Users, Building2, UserCircle, TrendingUp, Activity, Server, Wrench, ArrowRight, BarChart3, ShoppingCart, Globe, Shield } from "lucide-react";
+import { Users, Building2, UserCircle, TrendingUp, Activity, Server, Wrench, ArrowRight, BarChart3, ShoppingCart, Globe, Shield, GraduationCap } from "lucide-react";
 import Link from "next/link";
 
 interface DashboardStats {
   totalUsers: number;
   empresaCount: number;
-  particularCount: number;
+  empreendedorCount: number;
+  ongCount: number;
+  educacaoCount: number;
+  associacaoCount: number;
+  cooperativaCount: number;
   totalCompanies: number;
 }
 
@@ -33,8 +37,9 @@ export default function AdminPage() {
         {[
           { icon: Users, label: "Utilizadores", value: stats?.totalUsers ?? "-,---", sub: "Total registados", color: "text-blue-600 bg-blue-50", border: "border-blue-100" },
           { icon: Building2, label: "Empresas", value: stats?.empresaCount ?? "-", sub: "Contas empresariais", color: "text-emerald-600 bg-emerald-50", border: "border-emerald-100" },
-          { icon: UserCircle, label: "Particulares", value: stats?.particularCount ?? "-", sub: "Contas individuais", color: "text-violet-600 bg-violet-50", border: "border-violet-100" },
-          { icon: Globe, label: "Organizações", value: stats?.totalCompanies ?? "-", sub: "Entidades registadas", color: "text-amber-600 bg-amber-50", border: "border-amber-100" },
+          { icon: UserCircle, label: "Empreendedores", value: stats?.empreendedorCount ?? "-", sub: "Contas individuais", color: "text-violet-600 bg-violet-50", border: "border-violet-100" },
+          { icon: Globe, label: "ONGs", value: stats?.ongCount ?? "-", sub: "Organizações não-governamentais", color: "text-amber-600 bg-amber-50", border: "border-amber-100" },
+          { icon: Activity, label: "Educação", value: stats?.educacaoCount ?? "-", sub: "Instituições de ensino", color: "text-rose-600 bg-rose-50", border: "border-rose-100" },
         ].map((s) => (
           <div key={s.label} className={`bg-white border ${s.border} rounded-xl p-5 hover:shadow-sm transition-shadow`}>
             <div className="flex items-center justify-between mb-3">
@@ -99,6 +104,27 @@ export default function AdminPage() {
             </div>
             <div className="flex items-center justify-between py-3 border-b border-gray-100">
               <div className="flex items-center gap-3">
+                <UserCircle className="w-4 h-4 text-violet-500" />
+                <span className="text-sm text-ib-primary">Empreendedores</span>
+              </div>
+              <span className="text-sm font-bold text-ib-primary">{stats?.empreendedorCount ?? "-"}</span>
+            </div>
+            <div className="flex items-center justify-between py-3 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <Globe className="w-4 h-4 text-amber-500" />
+                <span className="text-sm text-ib-primary">ONGs</span>
+              </div>
+              <span className="text-sm font-bold text-ib-primary">{stats?.ongCount ?? "-"}</span>
+            </div>
+            <div className="flex items-center justify-between py-3 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <Activity className="w-4 h-4 text-rose-500" />
+                <span className="text-sm text-ib-primary">Educação</span>
+              </div>
+              <span className="text-sm font-bold text-ib-primary">{stats?.educacaoCount ?? "-"}</span>
+            </div>
+            <div className="flex items-center justify-between py-3 border-b border-gray-100">
+              <div className="flex items-center gap-3">
                 <Users className="w-4 h-4 text-blue-500" />
                 <span className="text-sm text-ib-primary">Total utilizadores</span>
               </div>
@@ -106,7 +132,7 @@ export default function AdminPage() {
             </div>
             <div className="flex items-center justify-between py-3">
               <div className="flex items-center gap-3">
-                <Activity className="w-4 h-4 text-purple-500" />
+                <TrendingUp className="w-4 h-4 text-purple-500" />
                 <span className="text-sm text-ib-primary">Estado da plataforma</span>
               </div>
               <span className="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700 font-medium">Online</span>

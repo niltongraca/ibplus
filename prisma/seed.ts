@@ -29,9 +29,13 @@ async function main() {
       name: "Administrador",
       email: "admin@ibplus.co.ao",
       password,
-      companyId: company.id,
+      accountType: "EMPRESA",
+      plan: "BUSINESS",
       role: "admin",
-      tipo: "empresa",
+      companyId: company.id,
+      profile: {
+        create: { nome: "Administrador", nif: "5000000000", telefone: "+244 900 000 000" },
+      },
     },
   });
 

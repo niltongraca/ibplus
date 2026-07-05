@@ -6,14 +6,19 @@ import { signToken } from "@/lib/auth";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { tipo, email, password } = body;
+    const { accountType, email, password } = body;
 
-    if (!email || !password) {
-      return NextResponse.json({ error: "Email e senha são obrigatórios." }, { status: 400 });
+    if (!email || !password || !accountType) {
+      return NextResponse.json({ error: "Email, senha e tipo de conta são obrigatórios." }, { status: 400 });
     }
 
     if (password.length < 6) {
       return NextResponse.json({ error: "A senha deve ter pelo menos 6 caracteres." }, { status: 400 });
+    }
+
+    const validTypes = ["EMPREENDEDOR", "EMPRESA", "ONG", "ASSOCIACAO", "EDUCACAO", "COOPERATIVA"];
+    if (!validTypes.includes(accountType)) {
+      return NextResponse.json({ error: "Tipo de conta inválido." }, { status: 400 });
     }
 
     const existing = await prisma.user.findUnique({ where: { email } });
@@ -23,18 +28,25 @@ export async function POST(request: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const {
+      nome, telefone,
+      nomeComercial, nif, bi, dataNascimento, sexo,
+      pais, provincia, municipio, bairro, endereco,
+      areaActividade, profissao, servicosDescricao, redesSociais, descricao,
+      // empresa-specific
+      nomeEmpresa, registoComercial, anoFundacao, numColaboradores,
+      missao, visao, valores, gpsLocation, ramoActividade, categoria,
+      website, facebook, instagram, linkedin,
+      // ONG-specific
+      areaActuacao,
+      // education-specific
+      nomeInstituicao, tipoInstituicao, cursos,
+    } = body;
+
     let user;
 
-    if (tipo === "empresa") {
-      const {
-        nomeResponsavel, telefone,
-        nomeEmpresa, nif, registoComercial, anoFundacao, numColaboradores,
-        descricao, missao, visao, valores,
-        pais, provincia, municipio, bairro, endereco, gpsLocation,
-        ramoActividade, categoria, website, facebook, instagram, linkedin,
-      } = body;
-
-      if (!nomeResponsavel || !nomeEmpresa) {
+    if (accountType === "EMPRESA") {
+      if (!nome || !nomeEmpresa) {
         return NextResponse.json({ error: "Nome do responsável e nome da empresa são obrigatórios." }, { status: 400 });
       }
 
@@ -44,86 +56,75 @@ export async function POST(request: Request) {
 
       user = await prisma.user.create({
         data: {
-          name: nomeResponsavel,
+          name: nome,
           email,
           password: hashedPassword,
           phone: telefone,
-          tipo: "empresa",
-          role: "empresa",
+          accountType: "EMPRESA",
+          role: "user",
           companyId: company.id,
-          empresa: {
+          profile: {
+            create: { nome, nif, telefone, endereco, provincia, municipio, bairro, descricao },
+          },
+          companyProfile: {
             create: {
-              nome: nomeEmpresa,
-              nif,
-              registoComercial,
+              nomeEmpresa, nif, registoComercial,
               anoFundacao: anoFundacao ? parseInt(anoFundacao) : null,
               numColaboradores: numColaboradores ? parseInt(numColaboradores) : null,
-              descricao,
-              missao,
-              visao,
-              valores,
-              pais,
-              provincia,
-              municipio,
-              bairro,
-              endereco,
-              gpsLocation,
-              ramoActividade,
-              categoria,
-              website,
-              facebook,
-              instagram,
-              linkedin,
+              descricao, missao, visao, valores,
+              pais, provincia, municipio, bairro, endereco, gpsLocation,
+              ramoActividade, categoria, website, facebook, instagram, linkedin,
             },
           },
         },
-        include: { empresa: true },
+        include: { profile: true, companyProfile: true },
       });
     } else {
-      const {
-        nomeCompleto, telefone,
-        nomeComercial, nif, bi, dataNascimento, sexo,
-        pais, provincia, municipio, bairro, endereco,
-        areaActividade, profissao, servicosDescricao, redesSociais,
-      } = body;
+      if (!nome) {
+        return NextResponse.json({ error: "O nome é obrigatório." }, { status: 400 });
+      }
 
-      if (!nomeCompleto) {
-        return NextResponse.json({ error: "O nome completo é obrigatório." }, { status: 400 });
+      const profileData: any = {
+        nome,
+        nomeComercial, nif, bi, telefone,
+        dataNascimento: dataNascimento ? new Date(dataNascimento) : null,
+        sexo, pais, provincia, municipio, bairro, endereco,
+        areaActividade, profissao, servicosDescricao, redesSociais, descricao,
+      };
+
+      const extra: any = { profile: { create: profileData } };
+
+      if (accountType === "ONG") {
+        extra.ngoProfile = {
+          create: { nome, missao: missao || "", areaActuacao: areaActuacao || "", website, facebook, instagram },
+        };
+      }
+
+      if (accountType === "EDUCACAO") {
+        extra.educationProfile = {
+          create: {
+            nomeInstituicao: nomeInstituicao || nome,
+            tipo: tipoInstituicao || "",
+            cursos, website, facebook, instagram,
+          },
+        };
       }
 
       user = await prisma.user.create({
         data: {
-          name: nomeCompleto,
+          name: nome,
           email,
           password: hashedPassword,
           phone: telefone,
-          tipo: "empreendedor",
-          role: "particular",
-          empreendedor: {
-            create: {
-              nomeCompleto,
-              nomeComercial,
-              nif,
-              bi,
-              dataNascimento: dataNascimento ? new Date(dataNascimento) : null,
-              sexo,
-              pais,
-              provincia,
-              municipio,
-              bairro,
-              endereco,
-              areaActividade,
-              profissao,
-              servicosDescricao,
-              redesSociais,
-            },
-          },
+          accountType,
+          role: "user",
+          ...extra,
         },
-        include: { empreendedor: true },
+        include: { profile: true, companyProfile: true, ngoProfile: true, educationProfile: true },
       });
     }
 
-    const token = signToken({ userId: user.id, companyId: user.companyId, email: user.email, role: user.role });
+    const token = signToken({ userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType });
 
     const response = NextResponse.json({
       user: {
@@ -131,7 +132,8 @@ export async function POST(request: Request) {
         name: user.name,
         email: user.email,
         phone: user.phone,
-        tipo: user.tipo,
+        accountType: user.accountType,
+        plan: user.plan,
         role: user.role,
         companyId: user.companyId,
       },
@@ -146,7 +148,8 @@ export async function POST(request: Request) {
     });
 
     return response;
-  } catch {
+  } catch (err) {
+    console.error(err);
     return NextResponse.json({ error: "Erro interno do servidor." }, { status: 500 });
   }
 }

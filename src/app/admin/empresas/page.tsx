@@ -11,7 +11,7 @@ interface EmpresaUser {
   phone: string | null;
   companyId: string | null;
   company: { id: string; name: string; nif: string | null; email: string | null } | null;
-  empresa: { nomeCompleto: string | null; NIF: string | null; BI: string | null; registoComercial: string | null } | null;
+  companyProfile: { nomeEmpresa: string | null; nif: string | null; registoComercial: string | null } | null;
   _count: { products: number; customers: number; sales: number };
 }
 
@@ -60,8 +60,8 @@ export default function AdminEmpresas() {
             </thead>
             <tbody>
               {filtered.map((e) => {
-                const companyName = e.company?.name || e.name;
-                const nif = e.empresa?.NIF || e.company?.nif;
+                const companyName = e.company?.name || e.companyProfile?.nomeEmpresa || e.name;
+                const nif = e.companyProfile?.nif || e.company?.nif;
                 return (
                 <tr key={e.id} className="border-b border-gray-50 text-ib-primary hover:bg-gray-50 transition-colors">
                   <td className="p-4">
@@ -69,7 +69,7 @@ export default function AdminEmpresas() {
                       <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold text-xs shrink-0">{companyName.charAt(0)}</div>
                       <div>
                         <span className="font-medium">{companyName}</span>
-                        <p className="text-xs text-ib-muted">{e.empresa?.nomeCompleto || e.name}</p>
+                        <p className="text-xs text-ib-muted">{e.companyProfile?.nomeEmpresa || e.name}</p>
                       </div>
                     </div>
                   </td>

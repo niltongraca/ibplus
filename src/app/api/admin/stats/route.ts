@@ -9,17 +9,22 @@ export async function GET() {
       return NextResponse.json({ error: "Não autorizado." }, { status: 403 });
     }
 
-    const [totalUsers, totalCompanies, counts] = await Promise.all([
+    const [totalUsers, totalCompanies, typeCounts, companyUserCount] = await Promise.all([
       prisma.user.count(),
       prisma.company.count(),
-      prisma.user.groupBy({ by: ["role"], _count: true }),
+      prisma.user.groupBy({ by: ["accountType"], _count: true }),
+      prisma.user.count({ where: { accountType: "EMPRESA" } }),
     ]);
 
     const stats = {
       totalUsers,
       totalCompanies,
-      empresaCount: counts.find((c) => c.role === "empresa")?._count ?? 0,
-      particularCount: counts.find((c) => c.role === "particular")?._count ?? 0,
+      empresaCount: typeCounts.find((c) => c.accountType === "EMPRESA")?._count ?? 0,
+      empreendedorCount: typeCounts.find((c) => c.accountType === "EMPREENDEDOR")?._count ?? 0,
+      ongCount: typeCounts.find((c) => c.accountType === "ONG")?._count ?? 0,
+      educacaoCount: typeCounts.find((c) => c.accountType === "EDUCACAO")?._count ?? 0,
+      associacaoCount: typeCounts.find((c) => c.accountType === "ASSOCIACAO")?._count ?? 0,
+      cooperativaCount: typeCounts.find((c) => c.accountType === "COOPERATIVA")?._count ?? 0,
     };
 
     return NextResponse.json(stats);

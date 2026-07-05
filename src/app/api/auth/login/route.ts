@@ -21,10 +21,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email ou senha inválidos." }, { status: 401 });
     }
 
-    const token = signToken({ userId: user.id, companyId: user.companyId, email: user.email, role: user.role });
+    const token = signToken({ userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType });
 
     const response = NextResponse.json({
-      user: { id: user.id, name: user.name, email: user.email, phone: user.phone, tipo: user.tipo, companyId: user.companyId, role: user.role },
+      user: { id: user.id, name: user.name, email: user.email, phone: user.phone, accountType: user.accountType, plan: user.plan, companyId: user.companyId, role: user.role },
     });
 
     response.cookies.set("ibplus_session", token, {
