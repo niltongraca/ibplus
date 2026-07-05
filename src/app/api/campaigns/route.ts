@@ -3,15 +3,19 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 
 export async function GET() {
-  const user = await getAuthUser();
-  if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  try {
+    const user = await getAuthUser();
+    if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-  const campaigns = await prisma.campaign.findMany({
-    where: { companyId: user.companyId },
-    orderBy: { createdAt: "desc" },
-  });
+    const campaigns = await prisma.campaign.findMany({
+      where: { companyId: user.companyId },
+      orderBy: { createdAt: "desc" },
+    });
 
-  return NextResponse.json({ campaigns });
+    return NextResponse.json({ campaigns });
+  } catch {
+    return NextResponse.json({ error: "Erro ao carregar campanhas." }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {

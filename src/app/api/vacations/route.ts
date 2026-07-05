@@ -3,16 +3,20 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 
 export async function GET() {
-  const user = await getAuthUser();
-  if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  try {
+    const user = await getAuthUser();
+    if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-  const vacations = await prisma.vacation.findMany({
-    where: { employee: { companyId: user.companyId } },
-    include: { employee: { select: { name: true } } },
-    orderBy: { startDate: "desc" },
-  });
+    const vacations = await prisma.vacation.findMany({
+      where: { employee: { companyId: user.companyId } },
+      include: { employee: { select: { name: true } } },
+      orderBy: { startDate: "desc" },
+    });
 
-  return NextResponse.json({ vacations });
+    return NextResponse.json({ vacations });
+  } catch {
+    return NextResponse.json({ error: "Erro ao carregar férias." }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
