@@ -217,7 +217,7 @@ export async function POST(request: Request) {
     });
 
     const token = signToken({
-      userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType,
+      userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType, plan: user.plan,
     });
 
     const response = NextResponse.json({ user });
