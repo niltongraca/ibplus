@@ -57,7 +57,7 @@ export default function PrevisoesPage() {
                   <span className="text-xs text-ib-muted uppercase tracking-wider font-medium">{f.title}</span>
                 </div>
 
-                <div className="h-24 rounded-lg mb-4 bg-gradient-to-r ${f.chartColors} opacity-30 relative overflow-hidden">
+                <div className={`h-24 rounded-lg mb-4 bg-gradient-to-r ${f.chartColors} opacity-30 relative overflow-hidden`}>
                   <svg className="w-full h-full" viewBox="0 0 200 80" preserveAspectRatio="none">
                     <path d="M0,60 C30,55 40,20 70,30 C100,40 120,10 150,20 C170,25 190,10 200,15 L200,80 L0,80 Z" fill="currentColor" className="text-white/40" />
                     <path d="M0,60 C30,55 40,20 70,30 C100,40 120,10 150,20 C170,25 190,10 200,15" fill="none" stroke="currentColor" strokeWidth="2" className="text-white" />
