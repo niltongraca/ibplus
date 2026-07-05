@@ -9,11 +9,11 @@ export async function GET() {
       return NextResponse.json({ error: "Não autorizado." }, { status: 403 });
     }
 
-    const [totalUsers, totalCompanies, typeCounts, companyUserCount] = await Promise.all([
+    const [totalUsers, totalCompanies, typeCounts, planCounts] = await Promise.all([
       prisma.user.count(),
       prisma.company.count(),
       prisma.user.groupBy({ by: ["accountType"], _count: true }),
-      prisma.user.count({ where: { accountType: "EMPRESA" } }),
+      prisma.user.groupBy({ by: ["plan"], _count: true }),
     ]);
 
     const stats = {
@@ -25,6 +25,9 @@ export async function GET() {
       educacaoCount: typeCounts.find((c) => c.accountType === "EDUCACAO")?._count ?? 0,
       associacaoCount: typeCounts.find((c) => c.accountType === "ASSOCIACAO")?._count ?? 0,
       cooperativaCount: typeCounts.find((c) => c.accountType === "COOPERATIVA")?._count ?? 0,
+      freeCount: planCounts.find((c) => c.plan === "FREE")?._count ?? 0,
+      premiumCount: planCounts.find((c) => c.plan === "PREMIUM")?._count ?? 0,
+      businessCount: planCounts.find((c) => c.plan === "BUSINESS")?._count ?? 0,
     };
 
     return NextResponse.json(stats);

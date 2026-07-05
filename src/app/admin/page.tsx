@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { Users, Building2, UserCircle, TrendingUp, Activity, Server, Wrench, ArrowRight, BarChart3, ShoppingCart, Globe, Shield, GraduationCap } from "lucide-react";
+import { Users, Building2, UserCircle, TrendingUp, Activity, Server, Wrench, ArrowRight, BarChart3, ShoppingCart, Globe, Shield, GraduationCap, Crown, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 interface DashboardStats {
@@ -14,6 +14,9 @@ interface DashboardStats {
   associacaoCount: number;
   cooperativaCount: number;
   totalCompanies: number;
+  freeCount: number;
+  premiumCount: number;
+  businessCount: number;
 }
 
 export default function AdminPage() {
@@ -52,6 +55,35 @@ export default function AdminPage() {
             <p className="text-xs text-ib-muted mt-0.5">{s.sub}</p>
           </div>
         ))}
+      </div>
+
+      {/* Plan Distribution */}
+      <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8">
+        <div className="flex items-center gap-2 mb-5">
+          <Crown className="w-5 h-5 text-yellow-500" />
+          <h2 className="font-semibold text-ib-primary">Distribuição de Planos</h2>
+        </div>
+        <div className="flex gap-4">
+          {[
+            { label: "Grátis", count: stats?.freeCount ?? 0, color: "bg-gray-200", textColor: "text-gray-700", icon: Sparkles },
+            { label: "Premium", count: stats?.premiumCount ?? 0, color: "bg-yellow-400", textColor: "text-yellow-800", icon: Crown },
+            { label: "Business", count: stats?.businessCount ?? 0, color: "bg-blue-500", textColor: "text-blue-800", icon: Building2 },
+          ].map((plan) => {
+            const total = (stats?.freeCount ?? 0) + (stats?.premiumCount ?? 0) + (stats?.businessCount ?? 0);
+            const pct = total > 0 ? Math.round((plan.count / total) * 100) : 0;
+            return (
+              <div key={plan.label} className="flex-1 bg-gray-50 rounded-lg p-4 text-center">
+                <plan.icon className={`w-6 h-6 mx-auto mb-2 ${plan.textColor}`} />
+                <p className="text-2xl font-bold text-ib-primary">{plan.count}</p>
+                <p className="text-sm font-medium text-ib-muted">{plan.label}</p>
+                <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                  <div className={`${plan.color} h-2 rounded-full`} style={{ width: `${pct}%` }} />
+                </div>
+                <p className="text-xs text-ib-muted mt-1">{pct}%</p>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Quick Actions */}
