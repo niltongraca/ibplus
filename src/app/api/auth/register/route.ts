@@ -5,17 +5,16 @@ import { signToken } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
-    const { name, email, password, role } = await request.json();
+    const body = await request.json();
+    const { tipo, email, password } = body;
 
-    if (!name || !email || !password) {
-      return NextResponse.json({ error: "Todos os campos são obrigatórios." }, { status: 400 });
+    if (!email || !password) {
+      return NextResponse.json({ error: "Email e senha são obrigatórios." }, { status: 400 });
     }
 
     if (password.length < 6) {
       return NextResponse.json({ error: "A senha deve ter pelo menos 6 caracteres." }, { status: 400 });
     }
-
-    const userRole = role === "empresa" || role === "particular" ? role : "particular";
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
@@ -24,18 +23,118 @@ export async function POST(request: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const company = await prisma.company.create({
-      data: { name: `${name} - Empresa` },
-    });
+    let user;
 
-    const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword, companyId: company.id, role: userRole },
-    });
+    if (tipo === "empresa") {
+      const {
+        nomeResponsavel, telefone,
+        nomeEmpresa, nif, registoComercial, anoFundacao, numColaboradores,
+        descricao, missao, visao, valores,
+        pais, provincia, municipio, bairro, endereco, gpsLocation,
+        ramoActividade, categoria, website, facebook, instagram, linkedin,
+      } = body;
+
+      if (!nomeResponsavel || !nomeEmpresa) {
+        return NextResponse.json({ error: "Nome do responsável e nome da empresa são obrigatórios." }, { status: 400 });
+      }
+
+      const company = await prisma.company.create({
+        data: { name: nomeEmpresa, nif, phone: telefone, address: endereco },
+      });
+
+      user = await prisma.user.create({
+        data: {
+          name: nomeResponsavel,
+          email,
+          password: hashedPassword,
+          phone: telefone,
+          tipo: "empresa",
+          role: "empresa",
+          companyId: company.id,
+          empresa: {
+            create: {
+              nome: nomeEmpresa,
+              nif,
+              registoComercial,
+              anoFundacao: anoFundacao ? parseInt(anoFundacao) : null,
+              numColaboradores: numColaboradores ? parseInt(numColaboradores) : null,
+              descricao,
+              missao,
+              visao,
+              valores,
+              pais,
+              provincia,
+              municipio,
+              bairro,
+              endereco,
+              gpsLocation,
+              ramoActividade,
+              categoria,
+              website,
+              facebook,
+              instagram,
+              linkedin,
+            },
+          },
+        },
+        include: { empresa: true },
+      });
+    } else {
+      const {
+        nomeCompleto, telefone,
+        nomeComercial, nif, bi, dataNascimento, sexo,
+        pais, provincia, municipio, bairro, endereco,
+        areaActividade, profissao, servicosDescricao, redesSociais,
+      } = body;
+
+      if (!nomeCompleto) {
+        return NextResponse.json({ error: "O nome completo é obrigatório." }, { status: 400 });
+      }
+
+      user = await prisma.user.create({
+        data: {
+          name: nomeCompleto,
+          email,
+          password: hashedPassword,
+          phone: telefone,
+          tipo: "empreendedor",
+          role: "user",
+          empreendedor: {
+            create: {
+              nomeCompleto,
+              nomeComercial,
+              nif,
+              bi,
+              dataNascimento: dataNascimento ? new Date(dataNascimento) : null,
+              sexo,
+              pais,
+              provincia,
+              municipio,
+              bairro,
+              endereco,
+              areaActividade,
+              profissao,
+              servicosDescricao,
+              redesSociais,
+            },
+          },
+        },
+        include: { empreendedor: true },
+      });
+    }
 
     const token = signToken({ userId: user.id, companyId: user.companyId, email: user.email, role: user.role });
 
     const response = NextResponse.json({
-      user: { id: user.id, name: user.name, email: user.email, companyId: user.companyId, role: user.role },
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        tipo: user.tipo,
+        role: user.role,
+        companyId: user.companyId,
+      },
     });
 
     response.cookies.set("ibplus_session", token, {

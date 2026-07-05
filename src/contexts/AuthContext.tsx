@@ -7,6 +7,8 @@ interface User {
   id: string;
   name: string;
   email: string;
+  phone?: string | null;
+  tipo?: string;
   companyId?: string | null;
   role: string;
 }
@@ -15,7 +17,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (data: { name: string; email: string; password: string; confirmPassword: string; role: string }) => Promise<{ success: boolean; error?: string }>;
+  register: (data: Record<string, string>) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
 }
 
@@ -55,8 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const register = useCallback(async (data: { name: string; email: string; password: string; confirmPassword: string; role: string }) => {
-    if (data.password !== data.confirmPassword) {
+  const register = useCallback(async (data: Record<string, string>) => {
+    if (data.tipo === "empreendedor" && data.password !== data.confirmPassword) {
       return { success: false, error: "As senhas não coincidem." };
     }
 
@@ -64,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: data.name, email: data.email, password: data.password, role: data.role }),
+        body: JSON.stringify(data),
       });
 
       const result = await res.json();

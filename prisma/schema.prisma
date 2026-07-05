@@ -8,15 +8,72 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  name      String
-  email     String    @unique
-  password  String
-  companyId String?
-  company   Company?  @relation(fields: [companyId], references: [id])
-  role      String    @default("particular")
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id             String         @id @default(cuid())
+  name           String
+  email          String         @unique
+  password       String
+  phone          String?
+  avatar         String?
+  tipo           String         @default("empreendedor")
+  role           String         @default("user")
+  companyId      String?
+  company        Company?       @relation(fields: [companyId], references: [id])
+  empreendedor   Empreendedor?
+  empresa        Empresa?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model Empreendedor {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nomeCompleto    String
+  nomeComercial   String?
+  nif             String?
+  bi              String?
+  dataNascimento  DateTime?
+  sexo            String?
+  pais            String?
+  provincia       String?
+  municipio       String?
+  bairro          String?
+  endereco        String?
+  areaActividade  String?
+  profissao       String?
+  servicosDescricao String?
+  redesSociais    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Empresa {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nome             String
+  nif              String?
+  registoComercial String?
+  anoFundacao      Int?
+  numColaboradores Int?
+  descricao        String?
+  missao           String?
+  visao            String?
+  valores          String?
+  pais             String?
+  provincia        String?
+  municipio        String?
+  bairro           String?
+  endereco         String?
+  gpsLocation      String?
+  ramoActividade   String?
+  categoria        String?
+  website          String?
+  facebook         String?
+  instagram        String?
+  linkedin         String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 model Company {
