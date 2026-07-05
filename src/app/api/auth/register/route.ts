@@ -98,7 +98,7 @@ export async function POST(request: Request) {
           password: hashedPassword,
           phone: telefone,
           tipo: "empreendedor",
-          role: "user",
+          role: "particular",
           empreendedor: {
             create: {
               nomeCompleto,
