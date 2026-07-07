@@ -2,8 +2,13 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const check = checkRateLimit(`invite:${ip}`, "medium");
+  if (!check.allowed) return rateLimitResponse(check.retryAfter!);
+
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 

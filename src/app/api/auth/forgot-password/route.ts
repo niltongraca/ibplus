@@ -2,12 +2,16 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
+import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 
 const schema = z.object({
   email: z.string().email("Email inválido"),
 });
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const check = checkRateLimit(`forgot:${ip}`, "strict");
+  if (!check.allowed) return rateLimitResponse(check.retryAfter!);
   try {
     const body = await request.json();
     const parsed = schema.safeParse(body);

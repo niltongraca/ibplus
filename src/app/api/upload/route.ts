@@ -2,8 +2,13 @@ import { NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 import { getAuthUser } from "@/lib/auth";
+import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const check = checkRateLimit(`upload:${ip}`, "medium");
+  if (!check.allowed) return rateLimitResponse(check.retryAfter!);
+
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 

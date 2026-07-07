@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 
 const schema = z.object({
   token: z.string().min(1, "Token é obrigatório"),
@@ -9,6 +10,10 @@ const schema = z.object({
 });
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const check = checkRateLimit(`reset:${ip}`, "strict");
+  if (!check.allowed) return rateLimitResponse(check.retryAfter!);
+
   try {
     const body = await request.json();
     const parsed = schema.safeParse(body);

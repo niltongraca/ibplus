@@ -2,8 +2,13 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { signToken } from "@/lib/auth";
+import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const check = checkRateLimit(`login:${ip}`, "strict");
+  if (!check.allowed) return rateLimitResponse(check.retryAfter!);
+
   try {
     const { email, password } = await request.json();
 

@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { signToken } from "@/lib/auth";
+import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 
 const accountTypeEnum = z.enum(["EMPREENDEDOR", "EMPRESA", "ONG", "ASSOCIACAO", "EDUCACAO", "COOPERATIVA"]);
 
@@ -108,6 +109,10 @@ const registerSchema = z.discriminatedUnion("accountType", [
 ]);
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const check = checkRateLimit(`register:${ip}`, "strict");
+  if (!check.allowed) return rateLimitResponse(check.retryAfter!);
+
   try {
     const body = await request.json();
 
