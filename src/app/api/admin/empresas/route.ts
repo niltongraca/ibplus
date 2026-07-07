@@ -9,20 +9,29 @@ export async function GET() {
 
     const empresas = await prisma.user.findMany({
       where: { accountType: "EMPRESA" },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        companyId: true,
+      include: {
         company: { select: { id: true, name: true, nif: true, email: true } },
         companyProfile: { select: { nomeEmpresa: true, nif: true, registoComercial: true } },
-        _count: { select: { products: true, customers: true, sales: true } },
       },
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ empresas });
+    const companyIds = empresas.map((e) => e.companyId).filter(Boolean) as string[];
+
+    const productCounts = companyIds.length > 0
+      ? await prisma.product.groupBy({ by: ["companyId"], where: { companyId: { in: companyIds } }, _count: { id: true } })
+      : [];
+
+    const empresasWithCounts = empresas.map((e) => ({
+      ...e,
+      _count: {
+        products: productCounts.find((c) => c.companyId === e.companyId)?._count.id ?? 0,
+        customers: 0,
+        sales: 0,
+      },
+    }));
+
+    return NextResponse.json({ empresas: empresasWithCounts });
   } catch (error) {
     return NextResponse.json({ error: "Erro interno do servidor." }, { status: 500 });
   }

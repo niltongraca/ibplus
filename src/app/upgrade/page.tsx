@@ -53,7 +53,7 @@ export default function UpgradePage() {
           <p className="text-gray-600 mt-2">
             {user ? `Plano actual: ` : ""}
             {user && (
-              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${BADGE_COLORS[user.plan]}`}>
+              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${BADGE_COLORS[user.plan ?? "FREE"]}`}>
                 {user.plan === "FREE" ? "Grátis" : user.plan === "PREMIUM" ? "Premium" : "Business"}
               </span>
             )}
