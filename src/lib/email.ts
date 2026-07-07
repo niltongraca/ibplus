@@ -78,6 +78,38 @@ export function inviteEmail(email: string, token: string, inviterName: string): 
   };
 }
 
+const ACCOUNT_LABELS: Record<string, string> = {
+  EMPREENDEDOR: "Empreendedor Individual",
+  EMPRESA: "Empresa",
+  ONG: "Organização Não-Governamental",
+  ASSOCIACAO: "Associação",
+  EDUCACAO: "Instituição de Ensino",
+  COOPERATIVA: "Cooperativa",
+};
+
+export function welcomeEmail(name: string, accountType: string): { subject: string; html: string } {
+  const tipo = ACCOUNT_LABELS[accountType] || accountType;
+  return {
+    subject: "Bem-vindo ao IBPlus+!",
+    html: baseHtml(
+      `<h2 style="margin-top:0;color:#1e3a5f">Olá ${name}, seja bem-vindo! 🎉</h2>
+       <p>A sua conta <strong>${tipo}</strong> foi criada com sucesso no IBPlus+.</p>
+       <p>O IBPlus+ é a plataforma completa de gestão empresarial que oferece:</p>
+       <ul>
+         <li>📊 Dashboard inteligente com gráficos</li>
+         <li>📦 Gestão de produtos e serviços</li>
+         <li>💰 Facturação e orçamentos profissionais</li>
+         <li>🤝 CRM com funil de vendas</li>
+         <li>🧠 Assistente IA para decisões</li>
+         <li>📈 Relatórios e análises</li>
+       </ul>
+       <p style="text-align:center"><a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/gestao/dashboard" class="btn">Ir para o Painel</a></p>
+       <p style="color:#94a3b8;font-size:13px">Se tiver dúvidas, responda a este email ou consulte a nossa central de ajuda.</p>`,
+      "Bem-vindo ao IBPlus+"
+    ),
+  };
+}
+
 export async function sendEmail(
   to: string,
   subject: string,

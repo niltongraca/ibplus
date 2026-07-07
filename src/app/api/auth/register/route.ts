@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { signToken } from "@/lib/auth";
 import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
+import { sendEmail, welcomeEmail } from "@/lib/email";
 
 const accountTypeEnum = z.enum(["EMPREENDEDOR", "EMPRESA", "ONG", "ASSOCIACAO", "EDUCACAO", "COOPERATIVA"]);
 
@@ -234,6 +235,9 @@ export async function POST(request: Request) {
         select: { id: true, name: true, email: true, phone: true, accountType: true, plan: true, role: true, companyId: true },
       });
     });
+
+    const mail = welcomeEmail(user.name, user.accountType);
+    await sendEmail(user.email, mail.subject, mail.html);
 
     const token = signToken({
       userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType, plan: user.plan,
