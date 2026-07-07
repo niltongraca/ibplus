@@ -6,10 +6,11 @@ export async function GET() {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-  const customers = await prisma.customer.findMany({
-    where: { companyId: user.companyId },
-    orderBy: { name: "asc" },
-  });
+    const customers = await prisma.customer.findMany({
+      where: { companyId: user.companyId },
+      include: { _count: { select: { sales: true } } },
+      orderBy: { name: "asc" },
+    });
 
   return NextResponse.json({ customers });
 }
