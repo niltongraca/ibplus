@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Search, ShoppingCart } from "lucide-react";
+import { Plus, Search, ShoppingCart, Trash2 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
+import { useToast } from "@/components/Toast";
 import Link from "next/link";
 
 interface Purchase {
@@ -30,6 +31,20 @@ export default function ComprasPage() {
   const filtered = purchases.filter((p) =>
     (p.supplier || "").toLowerCase().includes(search.toLowerCase())
   );
+
+  const { toast } = useToast();
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Tem a certeza que deseja eliminar esta compra?")) return;
+    try {
+      const res = await fetch(`/api/purchases/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      setPurchases((prev) => prev.filter((p) => p.id !== id));
+      toast("Compra eliminada com sucesso.");
+    } catch {
+      toast("Erro ao eliminar compra.", "error");
+    }
+  };
 
   const statusBadge = (status: string) => {
     const styles: Record<string, string> = { pending: "bg-yellow-100 text-yellow-700", completed: "bg-green-100 text-green-700", cancelled: "bg-red-100 text-red-700" };
@@ -63,6 +78,11 @@ export default function ComprasPage() {
             { key: "supplier", header: "Fornecedor", render: (p) => <span className="font-medium text-ib-primary">{p.supplier || "—"}</span> },
             { key: "total", header: "Total", className: "text-right", render: (p) => <span className="font-semibold">{formatCurrency(p.total)}</span> },
             { key: "status", header: "Estado", hide: "mobile", className: "text-center", render: (p) => statusBadge(p.status) },
+            { key: "actions", header: "Acções", hide: "mobile", className: "text-center", render: (p) => (
+              <button onClick={() => handleDelete(p.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )},
           ]}
           data={filtered}
           loading={loading}

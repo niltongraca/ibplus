@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Search, TrendingDown } from "lucide-react";
+import { Plus, Search, TrendingDown, Trash2, CheckCircle, XCircle } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
+import { useToast } from "@/components/Toast";
 import Link from "next/link";
 
 interface Expense {
@@ -34,6 +35,37 @@ export default function DespesasPage() {
     const matchFilter = filter === "all" ? true : filter === "paid" ? e.paid : !e.paid;
     return matchSearch && matchFilter;
   });
+
+  const { toast } = useToast();
+
+  const handleTogglePaid = async (id: string, currentPaid: boolean) => {
+    try {
+      const res = await fetch(`/api/expenses/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paid: !currentPaid }),
+      });
+      if (!res.ok) throw new Error();
+      setExpenses((prev) =>
+        prev.map((e) => (e.id === id ? { ...e, paid: !currentPaid } : e))
+      );
+      toast(currentPaid ? "Despesa marcada como não paga." : "Despesa marcada como paga.");
+    } catch {
+      toast("Erro ao atualizar despesa.", "error");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Tem a certeza que deseja eliminar esta despesa?")) return;
+    try {
+      const res = await fetch(`/api/expenses/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      setExpenses((prev) => prev.filter((e) => e.id !== id));
+      toast("Despesa eliminada com sucesso.");
+    } catch {
+      toast("Erro ao eliminar despesa.", "error");
+    }
+  };
 
   return (
     <div>
@@ -70,6 +102,16 @@ export default function DespesasPage() {
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${e.paid ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
                 {e.paid ? "Pago" : "Pendente"}
               </span>
+            )},
+            { key: "actions", header: "Acções", hide: "mobile", className: "text-center", render: (e) => (
+              <div className="flex items-center justify-center gap-1">
+                <button onClick={() => handleTogglePaid(e.id, e.paid)} className={`p-1.5 rounded-lg transition-colors ${e.paid ? "text-yellow-600 hover:bg-yellow-50" : "text-green-600 hover:bg-green-50"}`} title={e.paid ? "Marcar como não paga" : "Marcar como paga"}>
+                  {e.paid ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                </button>
+                <button onClick={() => handleDelete(e.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             )},
           ]}
           data={filtered}
