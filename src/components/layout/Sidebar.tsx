@@ -38,6 +38,7 @@ import {
   ScrollText,
   Shield,
   X,
+  GraduationCap,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -128,6 +129,12 @@ const modules: ModuleGroup[] = [
       { label: "Salários", icon: Calculator, href: "/rh/salarios", resourceKey: "rh" },
       { label: "Férias", icon: Sun, href: "/rh/ferias", resourceKey: "rh" },
       { label: "Presenças", icon: Clock, href: "/rh/presencas", resourceKey: "rh" },
+    ],
+  },
+  {
+    name: "Educação",
+    items: [
+      { label: "Alunos", icon: GraduationCap, href: "/educacao/alunos", resourceKey: "students" },
     ],
   },
 ];

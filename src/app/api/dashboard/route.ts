@@ -25,6 +25,7 @@ export async function GET() {
       pendingInvoicesAgg, productsLow, recentSales,
       recentClients, totalEmployees, totalServices,
       lowStock, totalDonationsAgg, activeCampaigns,
+      totalStudents,
     ] = await Promise.all([
       prisma.sale.aggregate({ where: { companyId: user.companyId }, _sum: { total: true } }),
       prisma.sale.aggregate({ where: { companyId: user.companyId, date: { gte: today } }, _sum: { total: true } }),
@@ -57,6 +58,7 @@ export async function GET() {
         _sum: { total: true },
       }),
       prisma.campaign.count({ where: { companyId: user.companyId, status: "active" } }),
+      prisma.student.count({ where: { companyId: user.companyId } }),
     ]);
 
     return NextResponse.json({
@@ -74,7 +76,7 @@ export async function GET() {
       lowStockProducts: lowStock,
       totalDonations: totalDonationsAgg._count,
       donationTotal: totalDonationsAgg._sum.total || 0,
-      totalStudents: 0,
+      totalStudents,
       activeCampaigns,
     });
   } catch {

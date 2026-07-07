@@ -12,6 +12,7 @@ export const ROUTE_PERMISSIONS: Record<string, string[]> = {
   "/gestao/perfil": ["EMPREENDEDOR", "EMPRESA", "ONG", "ASSOCIACAO", "EDUCACAO", "COOPERATIVA"],
   "/finance": ["EMPRESA", "COOPERATIVA", "EMPREENDEDOR"],
   "/rh": ["EMPRESA"],
+  "/educacao": ["EDUCACAO"],
   "/marketing": ["EMPRESA"],
   "/crm": ["EMPRESA"],
   "/ia": ["EMPRESA"],
