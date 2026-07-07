@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { Users, Building2, UserCircle, TrendingUp, Activity, Server, Wrench, ArrowRight, BarChart3, ShoppingCart, Globe, Shield, GraduationCap, Crown, Sparkles } from "lucide-react";
+import { Users, Building2, UserCircle, TrendingUp, Activity, Server, Wrench, ArrowRight, BarChart3, ShoppingCart, Globe, Shield, GraduationCap, Crown, Sparkles, Package, DollarSign, Calendar, Download } from "lucide-react";
 import Link from "next/link";
+import { formatCurrency } from "@/lib/utils";
 
 interface DashboardStats {
   totalUsers: number;
@@ -14,6 +15,10 @@ interface DashboardStats {
   associacaoCount: number;
   cooperativaCount: number;
   totalCompanies: number;
+  totalProducts: number;
+  totalCustomers: number;
+  recentUsers: number;
+  totalSales: number;
   freeCount: number;
   premiumCount: number;
   businessCount: number;
@@ -129,43 +134,50 @@ export default function AdminPage() {
             </div>
             <div className="flex items-center justify-between py-3 border-b border-gray-100">
               <div className="flex items-center gap-3">
-                <Building2 className="w-4 h-4 text-emerald-500" />
-                <span className="text-sm text-ib-primary">Empresas registadas</span>
-              </div>
-              <span className="text-sm font-bold text-ib-primary">{stats?.empresaCount ?? "-"}</span>
-            </div>
-            <div className="flex items-center justify-between py-3 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <UserCircle className="w-4 h-4 text-violet-500" />
-                <span className="text-sm text-ib-primary">Empreendedores</span>
-              </div>
-              <span className="text-sm font-bold text-ib-primary">{stats?.empreendedorCount ?? "-"}</span>
-            </div>
-            <div className="flex items-center justify-between py-3 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <Globe className="w-4 h-4 text-amber-500" />
-                <span className="text-sm text-ib-primary">ONGs</span>
-              </div>
-              <span className="text-sm font-bold text-ib-primary">{stats?.ongCount ?? "-"}</span>
-            </div>
-            <div className="flex items-center justify-between py-3 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <Activity className="w-4 h-4 text-rose-500" />
-                <span className="text-sm text-ib-primary">Educação</span>
-              </div>
-              <span className="text-sm font-bold text-ib-primary">{stats?.educacaoCount ?? "-"}</span>
-            </div>
-            <div className="flex items-center justify-between py-3 border-b border-gray-100">
-              <div className="flex items-center gap-3">
                 <Users className="w-4 h-4 text-blue-500" />
                 <span className="text-sm text-ib-primary">Total utilizadores</span>
               </div>
               <span className="text-sm font-bold text-ib-primary">{stats?.totalUsers ?? "-"}</span>
             </div>
+            <div className="flex items-center justify-between py-3 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <Calendar className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-ib-primary">Novos (30 dias)</span>
+              </div>
+              <span className="text-sm font-bold text-green-600">{stats?.recentUsers ?? 0}</span>
+            </div>
+            <div className="flex items-center justify-between py-3 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <Building2 className="w-4 h-4 text-emerald-500" />
+                <span className="text-sm text-ib-primary">Empresas</span>
+              </div>
+              <span className="text-sm font-bold text-ib-primary">{stats?.empresaCount ?? "-"}</span>
+            </div>
+            <div className="flex items-center justify-between py-3 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <Package className="w-4 h-4 text-orange-500" />
+                <span className="text-sm text-ib-primary">Produtos (total)</span>
+              </div>
+              <span className="text-sm font-bold text-ib-primary">{stats?.totalProducts ?? 0}</span>
+            </div>
+            <div className="flex items-center justify-between py-3 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <ShoppingCart className="w-4 h-4 text-purple-500" />
+                <span className="text-sm text-ib-primary">Clientes (total)</span>
+              </div>
+              <span className="text-sm font-bold text-ib-primary">{stats?.totalCustomers ?? 0}</span>
+            </div>
+            <div className="flex items-center justify-between py-3 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <DollarSign className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-ib-primary">Vendas (total)</span>
+              </div>
+              <span className="text-sm font-bold text-green-600">{formatCurrency(stats?.totalSales ?? 0)}</span>
+            </div>
             <div className="flex items-center justify-between py-3">
               <div className="flex items-center gap-3">
                 <TrendingUp className="w-4 h-4 text-purple-500" />
-                <span className="text-sm text-ib-primary">Estado da plataforma</span>
+                <span className="text-sm text-ib-primary">Estado</span>
               </div>
               <span className="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700 font-medium">Online</span>
             </div>

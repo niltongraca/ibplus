@@ -9,16 +9,20 @@ export async function GET() {
       return NextResponse.json({ error: "Não autorizado." }, { status: 403 });
     }
 
-    const [totalUsers, totalCompanies, typeCounts, planCounts] = await Promise.all([
+    const [totalUsers, totalCompanies, typeCounts, planCounts, totalProducts, totalSalesAgg, totalCustomers, recentUsers] = await Promise.all([
       prisma.user.count(),
       prisma.company.count(),
       prisma.user.groupBy({ by: ["accountType"], _count: true }),
       prisma.user.groupBy({ by: ["plan"], _count: true }),
+      prisma.product.count(),
+      prisma.sale.aggregate({ _sum: { total: true } }),
+      prisma.customer.count(),
+      prisma.user.count({ where: { createdAt: { gte: new Date(Date.now() - 30 * 86400000) } } }),
     ]);
 
     const stats = {
-      totalUsers,
-      totalCompanies,
+      totalUsers, totalCompanies, totalProducts, totalCustomers, recentUsers,
+      totalSales: totalSalesAgg._sum.total || 0,
       empresaCount: typeCounts.find((c) => c.accountType === "EMPRESA")?._count ?? 0,
       empreendedorCount: typeCounts.find((c) => c.accountType === "EMPREENDEDOR")?._count ?? 0,
       ongCount: typeCounts.find((c) => c.accountType === "ONG")?._count ?? 0,
