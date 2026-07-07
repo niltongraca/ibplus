@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Users, Building2, Wrench, Activity, Shield, LogOut, Home, ChevronLeft, ChevronRight, Globe, ArrowLeftFromLine, Settings } from "lucide-react";
+import { LayoutDashboard, Users, Building2, Wrench, Activity, Shield, LogOut, Home, ChevronLeft, ChevronRight, Globe, ArrowLeftFromLine, Settings, ToggleLeft, KeyRound } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 
@@ -11,6 +11,8 @@ const adminNav = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/admin", desc: "Visão geral da plataforma" },
   { label: "Utilizadores", icon: Users, href: "/admin/usuarios", desc: "Gerir contas de utilizadores" },
   { label: "Empresas", icon: Building2, href: "/admin/empresas", desc: "Organizações registadas" },
+  { label: "Recursos", icon: ToggleLeft, href: "/admin/recursos", desc: "Activar/desactivar funcionalidades" },
+  { label: "Permissões", icon: KeyRound, href: "/admin/permissoes", desc: "Controlar acesso por tipo de conta" },
   { label: "Serviços", icon: Wrench, href: "/admin/servicos", desc: "Serviços da plataforma" },
   { label: "Logs", icon: Activity, href: "/admin/logs", desc: "Registo de actividades" },
 ];

@@ -9,13 +9,13 @@ export const ROUTE_PERMISSIONS: Record<string, string[]> = {
   "/finance": ["EMPRESA", "COOPERATIVA", "EMPREENDEDOR"],
   "/rh": ["EMPRESA"],
   "/marketing": ["EMPRESA"],
+  "/crm": ["EMPRESA"],
+  "/ia": ["EMPRESA"],
+  "/store": ["EMPRESA"],
+  "/praca": ["EMPRESA"],
   "/admin": ["admin"],
-};
-
-export const PLAN_ROUTES: Record<string, string[]> = {
-  "/finance": ["PREMIUM", "BUSINESS"],
-  "/rh": ["BUSINESS"],
-  "/marketing": ["PREMIUM", "BUSINESS"],
+  "/admin/recursos": ["admin"],
+  "/admin/permissoes": ["admin"],
 };
 
 export const PUBLIC_ROUTES = ["/", "/login", "/cadastro", "/recuperar-senha"];

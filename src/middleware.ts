@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { ROUTE_PERMISSIONS, PLAN_ROUTES, PUBLIC_ROUTES } from "@/config/rbacRoutes";
+import { ROUTE_PERMISSIONS, PUBLIC_ROUTES } from "@/config/rbacRoutes";
 
 function decodeJwtPayload(token: string): Record<string, any> | null {
   try {
@@ -46,7 +46,6 @@ export function middleware(request: NextRequest) {
   }
 
   const accountType = payload.accountType as string;
-  const plan = payload.plan as string | undefined;
   const role = payload.role as string | undefined;
 
   const matchedRoute = matchRoute(pathname, ROUTE_PERMISSIONS);
@@ -60,14 +59,6 @@ export function middleware(request: NextRequest) {
 
     if (!allowedTypes.includes(accountType) && !allowedTypes.includes("admin")) {
       return NextResponse.redirect(new URL("/gestao/dashboard", request.url));
-    }
-  }
-
-  const matchedPlanRoute = matchRoute(pathname, PLAN_ROUTES);
-  if (matchedPlanRoute && plan) {
-    const allowedPlans = PLAN_ROUTES[matchedPlanRoute];
-    if (!allowedPlans.includes(plan)) {
-      return NextResponse.redirect(new URL("/upgrade", request.url));
     }
   }
 

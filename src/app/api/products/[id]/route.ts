@@ -22,6 +22,15 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   const { id } = await params;
   const data = await request.json();
+
+  if (data.stockAdjust) {
+    const product = await prisma.product.findFirst({ where: { id, companyId: user.companyId } });
+    if (!product) return NextResponse.json({ error: "Produto não encontrado." }, { status: 404 });
+    const newStock = Math.max(0, product.stock + data.stockAdjust);
+    await prisma.product.updateMany({ where: { id, companyId: user.companyId }, data: { stock: newStock } });
+    return NextResponse.json({ success: true });
+  }
+
   const product = await prisma.product.updateMany({
     where: { id, companyId: user.companyId },
     data,

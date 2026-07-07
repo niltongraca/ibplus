@@ -397,3 +397,27 @@ model Vacation {
   notes      String?
   createdAt  DateTime @default(now())
 }
+
+model Resource {
+  id          String               @id @default(cuid())
+  key         String               @unique
+  label       String
+  description String?
+  icon        String?
+  enabled     Boolean              @default(true)
+  permissions ResourcePermission[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+}
+
+model ResourcePermission {
+  id          String     @id @default(cuid())
+  resourceId  String
+  resource    Resource   @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  accountType AccountType
+  allowed     Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([resourceId, accountType])
+}

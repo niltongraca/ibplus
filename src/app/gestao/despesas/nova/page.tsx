@@ -38,7 +38,8 @@ export default function NovaDespesaPage() {
         }),
       });
       if (res.ok) router.push("/gestao/despesas");
-    } catch {
+    } catch (err) {
+      console.error("Erro ao criar despesa:", err);
     } finally {
       setSaving(false);
     }
