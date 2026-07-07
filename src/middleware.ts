@@ -53,12 +53,24 @@ function matchResourceKey(pathname: string): string | null {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  const response = NextResponse.next();
+
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("X-XSS-Protection", "1; mode=block");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+
+  if (process.env.NODE_ENV === "production") {
+    response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+  }
+
   if (PUBLIC_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"))) {
-    return NextResponse.next();
+    return response;
   }
 
   if (pathname.startsWith("/_next") || pathname.startsWith("/api") || pathname === "/favicon.ico") {
-    return NextResponse.next();
+    return response;
   }
 
   const token = request.cookies.get("ibplus_session")?.value;
@@ -66,13 +78,16 @@ export async function middleware(request: NextRequest) {
   if (!token) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(loginUrl);
+    const redirectRes = NextResponse.redirect(loginUrl);
+    addSecurityHeaders(redirectRes);
+    return redirectRes;
   }
 
   const payload = decodeJwtPayload(token);
   if (!payload) {
     const res = NextResponse.redirect(new URL("/login", request.url));
     res.cookies.delete("ibplus_session");
+    addSecurityHeaders(res);
     return res;
   }
 
@@ -85,11 +100,15 @@ export async function middleware(request: NextRequest) {
     const allowedTypes = ROUTE_PERMISSIONS[matchedRoute];
 
     if (allowedTypes.includes("admin") && role !== "admin") {
-      return NextResponse.redirect(new URL("/login", request.url));
+      const res = NextResponse.redirect(new URL("/login", request.url));
+      addSecurityHeaders(res);
+      return res;
     }
 
     if (!allowedTypes.includes(accountType) && !allowedTypes.includes("admin")) {
-      return NextResponse.redirect(new URL("/gestao/dashboard", request.url));
+      const res = NextResponse.redirect(new URL("/gestao/dashboard", request.url));
+      addSecurityHeaders(res);
+      return res;
     }
   }
 
@@ -114,7 +133,14 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  return response;
+}
+
+function addSecurityHeaders(res: NextResponse) {
+  res.headers.set("X-Content-Type-Options", "nosniff");
+  res.headers.set("X-Frame-Options", "DENY");
+  res.headers.set("X-XSS-Protection", "1; mode=block");
+  res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 }
 
 export const config = {

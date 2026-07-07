@@ -167,6 +167,7 @@ model Company {
   employees           Employee[]
   students            Student[]
   opportunities       Opportunity[]
+  invites             Invite[]
   quotes              Quote[]
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
@@ -489,4 +490,16 @@ model ResourcePermission {
   updatedAt   DateTime   @updatedAt
 
   @@unique([resourceId, accountType])
+}
+
+model Invite {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+  token     String   @unique
+  email     String?
+  role      String   @default("user")
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
 }

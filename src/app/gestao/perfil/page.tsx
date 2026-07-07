@@ -9,6 +9,7 @@ import {
   MessageCircle, CheckCircle, AlertCircle
 } from "lucide-react";
 import { FileUpload } from "@/components/FileUpload";
+import { InviteManager } from "@/components/InviteManager";
 
 interface CompanyData {
   name: string;
@@ -182,6 +183,7 @@ export default function PerfilPage() {
               </button>
             </div>
           </div>
+          <InviteManager />
         </div>
       )}
 

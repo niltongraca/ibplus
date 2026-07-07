@@ -71,6 +71,10 @@ const educacaoSchema = baseSchema.extend({
   endereco: z.string().optional(),
 });
 
+const inviteSchema = z.object({
+  invite: z.string().optional(),
+});
+
 const otherSchema = baseSchema.extend({
   accountType: z.enum(["EMPREENDEDOR", "ASSOCIACAO", "COOPERATIVA"]),
   nomeComercial: z.string().optional(),
@@ -107,6 +111,8 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
+    const inviteToken = body.invite || null;
+
     const parsed = registerSchema.safeParse(body);
     if (!parsed.success) {
       const firstError = parsed.error.errors[0];
@@ -123,12 +129,22 @@ export async function POST(request: Request) {
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     const user = await prisma.$transaction(async (tx) => {
-      const companyName = data.accountType === "EMPRESA" ? data.nomeEmpresa! : `${data.nome} (${data.accountType})`;
+      let companyId: string;
 
-      const company = await tx.company.create({
-        data: { name: companyName, nif: data.nif, phone: data.telefone, address: data.endereco },
-      });
-      const companyId = company.id;
+      if (inviteToken) {
+        const invite = await tx.invite.findUnique({ where: { token: inviteToken } });
+        if (!invite) throw new Error("Link de convite inválido.");
+        if (invite.used) throw new Error("Este convite já foi utilizado.");
+        if (invite.expiresAt < new Date()) throw new Error("Este convite expirou.");
+        companyId = invite.companyId;
+        await tx.invite.update({ where: { id: invite.id }, data: { used: true } });
+      } else {
+        const companyName = data.accountType === "EMPRESA" ? data.nomeEmpresa! : `${data.nome} (${data.accountType})`;
+        const company = await tx.company.create({
+          data: { name: companyName, nif: data.nif, phone: data.telefone, address: data.endereco },
+        });
+        companyId = company.id;
+      }
 
       const profileData: any = {
         nome: data.nome,
@@ -229,8 +245,9 @@ export async function POST(request: Request) {
     });
 
     return response;
-  } catch (err) {
-    console.error("Register error:", err);
-    return NextResponse.json({ error: "Erro interno do servidor." }, { status: 500 });
+  } catch (err: any) {
+    const message = err?.message || "Erro interno do servidor.";
+    const status = message.includes("Link") || message.includes("convite") || message.includes("expirou") ? 400 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }

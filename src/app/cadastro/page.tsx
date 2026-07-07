@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { Eye, EyeOff, UserPlus, ArrowLeft, ArrowRight, Check, User, Building2, Users, MapPin, Briefcase, Sparkles, Heart, GraduationCap, Handshake } from "lucide-react";
+import { Eye, EyeOff, UserPlus, ArrowLeft, ArrowRight, Check, User, Building2, Users, MapPin, Briefcase, Sparkles, Heart, GraduationCap, Handshake, Link2 } from "lucide-react";
 
 const ACCOUNT_TYPES = [
   { value: "EMPREENDEDOR", label: "Empreendedor", desc: "Ideal para quem trabalha por conta própria.", icon: User, color: "bg-violet-50 text-violet-600 hover:border-violet-300 hover:bg-violet-50/50" },
@@ -49,9 +49,20 @@ const STEP_LABELS: Record<string, { title: string; icon: any }[]> = {
   ],
 };
 
-export default function CadastroPage() {
-  const [step, setStep] = useState(0);
+export default function CadastroPageWrapper() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center"><div className="text-ib-muted">A carregar...</div></div>}>
+      <CadastroPage />
+    </Suspense>
+  );
+}
+
+function CadastroPage() {
+  const searchParams = useSearchParams();
+  const inviteToken = searchParams.get("invite");
+  const [step, setStep] = useState(inviteToken ? 1 : 0);
   const [accountType, setAccountType] = useState<string | null>(null);
+  const [inviteInfo, setInviteInfo] = useState<string | null>(null);
   const [form, setForm] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -96,7 +107,9 @@ export default function CadastroPage() {
       setError("As senhas não coincidem."); return;
     }
     setLoading(true);
-    const result = await register({ ...form, accountType } as any);
+    const payload: Record<string, any> = { ...form, accountType };
+    if (inviteToken) payload.invite = inviteToken;
+    const result = await register(payload as any);
     setLoading(false);
     if (result.success) {
       setSuccess(true);
@@ -136,6 +149,15 @@ export default function CadastroPage() {
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
+          {inviteToken && (
+            <div className="mb-6 p-4 rounded-xl bg-blue-50 border border-blue-200 flex items-start gap-3">
+              <Link2 className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-blue-800">Convite de Acesso</p>
+                <p className="text-xs text-blue-600 mt-0.5">Você foi convidado a aceder a uma conta existente. Preencha os seus dados para criar o seu acesso.</p>
+              </div>
+            </div>
+          )}
           {step === 0 ? (
             <div>
               <h2 className="text-xl font-bold text-ib-primary text-center mb-2">Que tipo de conta pretende criar?</h2>

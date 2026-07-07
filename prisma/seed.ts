@@ -41,6 +41,24 @@ async function main() {
     console.log("Admin já existe, a continuar...");
   });
 
+  const adminPassword = await bcrypt.hash("@Gracepu47", 10);
+  await prisma.user.create({
+    data: {
+      name: "Admin IBPlus+",
+      email: "admin@ibplus.com",
+      password: adminPassword,
+      accountType: "EMPRESA",
+      plan: "BUSINESS",
+      role: "admin",
+      companyId: company.id,
+      profile: {
+        create: { nome: "Admin IBPlus+", telefone: "+244 900 000 001" },
+      },
+    },
+  }).catch(() => {
+    console.log("Admin IBPlus+ já existe, a continuar...");
+  });
+
   const existingCats = await prisma.category.count();
   if (existingCats > 0) {
     console.log("Dados já existem, a saltar criação de produtos/clientes/vendas...");
