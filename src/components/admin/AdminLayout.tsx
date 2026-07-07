@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Users, Building2, Wrench, Activity, Shield, LogOut, Home, ChevronLeft, ChevronRight, Globe, ArrowLeftFromLine, Settings, ToggleLeft, KeyRound } from "lucide-react";
+import { LayoutDashboard, Users, Building2, Wrench, Activity, Shield, LogOut, Home, ChevronLeft, ChevronRight, Globe, ArrowLeftFromLine, Settings, ToggleLeft, KeyRound, BookOpen } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 
@@ -14,6 +14,7 @@ const adminNav = [
   { label: "Recursos", icon: ToggleLeft, href: "/admin/recursos", desc: "Activar/desactivar funcionalidades" },
   { label: "Permissões", icon: KeyRound, href: "/admin/permissoes", desc: "Controlar acesso por tipo de conta" },
   { label: "Serviços", icon: Wrench, href: "/admin/servicos", desc: "Serviços da plataforma" },
+  { label: "Conteúdos", icon: BookOpen, href: "/admin/conteudos", desc: "Vídeos, artigos, ebooks e posts" },
   { label: "Logs", icon: Activity, href: "/admin/logs", desc: "Registo de actividades" },
 ];
 
@@ -48,9 +49,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       )}>
         {/* Logo */}
         <div className={cn("flex items-center border-b border-white/10", collapsed ? "justify-center px-2 py-4" : "justify-between px-5 py-5")}>
-          <Link href="/admin" className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-lg bg-ib-accent flex items-center justify-center font-bold text-sm text-white shrink-0 shadow-sm">IB</div>
-            {!collapsed && (
+          <Link href="/admin" className={cn("flex items-center", collapsed ? "" : "gap-2.5")}>
+            {collapsed ? (
+              <span className="font-bold text-xs text-white">IB+</span>
+            ) : (
               <div>
                 <div className="font-semibold text-white text-sm leading-tight">IBPlus+</div>
                 <div className="text-[10px] text-blue-300 font-medium tracking-wider uppercase">Admin</div>

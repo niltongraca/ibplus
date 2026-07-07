@@ -27,7 +27,6 @@ export default function SiteHeader() {
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div className="h-8 w-8 rounded-lg bg-ib-accent flex items-center justify-center font-bold text-sm text-white">IB</div>
             <span className="font-bold text-lg text-ib-primary">IBPlus<sup className="text-ib-accent">+</sup></span>
           </Link>
 

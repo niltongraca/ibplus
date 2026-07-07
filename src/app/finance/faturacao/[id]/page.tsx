@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, FileDown, Printer, Trash2 } from "lucide-react";
+import { ArrowLeft, FileDown, Printer, Trash2, Send, CheckCircle } from "lucide-react";
 import Link from "next/link";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { InvoiceTemplate } from "@/components/invoice/InvoiceTemplate";
 
 interface InvoiceItem {
   id: string;
@@ -31,13 +31,19 @@ export default function FaturaDetailPage() {
   const id = (params?.id as string) || "";
   const router = useRouter();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [company, setCompany] = useState<{ name: string; nif?: string | null; email?: string | null; phone?: string | null; address?: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/invoices/${id}`)
-      .then((r) => r.json())
-      .then((d) => setInvoice(d.invoice))
-      .catch((err) => { console.error(err); router.push("/finance/faturacao"); })
+    Promise.all([
+      fetch(`/api/invoices/${id}`).then(r => r.json()),
+      fetch("/api/company").then(r => r.json()).catch(() => ({ company: null })),
+    ])
+      .then(([d, c]) => {
+        setInvoice(d.invoice);
+        setCompany(c.company);
+      })
+      .catch(() => router.push("/finance/faturacao"))
       .finally(() => setLoading(false));
   }, [id, router]);
 
@@ -80,11 +86,11 @@ export default function FaturaDetailPage() {
       <body>
         <div class="header"><div class="logo">IBPlus+</div><div class="title">FATURA</div></div>
         <div class="info">
-          <div><strong>N.º:</strong> ${invoice.number}<br><strong>Data:</strong> ${formatDate(invoice.date)}<br><strong>Vencimento:</strong> ${invoice.dueDate ? formatDate(invoice.dueDate) : "—"}</div>
+          <div><strong>N.º:</strong> ${invoice.number}<br><strong>Data:</strong> ${invoice.date}<br><strong>Vencimento:</strong> ${invoice.dueDate || "—"}</div>
           <div style="text-align:right"><strong>Cliente:</strong> ${invoice.customer || "—"}<br><strong>Estado:</strong> ${statusLabel[invoice.status] || invoice.status}</div>
         </div>
         <table><thead><tr><th>Descrição</th><th style="text-align:center">Qtd</th><th style="text-align:right">Preço Unit.</th><th style="text-align:right">Total</th></tr></thead><tbody>${itemsRows}</tbody></table>
-        <div class="total">Total: ${formatCurrency(invoice.total)}</div>
+        <div class="total">Total: ${invoice.total.toLocaleString("pt-AO", { minimumFractionDigits: 2 })} Kz</div>
         ${invoice.notes ? `<p style="font-size:13px;color:#666;margin-bottom:30px"><strong>Observações:</strong> ${invoice.notes}</p>` : ""}
         <div class="footer">Documento gerado pelo IBPlus+ — Plataforma de Gestão Empresarial</div>
         <script>window.print();<\/script>
@@ -117,12 +123,12 @@ export default function FaturaDetailPage() {
           </button>
           {invoice.status === "draft" && (
             <button onClick={() => updateStatus("sent")} className="flex items-center gap-1.5 px-3 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700">
-              <FileDown className="w-4 h-4" /> Marcar como Enviada
+              <Send className="w-4 h-4" /> Marcar como Enviada
             </button>
           )}
           {invoice.status === "sent" && (
             <button onClick={() => updateStatus("paid")} className="flex items-center gap-1.5 px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">
-              <FileDown className="w-4 h-4" /> Marcar como Paga
+              <CheckCircle className="w-4 h-4" /> Marcar como Paga
             </button>
           )}
           <button onClick={handleDelete} className="flex items-center gap-1.5 px-3 py-2 border border-red-200 text-red-500 rounded-lg text-sm hover:bg-red-50">
@@ -131,62 +137,21 @@ export default function FaturaDetailPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-8 print:border-none print:p-0">
-        <div className="flex justify-between items-start mb-8">
-          <div>
-            <h2 className="text-lg font-bold text-ib-primary">IBPlus+</h2>
-            <p className="text-sm text-ib-muted">Plataforma de Gestão Empresarial</p>
-          </div>
-          <div className="text-right">
-            <h3 className="text-3xl font-bold text-ib-primary">FATURA</h3>
-            <p className="text-sm text-ib-muted">{invoice.number}</p>
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-8 mb-8 text-sm">
-          <div className="space-y-1">
-            <p><strong className="text-ib-primary">Data:</strong> {formatDate(invoice.date)}</p>
-            <p><strong className="text-ib-primary">Vencimento:</strong> {invoice.dueDate ? formatDate(invoice.dueDate) : "—"}</p>
-          </div>
-          <div className="space-y-1 text-right">
-            <p><strong className="text-ib-primary">Cliente:</strong> {invoice.customer || "—"}</p>
-            <p><strong className="text-ib-primary">Estado:</strong> {invoice.status}</p>
-          </div>
-        </div>
-
-        <table className="w-full text-sm mb-8">
-          <thead>
-            <tr className="bg-ib-primary text-white">
-              <th className="text-left p-3 font-medium">Descrição</th>
-              <th className="text-center p-3 font-medium">Quantidade</th>
-              <th className="text-right p-3 font-medium">Preço Unit.</th>
-              <th className="text-right p-3 font-medium">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoice.items.map((item) => (
-              <tr key={item.id} className="border-b border-gray-100">
-                <td className="p-3">{item.description}</td>
-                <td className="p-3 text-center">{item.quantity}</td>
-                <td className="p-3 text-right">{formatCurrency(item.unitPrice)}</td>
-                <td className="p-3 text-right font-medium">{formatCurrency(item.total)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <div className="text-right mb-6">
-          <p className="text-sm text-ib-muted">Total</p>
-          <p className="text-3xl font-bold text-ib-primary">{formatCurrency(invoice.total)}</p>
-        </div>
-
-        {invoice.notes && (
-          <div className="text-sm text-ib-muted border-t border-gray-100 pt-4">
-            <strong className="text-ib-primary">Observações:</strong>
-            <p className="mt-1">{invoice.notes}</p>
-          </div>
-        )}
-      </div>
+      <InvoiceTemplate
+        data={{
+          number: invoice.number,
+          customer: invoice.customer,
+          date: invoice.date,
+          dueDate: invoice.dueDate,
+          total: invoice.total,
+          status: invoice.status,
+          notes: invoice.notes,
+          items: invoice.items,
+        }}
+        type="FATURA"
+        typeLabel="da Factura"
+        company={company}
+      />
     </div>
   );
 }

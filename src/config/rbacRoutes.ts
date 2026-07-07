@@ -20,6 +20,7 @@ export const ROUTE_PERMISSIONS: Record<string, string[]> = {
   "/admin": ["admin"],
   "/admin/recursos": ["admin"],
   "/admin/permissoes": ["admin"],
+  "/admin/conteudos": ["admin"],
 };
 
-export const PUBLIC_ROUTES = ["/", "/login", "/cadastro", "/praca", "/unauthorized"];
+export const PUBLIC_ROUTES = ["/", "/login", "/cadastro", "/praca", "/sobre", "/biblioteca", "/unauthorized"];

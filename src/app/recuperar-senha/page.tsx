@@ -44,7 +44,6 @@ export default function RecuperarSenhaPage() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 mb-2">
-              <div className="h-10 w-10 rounded-xl bg-ib-accent flex items-center justify-center font-bold text-xl text-white">IB</div>
               <span className="font-bold text-2xl text-ib-primary">
                 IBPlus<sup className="text-ib-accent font-bold">+</sup>
               </span>
@@ -94,7 +93,6 @@ export default function RecuperarSenhaPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-2">
-            <div className="h-10 w-10 rounded-xl bg-ib-accent flex items-center justify-center font-bold text-xl text-white">IB</div>
             <span className="font-bold text-2xl text-ib-primary">
               IBPlus<sup className="text-ib-accent font-bold">+</sup>
             </span>

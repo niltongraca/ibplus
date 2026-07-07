@@ -420,6 +420,28 @@ model Vacation {
   createdAt  DateTime @default(now())
 }
 
+enum ContentType {
+  VIDEO
+  POST
+  BOOK
+  ARTICLE
+}
+
+model Content {
+  id          String      @id @default(cuid())
+  title       String
+  type        ContentType
+  url         String
+  description String?
+  thumbnail   String?
+  author      String?
+  tags        String?
+  featured    Boolean     @default(false)
+  published   Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
 model Resource {
   id          String               @id @default(cuid())
   key         String               @unique

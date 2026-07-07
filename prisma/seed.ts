@@ -212,6 +212,7 @@ async function seedResources() {
     { key: "store", label: "Loja Online", description: "E-commerce integrado", icon: "Store", enabled: true },
     { key: "praca", label: "Praça", description: "Marketplace da IBPlus+", icon: "Globe", enabled: true },
     { key: "students", label: "Alunos", description: "Gestão de alunos", icon: "GraduationCap", enabled: true },
+    { key: "conteudos", label: "Conteúdos", description: "Vídeos, artigos, ebooks e posts", icon: "BookOpen", enabled: true },
   ];
 
   const allTypes = ["EMPREENDEDOR", "EMPRESA", "ONG", "ASSOCIACAO", "EDUCACAO", "COOPERATIVA"];

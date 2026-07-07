@@ -42,7 +42,6 @@ export default function SiteFooter() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="h-8 w-8 rounded-lg bg-ib-accent flex items-center justify-center font-bold text-sm">IB</div>
               <span className="font-bold text-lg">IBPlus<sup className="text-ib-accent">+</sup></span>
             </Link>
             <p className="text-sm text-ib-muted leading-relaxed">
