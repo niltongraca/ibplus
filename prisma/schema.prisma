@@ -141,27 +141,34 @@ model EducationProfile {
 }
 
 model Company {
-  id        String   @id @default(cuid())
-  name      String
-  nif       String?
-  email     String?
-  phone     String?
-  address   String?
-  logo      String?
-  users     User[]
-  services  Service[]
-  customers Customer[]
-  products  Product[]
-  sales     Sale[]
-  purchases Purchase[]
-  expenses  Expense[]
-  invoices  Invoice[]
-  campaigns Campaign[]
-  employees Employee[]
-  students  Student[]
-  quotes    Quote[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                  String   @id @default(cuid())
+  name                String
+  nif                 String?
+  email               String?
+  phone               String?
+  address             String?
+  logo                String?
+  whatsappNumber      String?
+  whatsappStore       String?
+  provinciaOperacao   String?
+  horarioFuncionamento String?
+  corPrincipal        String   @default("#2563eb")
+  descricaoLoja       String?
+  sobreNos            String?
+  users               User[]
+  services            Service[]
+  customers           Customer[]
+  products            Product[]
+  sales               Sale[]
+  purchases           Purchase[]
+  expenses            Expense[]
+  invoices            Invoice[]
+  campaigns           Campaign[]
+  employees           Employee[]
+  students            Student[]
+  quotes              Quote[]
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 model Student {

@@ -1,3 +1,4 @@
+"use client";
 import Link from "next/link";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { useState } from "react";

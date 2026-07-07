@@ -1,155 +1,345 @@
 "use client";
 
 import { useState, useEffect } from "react";
-
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/Toast";
-import { User, Building2, Lock, Save } from "lucide-react";
+import {
+  User, Building2, Lock, Save, MapPin, Phone, Smartphone,
+  Palette, Clock, Download, Share2, Globe, Store, Image,
+  MessageCircle, CheckCircle, AlertCircle
+} from "lucide-react";
+
+interface CompanyData {
+  name: string;
+  nif: string;
+  phone: string;
+  email: string;
+  address: string;
+  logo: string;
+  whatsappNumber: string;
+  whatsappStore: string;
+  provinciaOperacao: string;
+  horarioFuncionamento: string;
+  corPrincipal: string;
+  descricaoLoja: string;
+  sobreNos: string;
+}
 
 export default function PerfilPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [profile, setProfile] = useState({ name: "", email: "" });
-  const [company, setCompany] = useState({ name: "", nif: "", phone: "", address: "" });
-  const [passwords, setPasswords] = useState({ current: "", newPass: "", confirm: "" });
-  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("perfil");
+
+  const [profile, setProfile] = useState({ name: "", email: "", phone: "" });
+  const [company, setCompany] = useState<CompanyData>({
+    name: "", nif: "", phone: "", email: "", address: "", logo: "",
+    whatsappNumber: "", whatsappStore: "", provinciaOperacao: "",
+    horarioFuncionamento: "", corPrincipal: "#2563eb",
+    descricaoLoja: "", sobreNos: "",
+  });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (user) {
-      setProfile({ name: user.name, email: user.email });
-      fetch("/api/company")
-        .then((r) => r.json())
-        .then((d) => {
-          if (d.company) setCompany({ name: d.company.name || "", nif: d.company.nif || "", phone: d.company.phone || "", address: d.company.address || "" });
-        })
-        .catch((err) => console.error("Erro ao carregar empresa:", err));
+      setProfile({ name: user.name, email: user.email, phone: user.phone || "" });
     }
   }, [user]);
 
-  async function saveProfile(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    const res = await fetch("/api/auth/profile", {
+  useEffect(() => {
+    fetch("/api/company")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.company) {
+          setCompany({
+            name: d.company.name || "",
+            nif: d.company.nif || "",
+            phone: d.company.phone || "",
+            email: d.company.email || "",
+            address: d.company.address || "",
+            logo: d.company.logo || "",
+            whatsappNumber: d.company.whatsappNumber || "",
+            whatsappStore: d.company.whatsappStore || "",
+            provinciaOperacao: d.company.provinciaOperacao || "",
+            horarioFuncionamento: d.company.horarioFuncionamento || "",
+            corPrincipal: d.company.corPrincipal || "#2563eb",
+            descricaoLoja: d.company.descricaoLoja || "",
+            sobreNos: d.company.sobreNos || "",
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  async function saveCompany(data: Partial<CompanyData>) {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/company", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (res.ok) {
+        toast("Configurações salvas!", "success");
+        setCompany((prev) => ({ ...prev, ...data }));
+      } else {
+        toast("Erro ao salvar.", "error");
+      }
+    } catch {
+      toast("Erro ao salvar.", "error");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function saveProfile() {
+    setSaving(true);
+    await fetch("/api/auth/profile", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: profile.name }),
     });
-    setLoading(false);
-    if (res.ok) toast("Perfil actualizado!", "success");
-    else toast("Erro ao actualizar perfil.", "error");
+    setSaving(false);
+    toast("Perfil actualizado!", "success");
   }
 
-  async function saveCompany(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    const res = await fetch("/api/company", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(company),
-    });
-    setLoading(false);
-    if (res.ok) toast("Empresa actualizada!", "success");
-    else toast("Erro ao actualizar empresa.", "error");
-  }
+  const tabs = [
+    { key: "perfil", label: "Meu Perfil", icon: User },
+    { key: "loja", label: "Informações da Loja", icon: Store },
+    { key: "contactos", label: "Contactos da Loja", icon: MessageCircle },
+    { key: "endereco", label: "Configuração de Endereço", icon: MapPin },
+    { key: "personalizar", label: "Personalização", icon: Palette },
+    { key: "horarios", label: "Horários", icon: Clock },
+  ];
 
-  async function changePassword(e: React.FormEvent) {
-    e.preventDefault();
-    if (passwords.newPass !== passwords.confirm) {
-      toast("As senhas não coincidem.", "error");
-      return;
-    }
-    setLoading(true);
-    const res = await fetch("/api/auth/password", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ currentPassword: passwords.current, newPassword: passwords.newPass }),
-    });
-    setLoading(false);
-    if (res.ok) {
-      toast("Senha alterada com sucesso!", "success");
-      setPasswords({ current: "", newPass: "", confirm: "" });
-    } else {
-      const data = await res.json();
-      toast(data.error || "Erro ao alterar senha.", "error");
-    }
-  }
+  const updateCompany = (field: string, value: string) =>
+    setCompany((prev) => ({ ...prev, [field]: value }));
 
   return (
-      <div className="max-w-2xl mx-auto space-y-8">
-        <h1 className="text-2xl font-bold text-ib-primary">Definições do Perfil</h1>
-
-        {/* Profile Info */}
-        <form onSubmit={saveProfile} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-ib-primary flex items-center gap-2"><User className="w-5 h-5 text-ib-accent" /> Informações Pessoais</h2>
-          <div>
-            <label className="block text-sm font-medium text-ib-primary mb-1">Nome</label>
-            <input type="text" value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-ib-primary mb-1">Email</label>
-            <input type="email" value={profile.email} disabled
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-500" />
-          </div>
-          <button type="submit" disabled={loading} className="flex items-center gap-2 bg-ib-accent hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50">
-            <Save className="w-4 h-4" /> Salvar
-          </button>
-        </form>
-
-        {/* Company Info */}
-        <form onSubmit={saveCompany} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-ib-primary flex items-center gap-2"><Building2 className="w-5 h-5 text-ib-accent" /> Dados da Empresa</h2>
-          <div>
-            <label className="block text-sm font-medium text-ib-primary mb-1">Nome da Empresa</label>
-            <input type="text" value={company.name} onChange={(e) => setCompany({ ...company, name: e.target.value })}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
-          </div>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-ib-primary mb-1">NIF</label>
-              <input type="text" value={company.nif} onChange={(e) => setCompany({ ...company, nif: e.target.value })}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-ib-primary mb-1">Telefone</label>
-              <input type="text" value={company.phone} onChange={(e) => setCompany({ ...company, phone: e.target.value })}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-ib-primary mb-1">Endereço</label>
-            <input type="text" value={company.address} onChange={(e) => setCompany({ ...company, address: e.target.value })}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
-          </div>
-          <button type="submit" disabled={loading} className="flex items-center gap-2 bg-ib-accent hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50">
-            <Save className="w-4 h-4" /> Salvar
-          </button>
-        </form>
-
-        {/* Change Password */}
-        <form onSubmit={changePassword} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-ib-primary flex items-center gap-2"><Lock className="w-5 h-5 text-ib-accent" /> Alterar Senha</h2>
-          <div>
-            <label className="block text-sm font-medium text-ib-primary mb-1">Senha Actual</label>
-            <input type="password" value={passwords.current} onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
-          </div>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-ib-primary mb-1">Nova Senha</label>
-              <input type="password" value={passwords.newPass} onChange={(e) => setPasswords({ ...passwords, newPass: e.target.value })}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-ib-primary mb-1">Confirmar Nova Senha</label>
-              <input type="password" value={passwords.confirm} onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
-            </div>
-          </div>
-          <button type="submit" disabled={loading} className="flex items-center gap-2 bg-ib-accent hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50">
-            <Save className="w-4 h-4" /> Alterar Senha
-          </button>
-        </form>
+    <div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-ib-primary">Configurações</h1>
+        <p className="text-ib-muted text-sm">Gerir perfil, loja e preferências</p>
       </div>
+
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+              activeTab === tab.key
+                ? "bg-ib-accent text-white"
+                : "bg-white border border-gray-200 text-ib-muted hover:bg-gray-50"
+            }`}
+          >
+            <tab.icon className="w-4 h-4" />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "perfil" && (
+        <div className="space-y-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h2 className="font-semibold text-ib-primary mb-4 flex items-center gap-2">
+              <User className="w-4 h-4 text-ib-accent" /> Dados Pessoais
+            </h2>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-ib-primary mb-1">Nome Completo</label>
+                <input type="text" value={profile.name} onChange={(e) => setProfile((p) => ({ ...p, name: e.target.value }))} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-ib-primary mb-1">Email</label>
+                <input type="email" value={profile.email} disabled className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-400" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-ib-primary mb-1">Telefone Pessoal</label>
+                <input type="text" value={profile.phone} onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value }))} placeholder="+244 XXX XXX XXX" className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+              </div>
+            </div>
+            <div className="flex justify-end mt-4">
+              <button onClick={saveProfile} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+                <Save className="w-4 h-4" /> {saving ? "A salvar..." : "Salvar Perfil"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "contactos" && (
+        <div className="space-y-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h2 className="font-semibold text-ib-primary mb-4 flex items-center gap-2">
+              <Smartphone className="w-4 h-4 text-ib-accent" /> Contactos da Loja
+            </h2>
+            <p className="text-sm text-ib-muted mb-4">Números de WhatsApp associados à loja que serão exibidos para os clientes.</p>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-ib-primary mb-1">WhatsApp Loja (exibido aos clientes)</label>
+                <input type="text" value={company.whatsappStore} onChange={(e) => updateCompany("whatsappStore", e.target.value)} placeholder="+244 XXX XXX XXX" className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-ib-primary mb-1">WhatsApp Notificações (opcional)</label>
+                <input type="text" value={company.whatsappNumber} onChange={(e) => updateCompany("whatsappNumber", e.target.value)} placeholder="+244 XXX XXX XXX" className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+              </div>
+            </div>
+            <div className="flex justify-end mt-4">
+              <button onClick={() => saveCompany({ whatsappStore: company.whatsappStore, whatsappNumber: company.whatsappNumber })} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+                <Save className="w-4 h-4" /> Salvar Contactos
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "endereco" && (
+        <div className="space-y-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h2 className="font-semibold text-ib-primary mb-4 flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-ib-accent" /> Configuração de Endereço
+            </h2>
+            <p className="text-sm text-ib-muted mb-4">Defina o ponto de origem para entregas e retiradas.</p>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-ib-primary mb-1">Endereço</label>
+                <input type="text" value={company.address} onChange={(e) => updateCompany("address", e.target.value)} placeholder="Rua, nº, bairro" className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-ib-primary mb-1">Província de Operação</label>
+                <select value={company.provinciaOperacao} onChange={(e) => updateCompany("provinciaOperacao", e.target.value)} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40">
+                  <option value="">Seleccionar província</option>
+                  {["Bengo","Benguela","Bié","Cabinda","Cuando Cubango","Cuanza Norte","Cuanza Sul","Cunene","Huambo","Huíla","Luanda","Lunda Norte","Lunda Sul","Malanje","Moxico","Namibe","Uíge","Zaire"].map((p) => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="flex justify-end mt-4">
+              <button onClick={() => saveCompany({ address: company.address, provinciaOperacao: company.provinciaOperacao })} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+                <Save className="w-4 h-4" /> Salvar Endereço
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "loja" && (
+        <div className="space-y-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h2 className="font-semibold text-ib-primary mb-4 flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-ib-accent" /> Dados Básicos
+            </h2>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-ib-primary mb-1">Nome da Loja/Empresa</label>
+                <input type="text" value={company.name} onChange={(e) => updateCompany("name", e.target.value)} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-ib-primary mb-1">NIF</label>
+                <input type="text" value={company.nif} onChange={(e) => updateCompany("nif", e.target.value)} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-ib-primary mb-1">Email da Loja</label>
+                <input type="email" value={company.email} onChange={(e) => updateCompany("email", e.target.value)} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-ib-primary mb-1">Telefone da Loja</label>
+                <input type="text" value={company.phone} onChange={(e) => updateCompany("phone", e.target.value)} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h2 className="font-semibold text-ib-primary mb-4 flex items-center gap-2">
+              <Share2 className="w-4 h-4 text-ib-accent" /> Sobre Nós
+            </h2>
+            <p className="text-sm text-ib-muted mb-4">Descrição da sua loja para redes sociais. Aparece quando partilhar a loja.</p>
+            <div>
+              <label className="block text-sm font-medium text-ib-primary mb-1">Descrição da Loja</label>
+              <textarea value={company.descricaoLoja} onChange={(e) => updateCompany("descricaoLoja", e.target.value)} rows={3} placeholder="Conte um pouco sobre o seu negócio..." className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40 resize-none" />
+            </div>
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-ib-primary mb-1">Sobre Nós (texto completo)</label>
+              <textarea value={company.sobreNos} onChange={(e) => updateCompany("sobreNos", e.target.value)} rows={4} placeholder="História, missão, valores..." className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40 resize-none" />
+            </div>
+            <div className="flex justify-end mt-4">
+              <button onClick={() => saveCompany({ name: company.name, nif: company.nif, email: company.email, phone: company.phone, descricaoLoja: company.descricaoLoja, sobreNos: company.sobreNos })} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+                <Save className="w-4 h-4" /> Salvar Loja
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "personalizar" && (
+        <div className="space-y-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h2 className="font-semibold text-ib-primary mb-4 flex items-center gap-2">
+              <Palette className="w-4 h-4 text-ib-accent" /> Personalização
+            </h2>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-ib-primary mb-1">Cor Principal</label>
+                <div className="flex items-center gap-3">
+                  <input type="color" value={company.corPrincipal} onChange={(e) => updateCompany("corPrincipal", e.target.value)} className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer" />
+                  <span className="text-sm text-ib-muted font-mono">{company.corPrincipal}</span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-ib-primary mb-1">Logo da Loja</label>
+                <div className="flex items-center gap-3">
+                  <input type="text" value={company.logo} onChange={(e) => updateCompany("logo", e.target.value)} placeholder="URL da imagem do logo" className="flex-1 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+                  <div className="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden">
+                    {company.logo ? (
+                      <img src={company.logo} alt="logo" className="w-full h-full object-cover" />
+                    ) : (
+                      <Image className="w-4 h-4 text-gray-400" />
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end mt-4">
+              <button onClick={() => saveCompany({ corPrincipal: company.corPrincipal, logo: company.logo })} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+                <Save className="w-4 h-4" /> Salvar Personalização
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h2 className="font-semibold text-ib-primary mb-4 flex items-center gap-2">
+              <Download className="w-4 h-4 text-ib-accent" /> Instalar Aplicativo
+            </h2>
+            <p className="text-sm text-ib-muted mb-4">Acesse sua loja direto da tela inicial do seu dispositivo.</p>
+            <button onClick={() => {
+              toast("Adicione aos favoritos ou use 'Instalar App' no menu do navegador.", "info");
+            }} className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm text-ib-muted hover:bg-gray-50">
+              <Download className="w-4 h-4" /> Como Instalar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "horarios" && (
+        <div className="space-y-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h2 className="font-semibold text-ib-primary mb-4 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-ib-accent" /> Horários de Funcionamento
+            </h2>
+            <p className="text-sm text-ib-muted mb-4">Configure os dias e horários de operação da sua loja.</p>
+            <div>
+              <label className="block text-sm font-medium text-ib-primary mb-1">Horários (ex: Seg-Sex: 8h-18h, Sáb: 8h-13h)</label>
+              <textarea value={company.horarioFuncionamento} onChange={(e) => updateCompany("horarioFuncionamento", e.target.value)} rows={4} placeholder="Segunda a Sexta: 08:00 - 18:00&#10;Sábado: 08:00 - 13:00&#10;Domingo: Fechado" className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40 resize-none" />
+            </div>
+            <div className="flex justify-end mt-4">
+              <button onClick={() => saveCompany({ horarioFuncionamento: company.horarioFuncionamento })} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+                <Save className="w-4 h-4" /> Salvar Horários
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

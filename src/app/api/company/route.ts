@@ -19,10 +19,19 @@ export async function PUT(request: Request) {
     const user = await getAuthUser();
     if (!user || !user.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-    const { name, nif, phone, address } = await request.json();
+    const data = await request.json();
+    const allowedFields = [
+      "name", "nif", "phone", "address", "email", "logo",
+      "whatsappNumber", "whatsappStore", "provinciaOperacao",
+      "horarioFuncionamento", "corPrincipal", "descricaoLoja", "sobreNos",
+    ];
+    const updateData: any = {};
+    for (const key of allowedFields) {
+      if (data[key] !== undefined) updateData[key] = data[key];
+    }
     await prisma.company.update({
       where: { id: user.companyId },
-      data: { name, nif, phone, address },
+      data: updateData,
     });
 
     return NextResponse.json({ success: true });

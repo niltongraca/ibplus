@@ -1,5 +1,7 @@
 import { Shield, Zap, Globe, Heart, GraduationCap, Handshake, BookOpen, CheckCircle } from "lucide-react";
 import Link from "next/link";
+import SiteHeader from "@/components/site/Header";
+import SiteFooter from "@/components/site/Footer";
 
 const accountTypes = [
   { icon: Zap, name: "Empreendedor", desc: "Profissional individual que quer gerir clientes, serviços e finanças pessoais." },
@@ -13,6 +15,7 @@ const accountTypes = [
 export default function SobrePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <SiteHeader />
       <div className="max-w-5xl mx-auto px-4 py-12">
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-ib-accent/10 mb-4">
@@ -93,6 +96,7 @@ export default function SobrePage() {
           </div>
         </div>
       </div>
+      <SiteFooter />
     </div>
   );
 }

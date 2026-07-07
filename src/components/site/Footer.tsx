@@ -75,6 +75,7 @@ export default function SiteFooter() {
         <div className="border-t border-white/10 mt-12 pt-8 text-center text-sm text-ib-muted">
           <p>&copy; {new Date().getFullYear()} IBPlus. Todos os direitos reservados.</p>
           <p className="mt-1">Malanje, Angola</p>
+          <p className="mt-2 text-xs text-blue-300/50">desenvolvido por IBUKA47 | @nilton_grace</p>
         </div>
       </div>
     </footer>

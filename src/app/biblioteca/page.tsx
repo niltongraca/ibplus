@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { BookOpen, Youtube, FileText, Book, ExternalLink, Search, Filter } from "lucide-react";
 import Link from "next/link";
+import SiteHeader from "@/components/site/Header";
+import SiteFooter from "@/components/site/Footer";
 
 interface ContentItem {
   id: string;
@@ -54,6 +56,7 @@ export default function BibliotecaPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <SiteHeader />
       <div className="max-w-6xl mx-auto px-4 py-12">
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-ib-accent/10 mb-4">
@@ -161,6 +164,7 @@ export default function BibliotecaPage() {
           </div>
         )}
       </div>
+      <SiteFooter />
     </div>
   );
 }
