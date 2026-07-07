@@ -3,6 +3,7 @@ import { z } from "zod";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
+import { sendEmail, forgotPasswordEmail } from "@/lib/email";
 
 const schema = z.object({
   email: z.string().email("Email inválido"),
@@ -32,10 +33,8 @@ export async function POST(request: Request) {
         data: { resetToken: token, resetTokenExpires: expires },
       });
 
-      return NextResponse.json({
-        message: "Se o email existir, receberá instruções de recuperação.",
-        token,
-      });
+      const mail = forgotPasswordEmail(token);
+      await sendEmail(email, mail.subject, mail.html);
     }
 
     return NextResponse.json({
