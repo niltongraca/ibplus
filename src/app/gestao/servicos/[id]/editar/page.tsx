@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import ProductForm from "@/components/ProductForm";
 
-export default function EditarProdutoPage() {
+export default function EditarServicoPage() {
   const params = useParams();
   const id = (params?.id as string) || "";
   const router = useRouter();
@@ -12,10 +12,10 @@ export default function EditarProdutoPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/products/${id}`)
+    fetch(`/api/services/${id}`)
       .then((r) => r.json())
-      .then((d) => setData(d.product))
-      .catch(() => router.push("/gestao/produtos"))
+      .then((d) => setData(d.service))
+      .catch(() => router.push("/gestao/servicos"))
       .finally(() => setLoading(false));
   }, [id, router]);
 
@@ -32,17 +32,13 @@ export default function EditarProdutoPage() {
   return (
     <ProductForm
       mode="edit"
-      type="product"
+      type="service"
       id={id}
       initialData={{
         name: data.name,
         description: data.description,
         price: data.price,
-        cost: data.cost,
-        stock: data.stock,
-        minStock: data.minStock,
-        unit: data.unit,
-        categoryId: data.categoryId,
+        duration: data.duration,
       }}
     />
   );

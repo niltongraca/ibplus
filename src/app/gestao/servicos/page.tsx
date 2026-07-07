@@ -83,9 +83,9 @@ export default function ServicosPage() {
             <div className="flex items-center justify-between">
               <span className="text-lg font-bold text-ib-primary">{service.price.toLocaleString()} Kz</span>
               <div className="flex items-center gap-1">
-                <button className="p-1.5 hover:bg-gray-100 rounded-lg text-ib-muted hover:text-ib-primary">
+                <Link href={`/gestao/servicos/${service.id}/editar`} className="p-1.5 hover:bg-gray-100 rounded-lg text-ib-muted hover:text-ib-primary">
                   <Pencil className="w-4 h-4" />
-                </button>
+                </Link>
                 <button onClick={() => handleDelete(service.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-ib-muted hover:text-ib-danger">
                   <Trash2 className="w-4 h-4" />
                 </button>

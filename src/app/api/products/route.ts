@@ -20,9 +20,24 @@ export async function POST(request: Request) {
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   try {
-    const data = await request.json();
+    const { name, description, price, cost, stock, minStock, unit, categoryId } = await request.json();
+
+    if (!name || price === undefined) {
+      return NextResponse.json({ error: "Nome e preço são obrigatórios." }, { status: 400 });
+    }
+
     const product = await prisma.product.create({
-      data: { ...data, companyId: user.companyId },
+      data: {
+        name,
+        description: description || null,
+        price: parseFloat(price),
+        cost: parseFloat(cost) || 0,
+        stock: parseInt(stock) || 0,
+        minStock: parseInt(minStock) || 0,
+        unit: unit || "un",
+        categoryId: categoryId || null,
+        companyId: user.companyId,
+      },
       include: { category: true },
     });
     return NextResponse.json({ product }, { status: 201 });
