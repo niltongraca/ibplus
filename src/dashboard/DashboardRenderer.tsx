@@ -4,10 +4,16 @@ import type { DashboardWidget } from "./getDashboard";
 import { StatsWidget } from "./widgets/StatsWidget";
 import { SalesWidget } from "./widgets/SalesWidget";
 import { FinanceWidget } from "./widgets/FinanceWidget";
-import { PlaceholderWidget } from "./widgets/PlaceholderWidget";
-import { Users, Heart, GraduationCap, Handshake, Package, Briefcase, Megaphone } from "lucide-react";
+import { ClientsWidget } from "./widgets/ClientsWidget";
+import { ProductsWidget } from "./widgets/ProductsWidget";
+import { InventoryWidget } from "./widgets/InventoryWidget";
+import { HRWidget } from "./widgets/HRWidget";
+import { ServicesWidget } from "./widgets/ServicesWidget";
+import { DonationsWidget } from "./widgets/DonationsWidget";
+import { StudentsWidget } from "./widgets/StudentsWidget";
+import { CampaignsWidget } from "./widgets/CampaignsWidget";
 
-interface DashboardData {
+export interface DashboardData {
   totalRevenue: number;
   todaySales: number;
   totalCustomers: number;
@@ -16,18 +22,15 @@ interface DashboardData {
   pendingInvoicesTotal: number;
   productsLowStock: number;
   recentSales: { id: string; total: number; date: string; customer: { name: string } | null }[];
+  recentClients: { id: string; name: string; email: string | null; phone: string | null }[];
+  totalEmployees: number;
+  totalServices: number;
+  lowStockProducts: { id: string; name: string; stock: number; minStock: number }[];
+  totalDonations: number;
+  donationTotal: number;
+  totalStudents: number;
+  activeCampaigns: number;
 }
-
-const placeholderIcons: Record<string, any> = {
-  clients: Users,
-  products: Package,
-  services: Briefcase,
-  hr: Users,
-  donations: Heart,
-  students: GraduationCap,
-  campaigns: Megaphone,
-  inventory: Package,
-};
 
 export function DashboardRenderer({ widgets, data }: { widgets: DashboardWidget[]; data: DashboardData | null }) {
   return (
@@ -45,20 +48,59 @@ export function DashboardRenderer({ widgets, data }: { widgets: DashboardWidget[
           case "finance":
             return (
               <div key="finance" className="mb-6">
-                <div className="grid lg:grid-cols-2 gap-6">
-                  {data && <FinanceWidget data={data} />}
-                  <PlaceholderWidget icon={Handshake} title={widget.title} description={widget.description} />
-                </div>
+                <FinanceWidget data={data} />
+              </div>
+            );
+          case "clients":
+            return (
+              <div key="clients" className="mb-6">
+                <ClientsWidget data={data} />
+              </div>
+            );
+          case "products":
+            return (
+              <div key="products" className="mb-6">
+                <ProductsWidget data={data} />
+              </div>
+            );
+          case "inventory":
+            return (
+              <div key="inventory" className="mb-6">
+                <InventoryWidget data={data} />
+              </div>
+            );
+          case "hr":
+            return (
+              <div key="hr" className="mb-6">
+                <HRWidget data={data} />
+              </div>
+            );
+          case "services":
+            return (
+              <div key="services" className="mb-6">
+                <ServicesWidget data={data} />
+              </div>
+            );
+          case "donations":
+            return (
+              <div key="donations" className="mb-6">
+                <DonationsWidget data={data} />
+              </div>
+            );
+          case "students":
+            return (
+              <div key="students" className="mb-6">
+                <StudentsWidget data={data} />
+              </div>
+            );
+          case "campaigns":
+            return (
+              <div key="campaigns" className="mb-6">
+                <CampaignsWidget data={data} />
               </div>
             );
           default:
-            return (
-              <div key={widget.id} className="mb-6">
-                <div className="grid lg:grid-cols-2 gap-6">
-                  <PlaceholderWidget icon={placeholderIcons[widget.id] || Package} title={widget.title} description={widget.description} />
-                </div>
-              </div>
-            );
+            return null;
         }
       })}
     </div>

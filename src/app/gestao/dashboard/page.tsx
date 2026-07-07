@@ -3,18 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getDashboard } from "@/dashboard/getDashboard";
-import { DashboardRenderer } from "@/dashboard/DashboardRenderer";
-
-interface DashboardData {
-  totalRevenue: number;
-  todaySales: number;
-  totalCustomers: number;
-  totalProducts: number;
-  pendingInvoices: number;
-  pendingInvoicesTotal: number;
-  productsLowStock: number;
-  recentSales: { id: string; total: number; date: string; customer: { name: string } | null }[];
-}
+import { DashboardRenderer, type DashboardData } from "@/dashboard/DashboardRenderer";
 
 export default function DashboardPage() {
   const { user } = useAuth();
