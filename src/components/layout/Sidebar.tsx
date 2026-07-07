@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   Settings,
@@ -46,6 +47,7 @@ interface NavItem {
   label: string;
   icon: LucideIcon;
   href: string;
+  resourceKey?: string;
 }
 
 interface ModuleGroup {
@@ -58,74 +60,74 @@ const modules: ModuleGroup[] = [
   {
     name: "Gestão",
     items: [
-      { label: "Dashboard", icon: LayoutDashboard, href: "/gestao/dashboard" },
-      { label: "Clientes", icon: Users, href: "/gestao/clientes" },
-      { label: "Produtos", icon: Package, href: "/gestao/produtos" },
-      { label: "Serviços", icon: FileText, href: "/gestao/servicos" },
-      { label: "Stock", icon: Warehouse, href: "/gestao/stock" },
-      { label: "Compras", icon: ShoppingCart, href: "/gestao/compras" },
-      { label: "Vendas", icon: DollarSign, href: "/gestao/vendas" },
-      { label: "Despesas", icon: TrendingDown, href: "/gestao/despesas" },
-      { label: "Fluxo de Caixa", icon: BarChart3, href: "/gestao/fluxo-caixa" },
+      { label: "Dashboard", icon: LayoutDashboard, href: "/gestao/dashboard", resourceKey: "dashboard" },
+      { label: "Clientes", icon: Users, href: "/gestao/clientes", resourceKey: "clientes" },
+      { label: "Produtos", icon: Package, href: "/gestao/produtos", resourceKey: "produtos" },
+      { label: "Serviços", icon: FileText, href: "/gestao/servicos", resourceKey: "servicos" },
+      { label: "Stock", icon: Warehouse, href: "/gestao/stock", resourceKey: "stock" },
+      { label: "Compras", icon: ShoppingCart, href: "/gestao/compras", resourceKey: "compras" },
+      { label: "Vendas", icon: DollarSign, href: "/gestao/vendas", resourceKey: "vendas" },
+      { label: "Despesas", icon: TrendingDown, href: "/gestao/despesas", resourceKey: "despesas" },
+      { label: "Fluxo de Caixa", icon: BarChart3, href: "/gestao/fluxo-caixa", resourceKey: "fluxo-caixa" },
       { label: "Perfil", icon: Settings, href: "/gestao/perfil" },
     ],
   },
   {
     name: "Finance",
     items: [
-      { label: "Faturação", icon: FileText, href: "/finance/faturacao" },
-      { label: "Orçamentos", icon: ScrollText, href: "/finance/orcamentos" },
-      { label: "Cobranças", icon: Receipt, href: "/finance/cobrancas" },
-      { label: "Contas a Pagar", icon: CreditCard, href: "/finance/contas-pagar" },
-      { label: "Contas a Receber", icon: PiggyBank, href: "/finance/contas-receber" },
-      { label: "Relatórios", icon: PieChart, href: "/finance/relatorios" },
+      { label: "Faturação", icon: FileText, href: "/finance/faturacao", resourceKey: "faturacao" },
+      { label: "Orçamentos", icon: ScrollText, href: "/finance/orcamentos", resourceKey: "orcamentos" },
+      { label: "Cobranças", icon: Receipt, href: "/finance/cobrancas", resourceKey: "cobrancas" },
+      { label: "Contas a Pagar", icon: CreditCard, href: "/finance/contas-pagar", resourceKey: "contas-pagar" },
+      { label: "Contas a Receber", icon: PiggyBank, href: "/finance/contas-receber", resourceKey: "contas-receber" },
+      { label: "Relatórios", icon: PieChart, href: "/finance/relatorios", resourceKey: "relatorios" },
     ],
   },
   {
     name: "CRM",
     items: [
-      { label: "Clientes", icon: Users, href: "/crm/clientes" },
-      { label: "Funil de Vendas", icon: Target, href: "/crm/funil-vendas" },
-      { label: "Propostas", icon: FileText, href: "/crm/propostas" },
-      { label: "Agenda", icon: Calendar, href: "/crm/agenda" },
-      { label: "Follow-up", icon: MessageSquare, href: "/crm/follow-up" },
+      { label: "Clientes", icon: Users, href: "/crm/clientes", resourceKey: "crm" },
+      { label: "Funil de Vendas", icon: Target, href: "/crm/funil-vendas", resourceKey: "crm" },
+      { label: "Propostas", icon: FileText, href: "/crm/propostas", resourceKey: "crm" },
+      { label: "Agenda", icon: Calendar, href: "/crm/agenda", resourceKey: "crm" },
+      { label: "Follow-up", icon: MessageSquare, href: "/crm/follow-up", resourceKey: "crm" },
     ],
   },
   {
     name: "Store",
     items: [
-      { label: "Loja Online", icon: Store, href: "/store/loja" },
-      { label: "Catálogo", icon: Image, href: "/store/catalogo" },
-      { label: "Encomendas", icon: Truck, href: "/store/encomendas" },
-      { label: "Pagamentos", icon: DollarSign, href: "/store/pagamentos" },
+      { label: "Loja Online", icon: Store, href: "/store/loja", resourceKey: "store" },
+      { label: "Catálogo", icon: Image, href: "/store/catalogo", resourceKey: "store" },
+      { label: "Encomendas", icon: Truck, href: "/store/encomendas", resourceKey: "store" },
+      { label: "Pagamentos", icon: DollarSign, href: "/store/pagamentos", resourceKey: "store" },
     ],
   },
   {
     name: "IA",
     items: [
-      { label: "Assistente", icon: Bot, href: "/ia/assistente" },
-      { label: "Análise de Vendas", icon: LineChart, href: "/ia/analise-vendas" },
-      { label: "Previsões", icon: TrendingUp, href: "/ia/previsoes" },
-      { label: "Recomendações", icon: Sparkles, href: "/ia/recomendacoes" },
-      { label: "Relatórios", icon: PieChart, href: "/ia/relatorios" },
+      { label: "Assistente", icon: Bot, href: "/ia/assistente", resourceKey: "ia" },
+      { label: "Análise de Vendas", icon: LineChart, href: "/ia/analise-vendas", resourceKey: "ia" },
+      { label: "Previsões", icon: TrendingUp, href: "/ia/previsoes", resourceKey: "ia" },
+      { label: "Recomendações", icon: Sparkles, href: "/ia/recomendacoes", resourceKey: "ia" },
+      { label: "Relatórios", icon: PieChart, href: "/ia/relatorios", resourceKey: "ia" },
     ],
   },
   {
     name: "Marketing",
     items: [
-      { label: "Campanhas", icon: Megaphone, href: "/marketing/campanhas" },
-      { label: "E-mail Marketing", icon: Mail, href: "/marketing/email-marketing" },
-      { label: "Promoções", icon: Gift, href: "/marketing/promocoes" },
-      { label: "Fidelização", icon: Users, href: "/marketing/fidelizacao" },
+      { label: "Campanhas", icon: Megaphone, href: "/marketing/campanhas", resourceKey: "marketing" },
+      { label: "E-mail Marketing", icon: Mail, href: "/marketing/email-marketing", resourceKey: "marketing" },
+      { label: "Promoções", icon: Gift, href: "/marketing/promocoes", resourceKey: "marketing" },
+      { label: "Fidelização", icon: Users, href: "/marketing/fidelizacao", resourceKey: "marketing" },
     ],
   },
   {
     name: "RH",
     items: [
-      { label: "Funcionários", icon: Users2, href: "/rh/funcionarios" },
-      { label: "Salários", icon: Calculator, href: "/rh/salarios" },
-      { label: "Férias", icon: Sun, href: "/rh/ferias" },
-      { label: "Presenças", icon: Clock, href: "/rh/presencas" },
+      { label: "Funcionários", icon: Users2, href: "/rh/funcionarios", resourceKey: "rh" },
+      { label: "Salários", icon: Calculator, href: "/rh/salarios", resourceKey: "rh" },
+      { label: "Férias", icon: Sun, href: "/rh/ferias", resourceKey: "rh" },
+      { label: "Presenças", icon: Clock, href: "/rh/presencas", resourceKey: "rh" },
     ],
   },
 ];
@@ -138,10 +140,35 @@ interface SidebarProps {
 export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname() ?? "";
   const { user } = useAuth();
+  const [allowedKeys, setAllowedKeys] = useState<string[] | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/resources/user")
+      .then((res) => res.json())
+      .then((data) => {
+        setAllowedKeys(data.allowedKeys ?? []);
+      })
+      .catch(() => {
+        setAllowedKeys([]);
+      })
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const visibleModules = isLoading
+    ? modules
+    : modules
+        .map((mod) => ({
+          ...mod,
+          items: mod.items.filter(
+            (item) => !item.resourceKey || (allowedKeys ?? []).includes(item.resourceKey)
+          ),
+        }))
+        .filter((mod) => mod.items.length > 0);
 
   const sidebarContent = (
     <nav className="px-3 py-4 space-y-6 overflow-y-auto h-full">
-      {modules.map((mod) => (
+      {visibleModules.map((mod) => (
         <div key={mod.name}>
           <div className="flex items-center gap-2 px-3 mb-1">
             <span className="text-xs font-semibold uppercase tracking-wider text-ib-muted">
