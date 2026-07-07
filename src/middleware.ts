@@ -53,10 +53,6 @@ function matchResourceKey(pathname: string): string | null {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith("/unauthorized")) {
-    return NextResponse.next();
-  }
-
   if (PUBLIC_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"))) {
     return NextResponse.next();
   }
