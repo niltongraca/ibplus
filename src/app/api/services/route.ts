@@ -6,10 +6,9 @@ export async function GET() {
   try {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
-    if (!user.companyId) return NextResponse.json({ error: "Apenas utilizadores empresa podem gerir serviços." }, { status: 403 });
 
     const services = await prisma.service.findMany({
-      where: { companyId: user.companyId },
+      where: { companyId: user.companyId! },
       orderBy: { createdAt: "desc" },
     });
 
@@ -22,7 +21,6 @@ export async function GET() {
 export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
-  if (!user.companyId) return NextResponse.json({ error: "Apenas utilizadores empresa podem gerir serviços." }, { status: 403 });
 
   try {
     const { name, description, price, duration } = await request.json();
@@ -32,7 +30,7 @@ export async function POST(request: Request) {
     }
 
     const service = await prisma.service.create({
-      data: { name, description, price: parseFloat(price), duration, companyId: user.companyId },
+      data: { name, description, price: parseFloat(price), duration, companyId: user.companyId! },
     });
 
     return NextResponse.json({ service });

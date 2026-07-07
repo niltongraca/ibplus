@@ -123,14 +123,12 @@ export async function POST(request: Request) {
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     const user = await prisma.$transaction(async (tx) => {
-      let companyId: string | undefined;
+      const companyName = data.accountType === "EMPRESA" ? data.nomeEmpresa! : `${data.nome} (${data.accountType})`;
 
-      if (data.accountType === "EMPRESA") {
-        const company = await tx.company.create({
-          data: { name: data.nomeEmpresa!, nif: data.nif, phone: data.telefone, address: data.endereco },
-        });
-        companyId = company.id;
-      }
+      const company = await tx.company.create({
+        data: { name: companyName, nif: data.nif, phone: data.telefone, address: data.endereco },
+      });
+      const companyId = company.id;
 
       const profileData: any = {
         nome: data.nome,
