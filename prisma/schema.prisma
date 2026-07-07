@@ -166,6 +166,7 @@ model Company {
   campaigns           Campaign[]
   employees           Employee[]
   students            Student[]
+  opportunities       Opportunity[]
   quotes              Quote[]
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
@@ -201,8 +202,24 @@ model Customer {
   type       String   @default("particular")
   notes      String?
   sales      Sale[]
+  stage      String?  @default("lead")
+  opportunities Opportunity[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+model Opportunity {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id])
+  title       String
+  value       Float    @default(0)
+  stage       String   @default("lead")
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Category {
@@ -223,6 +240,7 @@ model Product {
   cost        Float    @default(0)
   stock       Int      @default(0)
   minStock    Int      @default(0)
+  image       String?
   unit        String   @default("un")
   active      Boolean       @default(true)
   saleItems   SaleItem[]

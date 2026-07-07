@@ -12,6 +12,7 @@ import { ServicesWidget } from "./widgets/ServicesWidget";
 import { DonationsWidget } from "./widgets/DonationsWidget";
 import { StudentsWidget } from "./widgets/StudentsWidget";
 import { CampaignsWidget } from "./widgets/CampaignsWidget";
+import { ChartsWidget } from "./widgets/ChartsWidget";
 
 export interface DashboardData {
   totalRevenue: number;
@@ -30,11 +31,14 @@ export interface DashboardData {
   donationTotal: number;
   totalStudents: number;
   activeCampaigns: number;
+  monthlySales?: { month: string; total: number; count: number }[];
+  categorySales?: { name: string; value: number }[];
 }
 
 export function DashboardRenderer({ widgets, data }: { widgets: DashboardWidget[]; data: DashboardData | null }) {
   return (
     <div>
+      <ChartsWidget key="charts" data={data} />
       {widgets.map((widget) => {
         switch (widget.id) {
           case "stats":

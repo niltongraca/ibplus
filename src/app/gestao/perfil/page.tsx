@@ -5,9 +5,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/Toast";
 import {
   User, Building2, Lock, Save, MapPin, Phone, Smartphone,
-  Palette, Clock, Download, Share2, Globe, Store, Image,
+  Palette, Clock, Download, Share2, Globe, Store, Image as LucideImage,
   MessageCircle, CheckCircle, AlertCircle
 } from "lucide-react";
+import { FileUpload } from "@/components/FileUpload";
 
 interface CompanyData {
   name: string;
@@ -144,6 +145,23 @@ export default function PerfilPage() {
             <h2 className="font-semibold text-ib-primary mb-4 flex items-center gap-2">
               <User className="w-4 h-4 text-ib-accent" /> Dados Pessoais
             </h2>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-16 h-16 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+                {user?.avatar ? (
+                  <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-xl font-bold text-ib-muted">{user?.name?.charAt(0)?.toUpperCase() || "U"}</span>
+                )}
+              </div>
+              <FileUpload value={user?.avatar || ""} onChange={async (url) => {
+                await fetch("/api/auth/profile", {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ name: profile.name, avatar: url }),
+                });
+                window.location.reload();
+              }} label="Alterar Avatar" accept="image/*" />
+            </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-ib-primary mb-1">Nome Completo</label>
@@ -288,16 +306,7 @@ export default function PerfilPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-ib-primary mb-1">Logo da Loja</label>
-                <div className="flex items-center gap-3">
-                  <input type="text" value={company.logo} onChange={(e) => updateCompany("logo", e.target.value)} placeholder="URL da imagem do logo" className="flex-1 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
-                  <div className="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden">
-                    {company.logo ? (
-                      <img src={company.logo} alt="logo" className="w-full h-full object-cover" />
-                    ) : (
-                      <Image className="w-4 h-4 text-gray-400" />
-                    )}
-                  </div>
-                </div>
+                <FileUpload value={company.logo} onChange={(url) => updateCompany("logo", url)} label="Carregar Logo" />
               </div>
             </div>
             <div className="flex justify-end mt-4">
