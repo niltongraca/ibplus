@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { Plus, Search, Edit3, Trash2, Users } from "lucide-react";
 import { DataTable } from "@/components/ui/DataTable";
 import { useToast } from "@/components/Toast";
+import { CardSkeleton } from "@/components/Skeleton";
+import EmptyState from "@/components/EmptyState";
 import Link from "next/link";
 
 interface Customer {
@@ -74,48 +76,60 @@ export default function ClientesPage() {
           </div>
         </div>
 
-        <DataTable
-          columns={[
-            { key: "name", header: "Nome", render: (c) => (
-              <Link href={`/gestao/clientes/${c.id}`} className="font-medium text-ib-primary hover:text-ib-accent">
-                {c.name}
-              </Link>
-            )},
-            { key: "email", header: "Email", hide: "tablet", render: (c) => <span className="text-ib-muted">{c.email || "—"}</span> },
-            { key: "phone", header: "Telefone", hide: "mobile", render: (c) => <span className="text-ib-muted">{c.phone || "—"}</span> },
-            { key: "nif", header: "NIF", hide: "tablet", render: (c) => <span className="text-ib-muted">{c.nif || "—"}</span> },
-            { key: "type", header: "Tipo", hide: "mobile", className: "text-center", render: (c) => (
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.type === "empresa" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
-                {c.type === "empresa" ? "Empresa" : "Particular"}
-              </span>
-            )},
-            { key: "actions", header: "Acções", hide: "mobile", className: "text-right", render: (c) => (
-              <div className="flex items-center justify-end gap-1">
-                <Link href={`/gestao/clientes/${c.id}/editar`} className="p-1.5 hover:bg-gray-100 rounded-lg"><Edit3 className="w-4 h-4 text-ib-muted" /></Link>
-                <button onClick={() => handleDelete(c.id)} className="p-1.5 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4 text-red-400" /></button>
-              </div>
-            )},
-          ]}
-          data={filtered}
-          loading={loading}
-          emptyIcon={<Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />}
-          emptyText="Nenhum cliente encontrado."
-          keyExtractor={(c) => c.id}
-          mobileCard={(c) => (
-            <Link href={`/gestao/clientes/${c.id}`}>
-              <div className="flex items-start justify-between mb-3">
-                <p className="font-semibold text-ib-primary">{c.name}</p>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.type === "empresa" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
-                  {c.type === "empresa" ? "Empresa" : "Particular"}
-                </span>
-              </div>
-              <div className="text-sm text-ib-muted space-y-0.5">
-                {c.email && <p>{c.email}</p>}
-                {c.phone && <p>{c.phone}</p>}
-              </div>
-            </Link>
-          )}
-        />
+        {loading ? (
+          <CardSkeleton count={6} />
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            icon={<Users className="w-8 h-8 text-gray-400" />}
+            title="Nenhum cliente encontrado"
+            description={search ? "Tente alterar a pesquisa." : "Adicione o primeiro cliente."}
+            actionHref={search ? undefined : "/gestao/clientes/novo"}
+            actionLabel={search ? undefined : "Adicionar Cliente"}
+          />
+        ) : (
+          <>
+            <DataTable
+              columns={[
+                { key: "name", header: "Nome", render: (c) => (
+                  <Link href={`/gestao/clientes/${c.id}`} className="font-medium text-ib-primary hover:text-ib-accent">
+                    {c.name}
+                  </Link>
+                )},
+                { key: "email", header: "Email", hide: "tablet", render: (c) => <span className="text-ib-muted">{c.email || "—"}</span> },
+                { key: "phone", header: "Telefone", hide: "mobile", render: (c) => <span className="text-ib-muted">{c.phone || "—"}</span> },
+                { key: "nif", header: "NIF", hide: "tablet", render: (c) => <span className="text-ib-muted">{c.nif || "—"}</span> },
+                { key: "type", header: "Tipo", hide: "mobile", className: "text-center", render: (c) => (
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.type === "empresa" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
+                    {c.type === "empresa" ? "Empresa" : "Particular"}
+                  </span>
+                )},
+                { key: "actions", header: "Acções", hide: "mobile", className: "text-right", render: (c) => (
+                  <div className="flex items-center justify-end gap-1">
+                    <Link href={`/gestao/clientes/${c.id}/editar`} className="p-1.5 hover:bg-gray-100 rounded-lg"><Edit3 className="w-4 h-4 text-ib-muted" /></Link>
+                    <button onClick={() => handleDelete(c.id)} className="p-1.5 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4 text-red-400" /></button>
+                  </div>
+                )},
+              ]}
+              data={filtered}
+              loading={false}
+              keyExtractor={(c) => c.id}
+              mobileCard={(c) => (
+                <Link href={`/gestao/clientes/${c.id}`}>
+                  <div className="flex items-start justify-between mb-3">
+                    <p className="font-semibold text-ib-primary">{c.name}</p>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.type === "empresa" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}`}>
+                      {c.type === "empresa" ? "Empresa" : "Particular"}
+                    </span>
+                  </div>
+                  <div className="text-sm text-ib-muted space-y-0.5">
+                    {c.email && <p>{c.email}</p>}
+                    {c.phone && <p>{c.phone}</p>}
+                  </div>
+                </Link>
+              )}
+            />
+          </>
+        )}
       </div>
     </div>
   );
