@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { createNotification } from "@/lib/notifications";
 
 export async function GET() {
   const user = await getAuthUser();
@@ -41,6 +42,12 @@ export async function POST(request: Request) {
       },
       include: { customer: { select: { name: true } }, items: true },
     });
+
+    const customerName = sale.customer?.name || "Cliente";
+    await createNotification(
+      user.companyId, "sale", `Nova venda de ${sale.total.toLocaleString()} Kz`,
+      `Venda registada para ${customerName}`, "/gestao/vendas"
+    );
 
     return NextResponse.json({ sale }, { status: 201 });
   } catch {

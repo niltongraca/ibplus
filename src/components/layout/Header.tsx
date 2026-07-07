@@ -3,7 +3,8 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { Menu, Bell, LogOut, Shield } from "lucide-react";
+import { Menu, LogOut, Shield } from "lucide-react";
+import NotificationBell from "@/components/NotificationBell";
 
 const moduleNames: Record<string, string> = {
   gestao: "Gestão",
@@ -87,10 +88,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <button className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Notificações">
-            <Bell className="w-5 h-5 text-ib-muted" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-ib-danger rounded-full" />
-          </button>
+          <NotificationBell />
 
           {user && (
             <div className="hidden sm:flex items-center gap-3 pl-3 border-l border-gray-200">

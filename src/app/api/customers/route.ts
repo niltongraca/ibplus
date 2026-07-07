@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { createNotification } from "@/lib/notifications";
 
 export async function GET() {
   const user = await getAuthUser();
@@ -24,6 +25,7 @@ export async function POST(request: Request) {
     const customer = await prisma.customer.create({
       data: { ...data, companyId: user.companyId },
     });
+    await createNotification(user.companyId, "customer", `Novo cliente: ${customer.name}`, undefined, "/gestao/clientes");
     return NextResponse.json({ customer }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Erro ao criar cliente." }, { status: 400 });
