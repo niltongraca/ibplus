@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Search, FileDown, Eye, Trash2, FileText } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { useConfirm } from "@/components/ConfirmModal";
 import Link from "next/link";
 
 interface Invoice {
@@ -16,6 +17,7 @@ interface Invoice {
 }
 
 export default function FaturacaoPage() {
+  const { confirm } = useConfirm();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -55,7 +57,7 @@ export default function FaturacaoPage() {
   };
 
   async function removeInvoice(id: string) {
-    if (!confirm("Eliminar fatura?")) return;
+    if (!(await confirm({ title: "Eliminar fatura", message: "Tem a certeza que deseja eliminar esta fatura?", variant: "danger" }))) return;
     await fetch(`/api/invoices/${id}`, { method: "DELETE" });
     setInvoices((prev) => prev.filter((inv) => inv.id !== id));
   }

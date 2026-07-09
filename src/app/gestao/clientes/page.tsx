@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Plus, Search, Edit3, Trash2, Users } from "lucide-react";
 import { DataTable } from "@/components/ui/DataTable";
 import { useToast } from "@/components/Toast";
+import { useConfirm } from "@/components/ConfirmModal";
 import { CardSkeleton } from "@/components/Skeleton";
 import EmptyState from "@/components/EmptyState";
 import Pagination from "@/components/Pagination";
@@ -20,6 +21,7 @@ interface Customer {
 
 export default function ClientesPage() {
   const { toast } = useToast();
+  const { confirm } = useConfirm();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -36,7 +38,7 @@ export default function ClientesPage() {
   }, [page]);
 
   async function handleDelete(id: string) {
-    if (!confirm("Eliminar cliente?")) return;
+    if (!(await confirm({ title: "Eliminar cliente", message: "Tem a certeza que deseja eliminar este cliente?", variant: "danger" }))) return;
     const res = await fetch(`/api/customers/${id}`, { method: "DELETE" });
     if (res.ok) {
       toast("Cliente eliminado com sucesso!");

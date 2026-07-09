@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Search, FileDown, Eye, Trash2, ScrollText } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { useConfirm } from "@/components/ConfirmModal";
 import Link from "next/link";
 
 interface Quote {
@@ -16,6 +17,7 @@ interface Quote {
 }
 
 export default function OrcamentosPage() {
+  const { confirm } = useConfirm();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -55,7 +57,7 @@ export default function OrcamentosPage() {
   };
 
   async function removeQuote(id: string) {
-    if (!confirm("Eliminar orçamento?")) return;
+    if (!(await confirm({ title: "Eliminar orçamento", message: "Tem a certeza que deseja eliminar este orçamento?", variant: "danger" }))) return;
     await fetch(`/api/quotes/${id}`, { method: "DELETE" });
     setQuotes((prev) => prev.filter((q) => q.id !== id));
   }

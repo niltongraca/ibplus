@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Edit3, Trash2, Wrench } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/components/Toast";
+import { useConfirm } from "@/components/ConfirmModal";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Skeleton } from "@/components/Skeleton";
 import EmptyState from "@/components/EmptyState";
@@ -25,6 +26,7 @@ export default function ServicoDetailPage() {
   const id = (params?.id as string) || "";
   const router = useRouter();
   const { toast } = useToast();
+  const { confirm } = useConfirm();
   const [service, setService] = useState<Service | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -37,7 +39,7 @@ export default function ServicoDetailPage() {
   }, [id, router]);
 
   async function handleDelete() {
-    if (!confirm("Eliminar serviço?")) return;
+    if (!(await confirm({ title: "Eliminar serviço", message: "Tem a certeza que deseja eliminar este serviço?", variant: "danger" }))) return;
     const res = await fetch(`/api/services/${id}`, { method: "DELETE" });
     if (res.ok) {
       toast("Serviço eliminado com sucesso!");

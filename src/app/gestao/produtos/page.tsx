@@ -5,6 +5,7 @@ import { Plus, Search, Edit3, Trash2, Package } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 import { useToast } from "@/components/Toast";
+import { useConfirm } from "@/components/ConfirmModal";
 import { CardSkeleton } from "@/components/Skeleton";
 import EmptyState from "@/components/EmptyState";
 import Pagination from "@/components/Pagination";
@@ -24,6 +25,7 @@ interface Product {
 
 export default function ProdutosPage() {
   const { toast } = useToast();
+  const { confirm } = useConfirm();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -40,7 +42,7 @@ export default function ProdutosPage() {
   }, [page]);
 
   async function handleDelete(id: string) {
-    if (!confirm("Eliminar produto?")) return;
+    if (!(await confirm({ title: "Eliminar produto", message: "Tem a certeza que deseja eliminar este produto?", variant: "danger" }))) return;
     const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
     if (res.ok) {
       toast("Produto eliminado com sucesso!");

@@ -1,31 +1,14 @@
 import Link from "next/link";
 
-interface FooterLink {
-  label: string;
-  href?: string;
-  external?: boolean;
-}
-
-const footerLinks: Record<string, FooterLink[]> = {
+const footerLinks: Record<string, { label: string; href?: string; external?: boolean }[]> = {
   Plataforma: [
-    { href: "/funcionalidades", label: "Funcionalidades" },
-    { href: "/solucoes", label: "Soluções" },
-    { href: "/api-page", label: "API para Devs" },
-    { href: "/estado", label: "Estado do Sistema" },
-  ],
-  Empresa: [
+    { href: "/rede", label: "Rede de Conteúdos" },
+    { href: "/praca", label: "Praça" },
     { href: "/sobre", label: "Sobre Nós" },
-    { href: "/blog", label: "Blog" },
-    { href: "/casos-sucesso", label: "Casos de Sucesso" },
-    { href: "/carreiras", label: "Carreiras" },
-    { href: "/parceiros", label: "Programa de Parceiros" },
   ],
-  Ajuda: [
-    { href: "/ajuda", label: "Central de Ajuda" },
-    { href: "/contactos", label: "Contactos" },
-    { href: "/privacidade", label: "Privacidade" },
-    { href: "/termos", label: "Termos de Utilização" },
-    { href: "/cookies", label: "Política de Cookies" },
+  Conta: [
+    { href: "/login", label: "Entrar" },
+    { href: "/cadastro", label: "Criar Conta" },
   ],
   Redes: [
     { href: "https://web.facebook.com/ibplus.ao/", label: "Facebook", external: true },
@@ -39,7 +22,7 @@ export default function SiteFooter() {
   return (
     <footer className="bg-ib-primary text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
               <span className="font-bold text-lg">IBPlus<sup className="text-ib-accent">+</sup></span>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, Search, Pencil, Trash2, Wrench } from "lucide-react";
 import { useToast } from "@/components/Toast";
+import { useConfirm } from "@/components/ConfirmModal";
 import { CardSkeleton } from "@/components/Skeleton";
 import EmptyState from "@/components/EmptyState";
 import Pagination from "@/components/Pagination";
@@ -24,6 +25,7 @@ export default function ServicosPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const { toast } = useToast();
+  const { confirm } = useConfirm();
 
   useEffect(() => {
     setLoading(true);
@@ -35,7 +37,7 @@ export default function ServicosPage() {
   }, [page]);
 
   async function handleDelete(id: string) {
-    if (!confirm("Tem a certeza que pretende eliminar este serviço?")) return;
+    if (!(await confirm({ title: "Eliminar serviço", message: "Tem a certeza que pretende eliminar este serviço?", variant: "danger" }))) return;
     const res = await fetch(`/api/services/${id}`, { method: "DELETE" });
     if (res.ok) {
       setServices((prev) => prev.filter((s) => s.id !== id));

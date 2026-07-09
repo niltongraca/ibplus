@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Plus, Search, Edit3, Trash2, GraduationCap } from "lucide-react";
 import { DataTable } from "@/components/ui/DataTable";
 import { useToast } from "@/components/Toast";
+import { useConfirm } from "@/components/ConfirmModal";
 import Link from "next/link";
 
 interface Student {
@@ -17,6 +18,7 @@ interface Student {
 
 export default function AlunosPage() {
   const { toast } = useToast();
+  const { confirm } = useConfirm();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -30,7 +32,7 @@ export default function AlunosPage() {
   }, []);
 
   async function handleDelete(id: string) {
-    if (!confirm("Eliminar aluno?")) return;
+    if (!(await confirm({ title: "Eliminar aluno", message: "Tem a certeza que deseja eliminar este aluno?", variant: "danger" }))) return;
     const res = await fetch(`/api/students/${id}`, { method: "DELETE" });
     if (res.ok) {
       toast("Aluno eliminado com sucesso!");

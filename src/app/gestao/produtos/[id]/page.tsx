@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Edit3, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/components/Toast";
+import { useConfirm } from "@/components/ConfirmModal";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 interface Product {
@@ -27,6 +28,7 @@ export default function ProdutoDetailPage() {
   const id = (params?.id as string) || "";
   const router = useRouter();
   const { toast } = useToast();
+  const { confirm } = useConfirm();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -39,7 +41,7 @@ export default function ProdutoDetailPage() {
   }, [id, router]);
 
   async function handleDelete() {
-    if (!confirm("Eliminar produto?")) return;
+    if (!(await confirm({ title: "Eliminar produto", message: "Tem a certeza que deseja eliminar este produto?", variant: "danger" }))) return;
     const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
     if (res.ok) {
       toast("Produto eliminado com sucesso!");

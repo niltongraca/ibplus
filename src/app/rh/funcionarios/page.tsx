@@ -5,6 +5,7 @@ import { Plus, X, Trash2, Search, Users } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 import { useToast } from "@/components/Toast";
+import { useConfirm } from "@/components/ConfirmModal";
 import Pagination from "@/components/Pagination";
 
 interface Employee {
@@ -39,6 +40,7 @@ export default function FuncionariosPage() {
   );
 
   const { toast } = useToast();
+  const { confirm } = useConfirm();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +62,7 @@ export default function FuncionariosPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Tem a certeza que deseja eliminar este funcionário?")) return;
+    if (!(await confirm({ title: "Eliminar funcionário", message: "Tem a certeza que deseja eliminar este funcionário?", variant: "danger" }))) return;
     try {
       const res = await fetch(`/api/employees/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error();

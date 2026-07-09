@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/components/Toast";
+import { useConfirm } from "@/components/ConfirmModal";
 import { formatDate } from "@/lib/utils";
 
 interface Student {
@@ -27,6 +28,7 @@ export default function AlunoDetailPage() {
   const id = (params?.id as string) || "";
   const router = useRouter();
   const { toast } = useToast();
+  const { confirm } = useConfirm();
   const [student, setStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -65,7 +67,7 @@ export default function AlunoDetailPage() {
   }, [id, router]);
 
   async function handleDelete() {
-    if (!confirm("Eliminar aluno?")) return;
+    if (!(await confirm({ title: "Eliminar aluno", message: "Tem a certeza que deseja eliminar este aluno?", variant: "danger" }))) return;
     const res = await fetch(`/api/students/${id}`, { method: "DELETE" });
     if (res.ok) {
       toast("Aluno eliminado com sucesso!");

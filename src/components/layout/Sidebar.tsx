@@ -38,7 +38,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                       "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors min-h-[44px]",
                       isActive
                         ? "bg-ib-accent/20 text-ib-light font-medium"
-                        : "text-ib-muted hover:text-white hover:bg-white/5"
+                        : "text-ib-muted hover:text-white hover:bg-white/5 dark:hover:bg-white/10"
                     )}
                   >
                     <item.icon className="h-4 w-4 shrink-0" />
@@ -63,9 +63,9 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 onClick={onClose}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors min-h-[44px]",
-                  pathname.startsWith("/admin")
+                    pathname.startsWith("/admin")
                     ? "bg-ib-accent/20 text-ib-light font-medium"
-                    : "text-ib-muted hover:text-white hover:bg-white/5"
+                    : "text-ib-muted hover:text-white hover:bg-white/5 dark:hover:bg-white/10"
                 )}
               >
                 <LayoutDashboard className="h-4 w-4 shrink-0" />

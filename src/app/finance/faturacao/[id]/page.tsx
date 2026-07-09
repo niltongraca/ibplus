@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, FileDown, Printer, Trash2, Send, CheckCircle } from "lucide-react";
 import Link from "next/link";
+import { useConfirm } from "@/components/ConfirmModal";
 import { InvoiceTemplate } from "@/components/invoice/InvoiceTemplate";
 
 interface InvoiceItem {
@@ -30,6 +31,7 @@ export default function FaturaDetailPage() {
   const params = useParams();
   const id = (params?.id as string) || "";
   const router = useRouter();
+  const { confirm } = useConfirm();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [company, setCompany] = useState<{ name: string; nif?: string | null; email?: string | null; phone?: string | null; address?: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,7 +59,7 @@ export default function FaturaDetailPage() {
   }
 
   async function handleDelete() {
-    if (!confirm("Eliminar fatura?")) return;
+    if (!(await confirm({ title: "Eliminar fatura", message: "Tem a certeza que deseja eliminar esta fatura?", variant: "danger" }))) return;
     await fetch(`/api/invoices/${id}`, { method: "DELETE" });
     router.push("/finance/faturacao");
   }

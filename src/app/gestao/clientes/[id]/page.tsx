@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Edit3, Trash2, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/components/Toast";
+import { useConfirm } from "@/components/ConfirmModal";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 interface Sale {
@@ -32,6 +33,7 @@ export default function ClienteDetailPage() {
   const id = (params?.id as string) || "";
   const router = useRouter();
   const { toast } = useToast();
+  const { confirm } = useConfirm();
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -44,7 +46,7 @@ export default function ClienteDetailPage() {
   }, [id, router]);
 
   async function handleDelete() {
-    if (!confirm("Eliminar cliente?")) return;
+    if (!(await confirm({ title: "Eliminar cliente", message: "Tem a certeza que deseja eliminar este cliente?", variant: "danger" }))) return;
     const res = await fetch(`/api/customers/${id}`, { method: "DELETE" });
     if (res.ok) {
       toast("Cliente eliminado com sucesso!");

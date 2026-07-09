@@ -30,14 +30,14 @@ export function DataTable<T>({
   keyExtractor,
 }: DataTableProps<T>) {
   if (loading) {
-    return <div className="p-12 text-center text-ib-muted text-sm">A carregar...</div>;
+    return <div className="p-12 text-center text-sm" style={{ color: "var(--text-muted)" }}>A carregar...</div>;
   }
 
   if (data.length === 0) {
     return (
       <div className="p-12 text-center">
         {emptyIcon}
-        <p className="text-ib-muted text-sm">{emptyText || "Nenhum registo encontrado."}</p>
+        <p className="text-sm" style={{ color: "var(--text-muted)" }}>{emptyText || "Nenhum registo encontrado."}</p>
       </div>
     );
   }
@@ -54,7 +54,7 @@ export function DataTable<T>({
       {mobileCard && (
         <div className="sm:hidden space-y-3 p-3">
           {data.map((item) => (
-            <div key={keyExtractor(item)} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+            <div key={keyExtractor(item)} className="rounded-xl border p-4 shadow-sm" style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)" }}>
               {mobileCard(item)}
             </div>
           ))}
@@ -65,7 +65,7 @@ export function DataTable<T>({
       <div className={`overflow-x-auto scrollbar-hide ${mobileCard ? "hidden sm:block" : ""}`}>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-100 text-ib-muted text-xs uppercase tracking-wider">
+            <tr className="border-b text-xs uppercase tracking-wider" style={{ borderColor: "var(--border-color)", color: "var(--text-muted)" }}>
               {columns.map((col) => (
                 <th
                   key={col.key}
@@ -80,7 +80,9 @@ export function DataTable<T>({
             {data.map((item) => (
               <tr
                 key={keyExtractor(item)}
-                className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
+                className="border-b transition-colors" style={{ borderColor: "var(--border-color)" }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "var(--bg-secondary)"}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
               >
                 {columns.map((col) => (
                   <td

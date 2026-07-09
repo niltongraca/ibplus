@@ -11,7 +11,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <ToastProvider>
-      <div className="min-h-screen bg-ib-surface">
+      <div className="min-h-screen" style={{ backgroundColor: "var(--bg-secondary)" }}>
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="md:ml-60 lg:ml-64 xl:ml-[280px] flex flex-col min-h-screen">
           <Header onMenuClick={() => setSidebarOpen(true)} />

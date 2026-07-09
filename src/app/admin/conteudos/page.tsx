@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useConfirm } from "@/components/ConfirmModal";
 import { Plus, Pencil, Trash2, ExternalLink, Youtube, Book, FileText } from "lucide-react";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
@@ -36,6 +37,7 @@ const typeIcons: Record<string, any> = {
 
 export default function AdminConteudosPage() {
   const router = useRouter();
+  const { confirm } = useConfirm();
   const [content, setContent] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -54,7 +56,7 @@ export default function AdminConteudosPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Eliminar este conteúdo?")) return;
+    if (!(await confirm({ title: "Eliminar conteúdo", message: "Tem a certeza que deseja eliminar este conteúdo?", variant: "danger" }))) return;
     await fetch(`/api/admin/content/${id}`, { method: "DELETE" });
     setContent((prev) => prev.filter((c) => c.id !== id));
   }

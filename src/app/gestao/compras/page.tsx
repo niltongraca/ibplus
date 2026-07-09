@@ -5,6 +5,7 @@ import { Plus, Search, ShoppingCart, Trash2 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 import { useToast } from "@/components/Toast";
+import { useConfirm } from "@/components/ConfirmModal";
 import Pagination from "@/components/Pagination";
 import Link from "next/link";
 
@@ -37,9 +38,10 @@ export default function ComprasPage() {
   );
 
   const { toast } = useToast();
+  const { confirm } = useConfirm();
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Tem a certeza que deseja eliminar esta compra?")) return;
+    if (!(await confirm({ title: "Eliminar compra", message: "Tem a certeza que deseja eliminar esta compra?", variant: "danger" }))) return;
     try {
       const res = await fetch(`/api/purchases/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error();

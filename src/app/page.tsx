@@ -60,7 +60,7 @@ export default function HomePage() {
         </Link>
         <nav className="hidden sm:flex items-center gap-6 text-sm font-medium text-ib-muted">
           <Link href="/praca" className="hover:text-ib-accent transition-colors">Praça</Link>
-          <Link href="/biblioteca" className="hover:text-ib-accent transition-colors">Biblioteca</Link>
+          <Link href="/rede" className="hover:text-ib-accent transition-colors">Rede</Link>
           <Link href="/sobre" className="hover:text-ib-accent transition-colors">Sobre</Link>
         </nav>
         <div className="flex items-center gap-3">
@@ -136,7 +136,7 @@ export default function HomePage() {
         <div className="flex justify-center gap-4 mt-2">
           <Link href="/sobre" className="hover:text-ib-accent">Sobre</Link>
           <Link href="/praca" className="hover:text-ib-accent">Praça</Link>
-          <Link href="/biblioteca" className="hover:text-ib-accent">Biblioteca</Link>
+          <Link href="/rede" className="hover:text-ib-accent">Rede</Link>
         </div>
       </footer>
     </div>

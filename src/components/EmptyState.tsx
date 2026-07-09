@@ -22,11 +22,11 @@ export default function EmptyState({
 }: EmptyStateProps) {
   const content = (
     <div className="flex flex-col items-center justify-center py-16 px-4">
-      <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-        {icon || <Inbox className="w-8 h-8 text-gray-400" />}
+      <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">
+        {icon || <Inbox className="w-8 h-8 text-gray-400 dark:text-gray-500" />}
       </div>
-      <h3 className="text-lg font-semibold text-ib-primary mb-1">{title}</h3>
-      {description && <p className="text-sm text-ib-muted text-center max-w-sm mb-6">{description}</p>}
+      <h3 className="text-lg font-semibold mb-1" style={{ color: "var(--text-primary)" }}>{title}</h3>
+      {description && <p className="text-sm text-center max-w-sm mb-6" style={{ color: "var(--text-muted)" }}>{description}</p>}
       {actionLabel && actionHref && (
         <Link
           href={actionHref}

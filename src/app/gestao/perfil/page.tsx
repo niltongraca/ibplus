@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { FileUpload } from "@/components/FileUpload";
 import { InviteManager } from "@/components/InviteManager";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface CompanyData {
   name: string;
@@ -30,6 +31,7 @@ interface CompanyData {
 export default function PerfilPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState("perfil");
 
   const [profile, setProfile] = useState({ name: "", email: "", phone: "" });
@@ -314,6 +316,27 @@ export default function PerfilPage() {
             <div className="flex justify-end mt-4">
               <button onClick={() => saveCompany({ corPrincipal: company.corPrincipal, logo: company.logo })} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
                 <Save className="w-4 h-4" /> Salvar Personalização
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h2 className="font-semibold text-ib-primary mb-4 flex items-center gap-2">
+              <Moon className="w-4 h-4 text-ib-accent" /> Tema da Interface
+            </h2>
+            <p className="text-sm text-ib-muted mb-4">Alternar entre modo claro e escuro.</p>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setTheme("light")}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border transition-colors ${theme === "light" ? "bg-ib-accent text-white border-ib-accent" : "border-gray-200 text-ib-muted hover:bg-gray-50"}`}
+              >
+                <Sun className="w-4 h-4" /> Modo Claro
+              </button>
+              <button
+                onClick={() => setTheme("dark")}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border transition-colors ${theme === "dark" ? "bg-ib-accent text-white border-ib-accent" : "border-gray-200 text-ib-muted hover:bg-gray-50"}`}
+              >
+                <Moon className="w-4 h-4" /> Modo Escuro
               </button>
             </div>
           </div>

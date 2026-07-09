@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, FileDown, Printer, Send, Trash2, CheckCircle, XCircle } from "lucide-react";
 import Link from "next/link";
+import { useConfirm } from "@/components/ConfirmModal";
 import { InvoiceTemplate } from "@/components/invoice/InvoiceTemplate";
 
 interface QuoteItem {
@@ -30,6 +31,7 @@ export default function OrcamentoDetailPage() {
   const params = useParams();
   const id = (params?.id as string) || "";
   const router = useRouter();
+  const { confirm } = useConfirm();
   const [quote, setQuote] = useState<Quote | null>(null);
   const [company, setCompany] = useState<{ name: string; nif?: string | null; email?: string | null; phone?: string | null; address?: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,7 +59,7 @@ export default function OrcamentoDetailPage() {
   }
 
   async function handleDelete() {
-    if (!confirm("Eliminar orçamento?")) return;
+    if (!(await confirm({ title: "Eliminar orçamento", message: "Tem a certeza que deseja eliminar este orçamento?", variant: "danger" }))) return;
     await fetch(`/api/quotes/${id}`, { method: "DELETE" });
     router.push("/finance/orcamentos");
   }

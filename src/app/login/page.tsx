@@ -35,8 +35,8 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-ib-surface flex items-center justify-center px-4 relative">
-      <Link href="/" className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2 text-ib-muted hover:text-ib-primary transition-colors">
+    <div className="min-h-screen flex items-center justify-center px-4 relative" style={{ backgroundColor: "var(--bg-secondary)" }}>
+      <Link href="/" className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2" style={{ color: "var(--text-muted)" }}>
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
         <span className="text-sm">Voltar ao início</span>
       </Link>
@@ -46,14 +46,14 @@ function LoginForm() {
             <div className="h-10 w-10 rounded-xl bg-ib-accent flex items-center justify-center font-bold text-xl text-white">
               IB
             </div>
-            <span className="font-bold text-2xl text-ib-primary">
+            <span className="font-bold text-2xl" style={{ color: "var(--text-primary)" }}>
               IBPlus<sup className="text-ib-accent font-bold">+</sup>
             </span>
           </div>
-          <p className="text-ib-muted">Entre na sua conta</p>
+          <p style={{ color: "var(--text-muted)" }}>Entre na sua conta</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl border border-gray-200 space-y-5">
+        <form className="p-8 rounded-xl border space-y-5" style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)" }}>
           {error && (
             <div className="p-3 rounded-lg bg-ib-danger/10 text-ib-danger text-sm">
               {error}
@@ -61,7 +61,7 @@ function LoginForm() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-ib-primary mb-1.5">
+            <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-primary)" }}>
               Email
             </label>
             <input
@@ -70,12 +70,13 @@ function LoginForm() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu@email.com"
               required
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40"
+              className="w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40"
+              style={{ backgroundColor: "var(--bg-primary)", borderColor: "var(--border-color)", color: "var(--text-primary)" }}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-ib-primary mb-1.5">
+            <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-primary)" }}>
               Senha
             </label>
             <div className="relative">
@@ -85,12 +86,13 @@ function LoginForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40 pr-10"
+                className="w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40 pr-10"
+                style={{ backgroundColor: "var(--bg-primary)", borderColor: "var(--border-color)", color: "var(--text-primary)" }}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-ib-muted hover:text-ib-primary"
+                className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -110,7 +112,7 @@ function LoginForm() {
             )}
           </button>
 
-          <p className="text-center text-sm text-ib-muted">
+          <p className="text-center text-sm" style={{ color: "var(--text-muted)" }}>
             Ainda não tem conta?{" "}
             <Link href="/cadastro" className="text-ib-accent hover:underline font-medium">
               Criar conta
@@ -125,8 +127,8 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-ib-surface flex items-center justify-center px-4">
-        <div className="animate-pulse text-ib-muted">A carregar...</div>
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: "var(--bg-secondary)" }}>
+        <div className="animate-pulse" style={{ color: "var(--text-muted)" }}>A carregar...</div>
       </div>
     }>
       <LoginForm />

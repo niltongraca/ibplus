@@ -5,6 +5,7 @@ import { Plus, Search, TrendingDown, Trash2, CheckCircle, XCircle } from "lucide
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 import { useToast } from "@/components/Toast";
+import { useConfirm } from "@/components/ConfirmModal";
 import Pagination from "@/components/Pagination";
 import Link from "next/link";
 
@@ -41,6 +42,7 @@ export default function DespesasPage() {
   });
 
   const { toast } = useToast();
+  const { confirm } = useConfirm();
 
   const handleTogglePaid = async (id: string, currentPaid: boolean) => {
     try {
@@ -60,7 +62,7 @@ export default function DespesasPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Tem a certeza que deseja eliminar esta despesa?")) return;
+    if (!(await confirm({ title: "Eliminar despesa", message: "Tem a certeza que deseja eliminar esta despesa?", variant: "danger" }))) return;
     try {
       const res = await fetch(`/api/expenses/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error();
