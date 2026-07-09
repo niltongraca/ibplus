@@ -170,6 +170,7 @@ model Company {
   invites             Invite[]
   quotes              Quote[]
   notifications       Notification[]
+  auditLogs           AuditLog[]
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 }
@@ -503,6 +504,18 @@ model Invite {
   used      Boolean  @default(false)
   createdAt DateTime @default(now())
   expiresAt DateTime
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  details   String?
+  createdAt DateTime @default(now())
 }
 
 model Notification {

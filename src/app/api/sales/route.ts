@@ -2,18 +2,29 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
+import { logAction } from "@/lib/audit";
 
-export async function GET() {
+export async function GET(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-  const sales = await prisma.sale.findMany({
-    where: { companyId: user.companyId },
-    include: { customer: { select: { name: true } }, items: { include: { product: { select: { name: true } } } } },
-    orderBy: { date: "desc" },
-  });
+  const url = new URL(request.url);
+  const page = parseInt(url.searchParams.get("page") || "1");
+  const limit = parseInt(url.searchParams.get("limit") || "20");
+  const skip = (page - 1) * limit;
 
-  return NextResponse.json({ sales });
+  const [sales, total] = await Promise.all([
+    prisma.sale.findMany({
+      where: { companyId: user.companyId },
+      include: { customer: { select: { name: true } }, items: { include: { product: { select: { name: true } } } } },
+      orderBy: { date: "desc" },
+      skip,
+      take: limit,
+    }),
+    prisma.sale.count({ where: { companyId: user.companyId } }),
+  ]);
+
+  return NextResponse.json({ sales, total, page, totalPages: Math.ceil(total / limit) });
 }
 
 export async function POST(request: Request) {
@@ -44,6 +55,7 @@ export async function POST(request: Request) {
     });
 
     const customerName = sale.customer?.name || "Cliente";
+    await logAction("create", "sale", sale.id, `Venda de ${sale.total.toLocaleString()} Kz - ${customerName}`);
     await createNotification(
       user.companyId, "sale", `Nova venda de ${sale.total.toLocaleString()} Kz`,
       `Venda registada para ${customerName}`, "/gestao/vendas"

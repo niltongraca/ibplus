@@ -5,6 +5,7 @@ import { Plus, X, Trash2, Search, Users } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 import { useToast } from "@/components/Toast";
+import Pagination from "@/components/Pagination";
 
 interface Employee {
   id: string;
@@ -21,14 +22,17 @@ export default function FuncionariosPage() {
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ name: "", email: "", position: "", salary: 0, phone: "" });
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    fetch("/api/employees")
+    setLoading(true);
+    fetch(`/api/employees?page=${page}&limit=20`)
       .then((r) => r.json())
-      .then((d) => setEmployees(d.employees))
+      .then((d) => { setEmployees(d.employees || []); setTotalPages(d.totalPages || 1); })
       .catch((err) => console.error("Erro ao carregar funcionários:", err))
       .finally(() => setLoading(false));
-  }, []);
+  }, [page]);
 
   const filtered = employees.filter((e) =>
     e.name.toLowerCase().includes(search.toLowerCase())
@@ -130,6 +134,7 @@ export default function FuncionariosPage() {
             </div>
           )}
         />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
 
       {showForm && (

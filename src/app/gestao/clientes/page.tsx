@@ -6,6 +6,7 @@ import { DataTable } from "@/components/ui/DataTable";
 import { useToast } from "@/components/Toast";
 import { CardSkeleton } from "@/components/Skeleton";
 import EmptyState from "@/components/EmptyState";
+import Pagination from "@/components/Pagination";
 import Link from "next/link";
 
 interface Customer {
@@ -15,7 +16,6 @@ interface Customer {
   phone: string | null;
   nif: string | null;
   type: string;
-  _count?: { sales: number };
 }
 
 export default function ClientesPage() {
@@ -23,14 +23,17 @@ export default function ClientesPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    fetch("/api/customers")
+    setLoading(true);
+    fetch(`/api/customers?page=${page}&limit=20`)
       .then((r) => r.json())
-      .then((d) => setCustomers(d.customers))
+      .then((d) => { setCustomers(d.customers || d.data || []); setTotalPages(d.totalPages || 1); })
       .catch((err) => console.error("Erro ao carregar clientes:", err))
       .finally(() => setLoading(false));
-  }, []);
+  }, [page]);
 
   async function handleDelete(id: string) {
     if (!confirm("Eliminar cliente?")) return;
@@ -128,6 +131,7 @@ export default function ClientesPage() {
                 </Link>
               )}
             />
+            <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
           </>
         )}
       </div>

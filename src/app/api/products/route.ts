@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { logAction } from "@/lib/audit";
 
 export async function GET(request: Request) {
   const user = await getAuthUser();
@@ -50,6 +51,7 @@ export async function POST(request: Request) {
       },
       include: { category: true },
     });
+    await logAction("create", "product", product.id, `Produto "${product.name}" criado`);
     return NextResponse.json({ product }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Erro ao criar produto." }, { status: 400 });

@@ -5,6 +5,7 @@ import { Plus, Search, TrendingDown, Trash2, CheckCircle, XCircle } from "lucide
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 import { useToast } from "@/components/Toast";
+import Pagination from "@/components/Pagination";
 import Link from "next/link";
 
 interface Expense {
@@ -21,14 +22,17 @@ export default function DespesasPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    fetch("/api/expenses")
+    setLoading(true);
+    fetch(`/api/expenses?page=${page}&limit=20`)
       .then((r) => r.json())
-      .then((d) => setExpenses(d.expenses))
+      .then((d) => { setExpenses(d.expenses || []); setTotalPages(d.totalPages || 1); })
       .catch((err) => console.error("Erro ao carregar despesas:", err))
       .finally(() => setLoading(false));
-  }, []);
+  }, [page]);
 
   const filtered = expenses.filter((e) => {
     const matchSearch = e.description.toLowerCase().includes(search.toLowerCase());
@@ -137,6 +141,7 @@ export default function DespesasPage() {
             </div>
           )}
         />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );

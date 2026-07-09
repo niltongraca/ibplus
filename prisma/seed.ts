@@ -235,26 +235,26 @@ async function seedResources() {
 
   const allTypes = ["EMPREENDEDOR", "EMPRESA", "ONG", "ASSOCIACAO", "EDUCACAO", "COOPERATIVA"];
 
-  // Default permissions per resource (baseado no rbacRoutes.ts actual)
+  // Default permissions per resource (alinhado com os novos menus por accountType)
   const defaultPermissions: Record<string, string[]> = {
     dashboard: allTypes,
-    produtos: ["EMPRESA"],
+    produtos: ["EMPRESA", "COOPERATIVA"],
     servicos: ["EMPREENDEDOR", "EMPRESA"],
     clientes: ["EMPREENDEDOR", "EMPRESA", "ONG", "ASSOCIACAO", "COOPERATIVA"],
-    vendas: ["EMPREENDEDOR", "EMPRESA"],
+    vendas: ["EMPREENDEDOR", "EMPRESA", "ONG"],
     compras: ["EMPRESA"],
     despesas: ["EMPRESA"],
-    "fluxo-caixa": ["EMPRESA"],
-    stock: ["EMPRESA"],
-    faturacao: ["EMPREENDEDOR", "EMPRESA", "COOPERATIVA"],
-    orcamentos: ["EMPREENDEDOR", "EMPRESA"],
-    cobrancas: ["EMPRESA", "COOPERATIVA"],
+    "fluxo-caixa": allTypes,
+    stock: ["EMPRESA", "COOPERATIVA"],
+    faturacao: ["EMPRESA"],
+    orcamentos: ["EMPRESA"],
+    cobrancas: ["EMPRESA"],
     "contas-pagar": ["EMPRESA"],
     "contas-receber": ["EMPRESA"],
-    relatorios: ["EMPRESA", "COOPERATIVA", "EMPREENDEDOR"],
+    relatorios: ["EMPRESA"],
     rh: ["EMPRESA"],
-    marketing: ["EMPRESA"],
-    crm: ["EMPRESA", "COOPERATIVA"],
+    marketing: ["EMPRESA", "ONG"],
+    crm: ["EMPRESA"],
     ia: ["EMPRESA"],
     store: ["EMPRESA"],
     praca: ["EMPRESA"],

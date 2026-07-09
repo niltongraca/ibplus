@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, Search, Pencil, Trash2, Wrench } from "lucide-react";
 import { useToast } from "@/components/Toast";
+import { CardSkeleton } from "@/components/Skeleton";
+import EmptyState from "@/components/EmptyState";
+import Pagination from "@/components/Pagination";
 
 interface Service {
   id: string;
@@ -17,13 +20,19 @@ interface Service {
 export default function ServicosPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const { toast } = useToast();
 
   useEffect(() => {
-    fetch("/api/services")
+    setLoading(true);
+    fetch(`/api/services?page=${page}&limit=20`)
       .then((r) => r.json())
-      .then((d) => setServices(d.services));
-  }, []);
+      .then((d) => { setServices(d.services || []); setTotalPages(d.totalPages || 1); })
+      .catch((err) => console.error("Erro ao carregar serviços:", err))
+      .finally(() => setLoading(false));
+  }, [page]);
 
   async function handleDelete(id: string) {
     if (!confirm("Tem a certeza que pretende eliminar este serviço?")) return;
@@ -61,42 +70,54 @@ export default function ServicosPage() {
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((service) => (
-          <div key={service.id} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-all">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-ib-accent/10 flex items-center justify-center">
-                  <Wrench className="w-5 h-5 text-ib-accent" />
+      {loading ? (
+        <CardSkeleton count={6} />
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          icon={<Wrench className="w-8 h-8 text-gray-400" />}
+          title="Nenhum serviço encontrado"
+          description={search ? "Tente alterar a pesquisa." : "Adicione o primeiro serviço."}
+          actionHref={search ? undefined : "/gestao/servicos/novo"}
+          actionLabel={search ? undefined : "Novo Serviço"}
+        />
+      ) : (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((service) => (
+              <div key={service.id} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-all">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-ib-accent/10 flex items-center justify-center">
+                      <Wrench className="w-5 h-5 text-ib-accent" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-ib-primary">{service.name}</h3>
+                      {service.duration && (
+                        <p className="text-xs text-ib-muted">{service.duration}</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-ib-primary">{service.name}</h3>
-                  {service.duration && (
-                    <p className="text-xs text-ib-muted">{service.duration}</p>
-                  )}
+                {service.description && (
+                  <p className="text-sm text-ib-muted mb-4 line-clamp-2">{service.description}</p>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-lg font-bold text-ib-primary">{service.price.toLocaleString()} Kz</span>
+                  <div className="flex items-center gap-1">
+                    <Link href={`/gestao/servicos/${service.id}/editar`} className="p-1.5 hover:bg-gray-100 rounded-lg text-ib-muted hover:text-ib-primary">
+                      <Pencil className="w-4 h-4" />
+                    </Link>
+                    <button onClick={() => handleDelete(service.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-ib-muted hover:text-ib-danger">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-            {service.description && (
-              <p className="text-sm text-ib-muted mb-4 line-clamp-2">{service.description}</p>
-            )}
-            <div className="flex items-center justify-between">
-              <span className="text-lg font-bold text-ib-primary">{service.price.toLocaleString()} Kz</span>
-              <div className="flex items-center gap-1">
-                <Link href={`/gestao/servicos/${service.id}/editar`} className="p-1.5 hover:bg-gray-100 rounded-lg text-ib-muted hover:text-ib-primary">
-                  <Pencil className="w-4 h-4" />
-                </Link>
-                <button onClick={() => handleDelete(service.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-ib-muted hover:text-ib-danger">
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+            ))}
           </div>
-        ))}
-        {filtered.length === 0 && (
-          <p className="text-ib-muted text-sm col-span-full text-center py-12">Nenhum serviço encontrado.</p>
-        )}
-      </div>
+          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+        </>
+      )}
     </>
   );
 }

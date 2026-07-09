@@ -2,17 +2,27 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-  const purchases = await prisma.purchase.findMany({
-    where: { companyId: user.companyId },
-    include: { items: { include: { product: { select: { name: true } } } } },
-    orderBy: { date: "desc" },
-  });
+  const url = new URL(request.url);
+  const page = parseInt(url.searchParams.get("page") || "1");
+  const limit = parseInt(url.searchParams.get("limit") || "20");
+  const skip = (page - 1) * limit;
 
-  return NextResponse.json({ purchases });
+  const [purchases, total] = await Promise.all([
+    prisma.purchase.findMany({
+      where: { companyId: user.companyId },
+      include: { items: { include: { product: { select: { name: true } } } } },
+      orderBy: { date: "desc" },
+      skip,
+      take: limit,
+    }),
+    prisma.purchase.count({ where: { companyId: user.companyId } }),
+  ]);
+
+  return NextResponse.json({ purchases, total, page, totalPages: Math.ceil(total / limit) });
 }
 
 export async function POST(request: Request) {

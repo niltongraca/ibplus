@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Search, Warehouse, ArrowDown, ArrowUp } from "lucide-react";
-import { formatDate } from "@/lib/utils";
+import { Plus, Search, Warehouse } from "lucide-react";
 import { DataTable } from "@/components/ui/DataTable";
+import Pagination from "@/components/Pagination";
 import Link from "next/link";
 
 interface Product {
@@ -21,17 +21,30 @@ export default function StockPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showLow, setShowLow] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    fetch("/api/products")
-      .then((r) => r.json())
-      .then((d) => setProducts(d.products))
-      .catch((err) => console.error("Erro ao carregar stock:", err))
+    setLoading(true);
+    Promise.all([
+      fetch("/api/products?page=1&limit=10000").then((r) => r.json()),
+      fetch(`/api/products?page=${page}&limit=20`).then((r) => r.json()),
+    ]).then(([all, pageData]) => {
+      setAllProducts(all.products || []);
+      setProducts(pageData.products || []);
+      setTotalPages(pageData.totalPages || 1);
+      setTotalCount(pageData.total || 0);
+    }).catch((err) => console.error("Erro ao carregar stock:", err))
       .finally(() => setLoading(false));
-  }, []);
+  }, [page]);
 
   let filtered = products.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
   if (showLow) filtered = filtered.filter((p) => p.stock <= p.minStock);
+
+  const totalStock = allProducts.reduce((s, p) => s + p.stock, 0);
+  const criticalCount = allProducts.filter((p) => p.stock <= p.minStock).length;
 
   return (
     <div>
@@ -48,15 +61,15 @@ export default function StockPage() {
       <div className="grid sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-xs text-ib-muted uppercase tracking-wider font-medium mb-1">Total Produtos</p>
-          <p className="text-2xl font-bold text-ib-primary">{products.length}</p>
+          <p className="text-2xl font-bold text-ib-primary">{totalCount || allProducts.length}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-xs text-ib-muted uppercase tracking-wider font-medium mb-1">Stock Total</p>
-          <p className="text-2xl font-bold text-ib-primary">{products.reduce((s, p) => s + p.stock, 0)}</p>
+          <p className="text-2xl font-bold text-ib-primary">{totalStock}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-xs text-ib-muted uppercase tracking-wider font-medium mb-1">Produtos Críticos</p>
-          <p className="text-2xl font-bold text-red-500">{products.filter((p) => p.stock <= p.minStock).length}</p>
+          <p className="text-2xl font-bold text-red-500">{criticalCount}</p>
         </div>
       </div>
 
@@ -118,6 +131,7 @@ export default function StockPage() {
             );
           }}
         />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );

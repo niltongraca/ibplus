@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Search, DollarSign } from "lucide-react";
+import { Plus, Search, DollarSign, Download } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
+import { jsonToCsv, downloadCsv } from "@/lib/csv";
+import Pagination from "@/components/Pagination";
 import Link from "next/link";
 
 interface Sale {
@@ -19,18 +21,34 @@ export default function VendasPage() {
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    fetch("/api/sales")
+    setLoading(true);
+    fetch(`/api/sales?page=${page}&limit=20`)
       .then((r) => r.json())
-      .then((d) => setSales(d.sales))
+      .then((d) => { setSales(d.sales || []); setTotalPages(d.totalPages || 1); setTotal(d.total || 0); })
       .catch((err) => console.error("Erro ao carregar vendas:", err))
       .finally(() => setLoading(false));
-  }, []);
+  }, [page]);
 
   const filtered = sales.filter((s) =>
     (s.customer?.name || "").toLowerCase().includes(search.toLowerCase())
   );
+
+  function exportCsv() {
+    const data = filtered.map((s) => ({
+      cliente: s.customer?.name || "—",
+      total: s.total,
+      metodo: s.paymentMethod || "—",
+      status: s.status,
+      data: formatDate(s.date),
+    }));
+    const csv = jsonToCsv(data, { cliente: "Cliente", total: "Total (Kz)", metodo: "Método", status: "Estado", data: "Data" });
+    downloadCsv(csv, `vendas-${new Date().toISOString().split("T")[0]}`);
+  }
 
   const statusBadge = (status: string) => {
     const styles: Record<string, string> = { pending: "bg-yellow-100 text-yellow-700", completed: "bg-green-100 text-green-700", cancelled: "bg-red-100 text-red-700" };
@@ -45,9 +63,14 @@ export default function VendasPage() {
           <h1 className="text-2xl font-bold text-ib-primary">Vendas</h1>
           <p className="text-ib-muted text-sm">Registo de vendas realizadas</p>
         </div>
-        <Link href="/gestao/vendas/nova" className="flex items-center gap-2 bg-ib-accent hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium">
-          <Plus className="w-4 h-4" /> Nova Venda
-        </Link>
+        <div className="flex items-center gap-2">
+          <button onClick={exportCsv} className="flex items-center gap-2 border border-gray-200 hover:bg-gray-50 text-ib-primary px-4 py-2.5 rounded-lg text-sm font-medium transition-colors">
+            <Download className="w-4 h-4" /> Exportar CSV
+          </button>
+          <Link href="/gestao/vendas/nova" className="flex items-center gap-2 bg-ib-accent hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium">
+            <Plus className="w-4 h-4" /> Nova Venda
+          </Link>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200">
@@ -84,6 +107,7 @@ export default function VendasPage() {
             </div>
           )}
         />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );

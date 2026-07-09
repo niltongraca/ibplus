@@ -5,6 +5,7 @@ import { Plus, Search, ShoppingCart, Trash2 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 import { useToast } from "@/components/Toast";
+import Pagination from "@/components/Pagination";
 import Link from "next/link";
 
 interface Purchase {
@@ -19,14 +20,17 @@ export default function ComprasPage() {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    fetch("/api/purchases")
+    setLoading(true);
+    fetch(`/api/purchases?page=${page}&limit=20`)
       .then((r) => r.json())
-      .then((d) => setPurchases(d.purchases))
+      .then((d) => { setPurchases(d.purchases || []); setTotalPages(d.totalPages || 1); })
       .catch((err) => console.error("Erro ao carregar compras:", err))
       .finally(() => setLoading(false));
-  }, []);
+  }, [page]);
 
   const filtered = purchases.filter((p) =>
     (p.supplier || "").toLowerCase().includes(search.toLowerCase())
@@ -102,6 +106,7 @@ export default function ComprasPage() {
             </div>
           )}
         />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );

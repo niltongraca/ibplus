@@ -6,53 +6,23 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Menu, LogOut, Shield } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 
-const moduleNames: Record<string, string> = {
-  gestao: "Gestão",
-  finance: "Finance",
-  crm: "CRM",
-  store: "Store",
-  ia: "IA",
-  marketing: "Marketing",
-  rh: "RH",
-};
-
 const pageNames: Record<string, string> = {
   "gestao/dashboard": "Dashboard",
   "gestao/clientes": "Clientes",
   "gestao/produtos": "Produtos",
+  "gestao/servicos": "Serviços",
   "gestao/stock": "Stock",
   "gestao/compras": "Compras",
   "gestao/vendas": "Vendas",
   "gestao/despesas": "Despesas",
   "gestao/fluxo-caixa": "Fluxo de Caixa",
-  "finance/faturacao": "Faturação",
-  "finance/orcamentos": "Orçamentos",
-  "finance/cobrancas": "Cobranças",
-  "finance/contas-pagar": "Contas a Pagar",
-  "finance/contas-receber": "Contas a Receber",
-  "finance/relatorios": "Relatórios",
-  "crm/clientes": "Clientes",
+  "gestao/perfil": "Perfil",
   "crm/funil-vendas": "Funil de Vendas",
-  "crm/propostas": "Propostas",
-  "crm/agenda": "Agenda",
-  "crm/follow-up": "Follow-up",
-  "store/loja": "Loja Online",
-  "store/catalogo": "Catálogo",
-  "store/encomendas": "Encomendas",
-  "store/pagamentos": "Pagamentos",
   "ia/assistente": "Assistente",
-  "ia/analise-vendas": "Análise de Vendas",
-  "ia/previsoes": "Previsões",
   "ia/recomendacoes": "Recomendações",
-  "ia/relatorios": "Relatórios",
-  "marketing/campanhas": "Campanhas",
-  "marketing/email-marketing": "E-mail Marketing",
-  "marketing/promocoes": "Promoções",
-  "marketing/fidelizacao": "Fidelização",
   "rh/funcionarios": "Funcionários",
-  "rh/salarios": "Salários",
-  "rh/ferias": "Férias",
-  "rh/presencas": "Presenças",
+  "marketing/campanhas": "Campanhas",
+  "educacao/alunos": "Alunos",
 };
 
 interface HeaderProps {
@@ -64,9 +34,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const { user, logout } = useAuth();
 
   const segments = (pathname || "").split("/").filter(Boolean);
-  const moduleKey = segments[0] || "";
-  const pageKey = segments.join("/");
-  const moduleName = moduleNames[moduleKey] || "";
+  const pageKey = segments.slice(0, 2).join("/");
   const pageName = pageNames[pageKey] || "";
 
   return (
@@ -82,7 +50,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           </button>
           <div className="min-w-0">
             <h1 className="text-lg font-bold text-ib-primary truncate">
-              {moduleName ? `${moduleName}${pageName ? ` — ${pageName}` : ""}` : "IBPlus"}
+              {pageName || "IBPlus"}
             </h1>
           </div>
         </div>
