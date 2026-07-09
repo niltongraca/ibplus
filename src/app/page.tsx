@@ -98,7 +98,7 @@ export default function HomePage() {
         <h2 className="text-3xl font-bold text-ib-primary text-center mb-12">Módulos da Plataforma</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {modules.map((mod) => (
-            <div key={mod.name} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:border-ib-accent/30 transition-all">
+            <div key={mod.name} className="glass-card p-5 hover:shadow-md hover:border-ib-accent/30 transition-all">
               <div className="w-10 h-10 rounded-lg bg-ib-accent/10 flex items-center justify-center mb-3">
                 <mod.icon className="w-5 h-5 text-ib-accent" />
               </div>

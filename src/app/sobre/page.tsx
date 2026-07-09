@@ -27,7 +27,7 @@ export default function SobrePage() {
           </p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-8 mb-8">
+        <div className="glass-card p-8 mb-8">
           <h2 className="text-2xl font-bold text-ib-primary mb-4">O que é o IBPlus+?</h2>
           <p className="text-ib-muted leading-relaxed mb-4">
             O IBPlus+ é uma plataforma SaaS de gestão empresarial que reúne num só lugar todas as ferramentas
@@ -40,7 +40,7 @@ export default function SobrePage() {
           </p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-8 mb-8">
+        <div className="glass-card p-8 mb-8">
           <h2 className="text-2xl font-bold text-ib-primary mb-6">Tipos de Conta</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {accountTypes.map((at) => (
@@ -55,7 +55,7 @@ export default function SobrePage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-8 mb-8">
+        <div className="glass-card p-8 mb-8">
           <h2 className="text-2xl font-bold text-ib-primary mb-4">Funcionalidades Principais</h2>
           <div className="grid sm:grid-cols-2 gap-3">
             {[

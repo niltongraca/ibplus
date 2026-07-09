@@ -40,7 +40,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const pageName = pageNames[pageKey] || "";
 
   return (
-    <header className="sticky top-0 z-30 bg-[var(--bg-card)] border-b border-[var(--border-color)]">
+    <header className="glass-header sticky top-0 z-30">
       <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
         <div className="flex items-center gap-3 min-w-0">
           <button
