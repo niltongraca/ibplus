@@ -6,7 +6,7 @@ import { useToast } from "@/components/Toast";
 import {
   User, Building2, Lock, Save, MapPin, Phone, Smartphone,
   Palette, Clock, Download, Share2, Globe, Store, Image as LucideImage,
-  MessageCircle, CheckCircle, AlertCircle
+  MessageCircle, CheckCircle, AlertCircle, Moon, Sun
 } from "lucide-react";
 import { FileUpload } from "@/components/FileUpload";
 import { InviteManager } from "@/components/InviteManager";
