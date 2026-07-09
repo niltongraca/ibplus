@@ -35,7 +35,7 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative" style={{ backgroundColor: "var(--bg-secondary)" }}>
+    <div className="min-h-screen flex items-center justify-center px-4 relative">
       <Link href="/" className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2" style={{ color: "var(--text-muted)" }}>
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
         <span className="text-sm">Voltar ao início</span>
@@ -53,9 +53,9 @@ function LoginForm() {
           <p style={{ color: "var(--text-muted)" }}>Entre na sua conta</p>
         </div>
 
-        <form className="p-8 rounded-xl border space-y-5" style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)" }}>
+        <form className="glass-card p-8 space-y-5">
           {error && (
-            <div className="p-3 rounded-lg bg-ib-danger/10 text-ib-danger text-sm">
+            <div className="p-3 rounded-lg" style={{ backgroundColor: "rgba(239, 68, 68, 0.1)", color: "var(--color-ib-danger)" }}>
               {error}
             </div>
           )}
@@ -70,8 +70,8 @@ function LoginForm() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu@email.com"
               required
-              className="w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40"
-              style={{ backgroundColor: "var(--bg-primary)", borderColor: "var(--border-color)", color: "var(--text-primary)" }}
+              className="glass-input w-full px-3 py-2.5 text-sm"
+              style={{ color: "var(--text-primary)" }}
             />
           </div>
 
@@ -86,8 +86,8 @@ function LoginForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40 pr-10"
-                style={{ backgroundColor: "var(--bg-primary)", borderColor: "var(--border-color)", color: "var(--text-primary)" }}
+                className="glass-input w-full px-3 py-2.5 text-sm pr-10"
+                style={{ color: "var(--text-primary)" }}
               />
               <button
                 type="button"
@@ -102,7 +102,7 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-ib-accent hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            className="glass-btn-primary w-full py-2.5 text-sm flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {loading ? "Entrando..." : (
               <>
@@ -119,6 +119,10 @@ function LoginForm() {
             </Link>
           </p>
         </form>
+
+        <p className="text-center text-xs mt-4" style={{ color: "var(--text-muted)" }}>
+          <Link href="/recuperar-senha" className="hover:underline">Esqueceu a senha?</Link>
+        </p>
       </div>
     </div>
   );
@@ -127,7 +131,7 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: "var(--bg-secondary)" }}>
+      <div className="min-h-screen flex items-center justify-center px-4">
         <div className="animate-pulse" style={{ color: "var(--text-muted)" }}>A carregar...</div>
       </div>
     }>
