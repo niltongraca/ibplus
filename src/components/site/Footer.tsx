@@ -22,7 +22,7 @@ export default function SiteFooter() {
   return (
     <footer className="bg-ib-primary text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
               <span className="font-bold text-lg">IBPlus<sup className="text-ib-accent">+</sup></span>
