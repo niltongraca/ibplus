@@ -16,6 +16,9 @@ import {
   Target,
   Bot,
   Sparkles,
+  Calculator,
+  FileCheck,
+  HandCoins,
   type LucideIcon,
 } from "lucide-react";
 
@@ -68,8 +71,16 @@ const SIDEBAR_CONFIG: Record<string, SidebarGroup[]> = {
         { label: "Stock", icon: Warehouse, href: "/gestao/stock" },
         { label: "Compras", icon: ShoppingCart, href: "/gestao/compras" },
         { label: "Vendas", icon: DollarSign, href: "/gestao/vendas" },
-        { label: "Despesas", icon: TrendingDown, href: "/gestao/despesas" },
+      ],
+    },
+    {
+      name: FINANCAS,
+      items: [
         { label: "Fluxo de Caixa", icon: BarChart3, href: "/gestao/fluxo-caixa" },
+        { label: "Despesas", icon: TrendingDown, href: "/gestao/despesas" },
+        { label: "Orçamentos", icon: Calculator, href: "/finance/orcamentos" },
+        { label: "Faturação", icon: FileCheck, href: "/finance/faturacao" },
+        { label: "Cobranças", icon: HandCoins, href: "/finance/cobrancas" },
       ],
     },
     {
