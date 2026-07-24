@@ -55,3 +55,17 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Erro ao actualizar." }, { status: 400 });
   }
 }
+
+export async function DELETE(request: Request) {
+  const user = await getAuthUser();
+  if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+
+  try {
+    const { id } = await request.json();
+    const result = await prisma.opportunity.deleteMany({ where: { id, companyId: user.companyId } });
+    if (!result.count) return NextResponse.json({ error: "Oportunidade não encontrada." }, { status: 404 });
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: "Erro ao eliminar." }, { status: 400 });
+  }
+}

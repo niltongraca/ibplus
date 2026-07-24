@@ -116,11 +116,29 @@ export default function ContasReceberPage() {
     </div>
   );
 
+  const unpaidTotal = filtered.filter(i => i.status !== "paid" && i.status !== "cancelled").reduce((sum, i) => sum + i.total, 0);
+  const paidTotal = filtered.filter(i => i.status === "paid").reduce((sum, i) => sum + i.total, 0);
+
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ib-primary">Contas a Receber</h1>
-        <p className="text-ib-muted text-sm">Acompanhe as contas a receber e recebimentos pendentes.</p>
+        <h1 className="text-2xl font-bold text-gray-900">Contas a Receber</h1>
+        <p className="text-gray-500 text-sm">Acompanhe as contas a receber e recebimentos pendentes.</p>
+      </div>
+
+      <div className="grid sm:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Total</p>
+          <p className="text-xl font-bold text-gray-900">{formatCurrency(unpaidTotal + paidTotal)}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Por Receber</p>
+          <p className="text-xl font-bold text-orange-600">{formatCurrency(unpaidTotal)}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Recebidas</p>
+          <p className="text-xl font-bold text-green-600">{formatCurrency(paidTotal)}</p>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200">

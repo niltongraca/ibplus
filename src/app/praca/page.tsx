@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { Store, ShoppingBag, MapPin, Phone, Mail, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import SiteHeader from "@/components/site/Header";
+import SiteFooter from "@/components/site/Footer";
 
 async function getCompanies() {
   const companies = await prisma.company.findMany({
@@ -17,6 +19,7 @@ export default async function PracaPage() {
 
   return (
     <div>
+      <SiteHeader />
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" style={{ backgroundColor: "rgba(37, 99, 235, 0.1)" }}>
@@ -79,6 +82,7 @@ export default async function PracaPage() {
           </div>
         )}
       </div>
+      <SiteFooter />
     </div>
   );
 }

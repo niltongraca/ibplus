@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 import { Store, MapPin, Phone, Mail, ArrowLeft, Package, Globe, Facebook, Instagram, Linkedin, MessageCircle, Send, User } from "lucide-react";
 import Link from "next/link";
+import SiteHeader from "@/components/site/Header";
+import SiteFooter from "@/components/site/Footer";
 
 async function getCompany(id: string) {
   const company = await prisma.company.findUnique({
@@ -84,8 +86,10 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
   ].filter((s) => s.url);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12">
-      <Link href="/praca" className="inline-flex items-center gap-1.5 text-sm mb-8 transition-colors" style={{ color: "var(--text-muted)" }}>
+    <div>
+      <SiteHeader />
+      <div className="max-w-5xl mx-auto px-4 py-12">
+        <Link href="/praca" className="inline-flex items-center gap-1.5 text-sm mb-8 transition-colors" style={{ color: "var(--text-muted)" }}>
         <ArrowLeft className="w-4 h-4" /> Voltar à Praça
       </Link>
 
@@ -204,6 +208,8 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
           )}
         </div>
       </div>
+      </div>
+      <SiteFooter />
     </div>
   );
 }

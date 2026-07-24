@@ -105,11 +105,29 @@ export default function ContasPagarPage() {
     </div>
   );
 
+  const unpaidTotal = filtered.filter(e => !e.paid).reduce((sum, e) => sum + e.amount, 0);
+  const paidTotal = filtered.filter(e => e.paid).reduce((sum, e) => sum + e.amount, 0);
+
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ib-primary">Contas a Pagar</h1>
-        <p className="text-ib-muted text-sm">Gerencie todas as contas a pagar do seu negócio.</p>
+        <h1 className="text-2xl font-bold text-gray-900">Contas a Pagar</h1>
+        <p className="text-gray-500 text-sm">Gerencie todas as contas a pagar do seu negócio.</p>
+      </div>
+
+      <div className="grid sm:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Total</p>
+          <p className="text-xl font-bold text-gray-900">{formatCurrency(unpaidTotal + paidTotal)}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Por Pagar</p>
+          <p className="text-xl font-bold text-orange-600">{formatCurrency(unpaidTotal)}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Pagas</p>
+          <p className="text-xl font-bold text-green-600">{formatCurrency(paidTotal)}</p>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200">

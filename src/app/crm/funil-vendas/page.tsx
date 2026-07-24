@@ -68,7 +68,11 @@ export default function FunilVendasPage() {
     items: opportunities.filter((o) => o.stage === s.key),
   }));
 
-  if (loading) return <div className="p-12 text-center text-ib-muted">A carregar...</div>;
+  const totalValue = opportunities.reduce((sum, o) => sum + o.value, 0);
+  const closedValue = grouped.find(s => s.key === "closed")?.items.reduce((sum, o) => sum + o.value, 0) || 0;
+  const conversionRate = opportunities.length > 0 ? ((grouped.find(s => s.key === "closed")?.items.length || 0) / opportunities.length) * 100 : 0;
+
+  if (loading) return <div className="p-12 text-center text-gray-400">A carregar...</div>;
 
   return (
     <div>
@@ -121,18 +125,34 @@ export default function FunilVendasPage() {
 
       <div className="mt-6 bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center gap-3 mb-4">
-          <TrendingUp className="w-5 h-5 text-ib-accent" />
-          <h3 className="font-semibold text-ib-primary">Resumo do Funil</h3>
+          <TrendingUp className="w-5 h-5 text-blue-600" />
+          <h3 className="font-semibold text-gray-900">Resumo do Funil</h3>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-          {grouped.map((stage) => (
-            <div key={stage.key} className="text-center p-3 bg-gray-50 rounded-lg">
-              <p className="text-xs text-ib-muted mb-1">{stage.label}</p>
-              <p className="text-lg font-bold text-ib-primary">
-                {formatCurrency(stage.items.reduce((sum, o) => sum + o.value, 0))}
-              </p>
-            </div>
-          ))}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
+          {grouped.map((stage) => {
+            const total = stage.items.reduce((sum, o) => sum + o.value, 0);
+            return (
+              <div key={stage.key} className="text-center p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs text-gray-500 mb-1">{stage.label}</p>
+                <p className="text-lg font-bold text-gray-900">{formatCurrency(total)}</p>
+                <p className="text-xs text-gray-400">{stage.items.length}{stage.items.length !== 1 ? " items" : " item"}</p>
+              </div>
+            );
+          })}
+        </div>
+        <div className="grid sm:grid-cols-3 gap-4 pt-4 border-t border-gray-100">
+          <div className="text-center p-3 bg-blue-50 rounded-lg">
+            <p className="text-xs text-blue-600 font-medium mb-1">Total Pipeline</p>
+            <p className="text-xl font-bold text-blue-700">{formatCurrency(totalValue)}</p>
+          </div>
+          <div className="text-center p-3 bg-green-50 rounded-lg">
+            <p className="text-xs text-green-600 font-medium mb-1">Fechados</p>
+            <p className="text-xl font-bold text-green-700">{formatCurrency(closedValue)}</p>
+          </div>
+          <div className="text-center p-3 bg-purple-50 rounded-lg">
+            <p className="text-xs text-purple-600 font-medium mb-1">Taxa de Conversão</p>
+            <p className="text-xl font-bold text-purple-700">{conversionRate.toFixed(1)}%</p>
+          </div>
         </div>
       </div>
 

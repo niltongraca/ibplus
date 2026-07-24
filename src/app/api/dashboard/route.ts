@@ -14,6 +14,10 @@ export async function GET() {
         recentSales: [], recentClients: [], totalEmployees: 0, totalServices: 0,
         lowStockProducts: [], totalDonations: 0, donationTotal: 0, totalStudents: 0,
         activeCampaigns: 0, totalSales: 0, monthlySales: [], categorySales: [],
+        totalExpenses: 0, monthExpenses: 0, pendingQuotes: 0, pendingQuotesTotal: 0,
+        activeEmployees: 0, vacationPending: 0, averageSaleValue: 0,
+        conversionRate: 0, totalOpportunities: 0, wonOpportunities: 0,
+        recentExpenses: [], topProducts: [],
       });
     }
 
@@ -23,12 +27,18 @@ export async function GET() {
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
+    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
     const [
       totalSales, todaySalesAgg, totalCustomers, totalProducts,
       pendingInvoicesAgg, productsLow, recentSales,
       recentClients, totalEmployees, totalServices,
       lowStock, totalDonationsAgg, activeCampaigns,
       totalStudents, sales6Months, salesWithItems, totalSalesCount,
+      totalExpensesAgg, monthExpensesAgg, pendingQuotesAgg,
+      activeEmployeesCount, vacationPendingCount,
+      totalOppsAgg, wonOppsAgg, recentExpenses,
+      topProductsData,
     ] = await Promise.all([
       prisma.sale.aggregate({ where: { companyId: user.companyId }, _sum: { total: true } }),
       prisma.sale.aggregate({ where: { companyId: user.companyId, date: { gte: today } }, _sum: { total: true } }),
@@ -72,6 +82,24 @@ export async function GET() {
         include: { product: { include: { category: { select: { name: true } } } } },
       }),
       prisma.sale.count({ where: { companyId: user.companyId } }),
+      prisma.expense.aggregate({ where: { companyId: user.companyId }, _sum: { amount: true } }),
+      prisma.expense.aggregate({ where: { companyId: user.companyId, date: { gte: thisMonth } }, _sum: { amount: true } }),
+      prisma.quote.aggregate({ where: { companyId: user.companyId, status: { in: ["draft", "sent"] } }, _count: true, _sum: { total: true } }),
+      prisma.employee.count({ where: { companyId: user.companyId, active: true } }),
+      prisma.vacation.count({ where: { employee: { companyId: user.companyId }, status: "pending" } }),
+      prisma.opportunity.aggregate({ where: { companyId: user.companyId }, _count: true }),
+      prisma.opportunity.aggregate({ where: { companyId: user.companyId, stage: "won" }, _count: true }),
+      prisma.expense.findMany({
+        where: { companyId: user.companyId },
+        orderBy: { date: "desc" },
+        take: 5,
+      }),
+      prisma.saleItem.findMany({
+        where: { sale: { companyId: user.companyId } },
+        include: { product: { select: { name: true } } },
+        orderBy: { total: "desc" },
+        take: 5,
+      }),
     ]);
 
     const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
@@ -95,8 +123,24 @@ export async function GET() {
     }
     const categorySales = Array.from(categoryMap.entries()).map(([name, value]) => ({ name, value }));
 
+    const totalRevenue = totalSales._sum.total || 0;
+    const totalOppCount = totalOppsAgg._count;
+    const wonOppCount = wonOppsAgg._count;
+
+    const topProductsMap = new Map<string, { name: string; quantity: number; total: number }>();
+    for (const item of topProductsData) {
+      const name = item.product?.name || "Produto";
+      const existing = topProductsMap.get(name) || { name, quantity: 0, total: 0 };
+      existing.quantity += item.quantity;
+      existing.total += item.total;
+      topProductsMap.set(name, existing);
+    }
+    const topProducts = Array.from(topProductsMap.values())
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5);
+
     return NextResponse.json({
-      totalRevenue: totalSales._sum.total || 0,
+      totalRevenue,
       todaySales: todaySalesAgg._sum.total || 0,
       totalCustomers,
       totalProducts,
@@ -115,6 +159,18 @@ export async function GET() {
       totalSales: totalSalesCount,
       monthlySales,
       categorySales,
+      totalExpenses: totalExpensesAgg._sum.amount || 0,
+      monthExpenses: monthExpensesAgg._sum.amount || 0,
+      pendingQuotes: pendingQuotesAgg._count,
+      pendingQuotesTotal: pendingQuotesAgg._sum.total || 0,
+      activeEmployees: activeEmployeesCount,
+      vacationPending: vacationPendingCount,
+      averageSaleValue: totalSalesCount > 0 ? totalRevenue / totalSalesCount : 0,
+      conversionRate: totalOppCount > 0 ? (wonOppCount / totalOppCount) * 100 : 0,
+      totalOpportunities: totalOppCount,
+      wonOpportunities: wonOppCount,
+      recentExpenses,
+      topProducts,
     });
   } catch {
     return NextResponse.json({ error: "Erro ao carregar dashboard." }, { status: 500 });

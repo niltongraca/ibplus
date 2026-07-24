@@ -13,6 +13,9 @@ import { DonationsWidget } from "./widgets/DonationsWidget";
 import { StudentsWidget } from "./widgets/StudentsWidget";
 import { CampaignsWidget } from "./widgets/CampaignsWidget";
 import { ChartsWidget } from "./widgets/ChartsWidget";
+import { KPIWidget } from "./widgets/KPIWidget";
+import { AlertsWidget } from "./widgets/AlertsWidget";
+import { TopProductsWidget } from "./widgets/TopProductsWidget";
 
 export interface DashboardData {
   totalRevenue: number;
@@ -31,14 +34,32 @@ export interface DashboardData {
   donationTotal: number;
   totalStudents: number;
   activeCampaigns: number;
+  totalSales: number;
   monthlySales?: { month: string; total: number; count: number }[];
   categorySales?: { name: string; value: number }[];
+  totalExpenses: number;
+  monthExpenses: number;
+  pendingQuotes: number;
+  pendingQuotesTotal: number;
+  activeEmployees: number;
+  vacationPending: number;
+  averageSaleValue: number;
+  conversionRate: number;
+  totalOpportunities: number;
+  wonOpportunities: number;
+  recentExpenses: { id: string; description: string; amount: number; date: string; category: string }[];
+  topProducts: { name: string; quantity: number; total: number }[];
 }
 
 export function DashboardRenderer({ widgets, data }: { widgets: DashboardWidget[]; data: DashboardData | null }) {
   return (
     <div>
+      <KPIWidget data={data} />
       <ChartsWidget key="charts" data={data} />
+      <div className="grid lg:grid-cols-2 gap-6 mb-6">
+        <AlertsWidget data={data} />
+        <TopProductsWidget data={data} />
+      </div>
       {widgets.map((widget) => {
         switch (widget.id) {
           case "stats":

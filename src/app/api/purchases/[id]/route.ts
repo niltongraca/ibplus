@@ -8,13 +8,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const { id } = await params;
-  const sale = await prisma.sale.findFirst({
+  const purchase = await prisma.purchase.findFirst({
     where: { id, companyId: user.companyId },
-    include: { customer: true, items: { include: { product: true } } },
+    include: { items: { include: { product: { select: { name: true } } } } },
   });
 
-  if (!sale) return NextResponse.json({ error: "Venda não encontrada." }, { status: 404 });
-  return NextResponse.json({ sale });
+  if (!purchase) return NextResponse.json({ error: "Compra não encontrada." }, { status: 404 });
+  return NextResponse.json({ purchase });
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -24,20 +24,19 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const data = await request.json();
 
-  const existing = await prisma.sale.findFirst({ where: { id, companyId: user.companyId } });
-  if (!existing) return NextResponse.json({ error: "Venda não encontrada." }, { status: 404 });
+  const existing = await prisma.purchase.findFirst({ where: { id, companyId: user.companyId } });
+  if (!existing) return NextResponse.json({ error: "Compra não encontrada." }, { status: 404 });
 
   try {
     if (data.items) {
-      await prisma.saleItem.deleteMany({ where: { saleId: id } });
+      await prisma.purchaseItem.deleteMany({ where: { purchaseId: id } });
     }
 
-    const sale = await prisma.sale.update({
+    const purchase = await prisma.purchase.update({
       where: { id },
       data: {
-        customerId: data.customerId ?? existing.customerId,
+        supplier: data.supplier ?? existing.supplier,
         status: data.status ?? existing.status,
-        paymentMethod: data.paymentMethod ?? existing.paymentMethod,
         notes: data.notes ?? existing.notes,
         ...(data.items && {
           total: data.items.reduce((sum: number, i: { quantity: number; unitPrice: number }) => sum + i.quantity * i.unitPrice, 0),
@@ -51,13 +50,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
           },
         }),
       },
-      include: { customer: { select: { name: true } }, items: { include: { product: { select: { name: true } } } } },
+      include: { items: true },
     });
 
-    await logAction("update", "sale", id, `Venda atualizada - ${sale.total.toLocaleString()} Kz`);
-    return NextResponse.json({ sale });
+    await logAction("update", "purchase", id, `Compra atualizada - ${purchase.total.toLocaleString()} Kz`);
+    return NextResponse.json({ purchase });
   } catch {
-    return NextResponse.json({ error: "Erro ao atualizar venda." }, { status: 400 });
+    return NextResponse.json({ error: "Erro ao atualizar compra." }, { status: 400 });
   }
 }
 
@@ -66,12 +65,12 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const { id } = await params;
-  const existing = await prisma.sale.findFirst({ where: { id, companyId: user.companyId } });
-  if (!existing) return NextResponse.json({ error: "Venda não encontrada." }, { status: 404 });
+  const existing = await prisma.purchase.findFirst({ where: { id, companyId: user.companyId } });
+  if (!existing) return NextResponse.json({ error: "Compra não encontrada." }, { status: 404 });
 
-  await prisma.saleItem.deleteMany({ where: { saleId: id } });
-  await prisma.sale.delete({ where: { id } });
-  await logAction("delete", "sale", id, `Venda eliminada`);
+  await prisma.purchaseItem.deleteMany({ where: { purchaseId: id } });
+  await prisma.purchase.delete({ where: { id } });
+  await logAction("delete", "purchase", id, `Compra eliminada`);
 
   return NextResponse.json({ success: true });
 }
