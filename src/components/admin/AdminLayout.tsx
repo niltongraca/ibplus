@@ -100,16 +100,16 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             </div>
           )}
           <Link
-            href="/gestao/dashboard"
+            href="/"
             className={cn(
               "flex items-center gap-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors",
               collapsed ? "justify-center p-2.5" : "px-3 py-2 w-full"
             )}
             style={{ color: "var(--text-muted)" }}
-            title="Ir para o painel da empresa"
+            title="Voltar à página inicial"
           >
             <Home className="w-4 h-4" />
-            {!collapsed && "Painel Principal"}
+            {!collapsed && "Página Inicial"}
           </Link>
           <button
             onClick={logout}
