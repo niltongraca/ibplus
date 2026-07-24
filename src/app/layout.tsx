@@ -10,6 +10,7 @@ export const metadata: Metadata = {
     "IBPlus é a plataforma inteligente de gestão empresarial para micro, pequenas e médias empresas em Angola.",
   icons: {
     icon: "/favicon.svg",
+    apple: "/apple-icon.svg",
   },
 };
 
