@@ -53,7 +53,7 @@ function LoginForm() {
           <p style={{ color: "var(--text-muted)" }}>Entre na sua conta</p>
         </div>
 
-        <form className="glass-card p-8 space-y-5">
+        <form className="glass-card p-8 space-y-5" onSubmit={handleSubmit}>
           {error && (
             <div className="p-3 rounded-lg" style={{ backgroundColor: "rgba(239, 68, 68, 0.1)", color: "var(--color-ib-danger)" }}>
               {error}
