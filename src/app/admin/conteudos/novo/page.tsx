@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
+import { AdminLayout } from "@/components/admin/AdminLayout";
 
 export default function NovoConteudoPage() {
   const router = useRouter();
@@ -48,6 +49,7 @@ export default function NovoConteudoPage() {
   const update = (field: string, value: any) => setForm((f) => ({ ...f, [field]: value }));
 
   return (
+    <AdminLayout>
     <div>
       <div className="flex items-center gap-4 mb-6">
         <Link href="/admin/conteudos" className="p-2 hover:bg-gray-100 rounded-lg">
@@ -114,5 +116,6 @@ export default function NovoConteudoPage() {
         </div>
       </form>
     </div>
+    </AdminLayout>
   );
 }

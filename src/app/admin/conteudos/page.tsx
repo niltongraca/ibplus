@@ -6,6 +6,7 @@ import { useConfirm } from "@/components/ConfirmModal";
 import { Plus, Pencil, Trash2, ExternalLink, Youtube, Book, FileText } from "lucide-react";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
+import { AdminLayout } from "@/components/admin/AdminLayout";
 
 interface ContentItem {
   id: string;
@@ -79,9 +80,10 @@ export default function AdminConteudosPage() {
     load();
   }
 
-  if (loading) return <div className="p-12 text-center text-ib-muted">A carregar...</div>;
+  if (loading) return <AdminLayout><div className="p-12 text-center text-ib-muted">A carregar...</div></AdminLayout>;
 
   return (
+    <AdminLayout>
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -161,5 +163,6 @@ export default function AdminConteudosPage() {
         </table>
       </div>
     </div>
+    </AdminLayout>
   );
 }
