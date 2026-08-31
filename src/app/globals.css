@@ -291,3 +291,15 @@ body.dark {
 .animate-slide-in {
   animation: slide-in 250ms ease-out;
 }
+
+/* Landing ticker */
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.ticker-track {
+  animation: ticker 30s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track { animation: none; }
+}
