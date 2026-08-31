@@ -37,6 +37,8 @@ export default function CampanhasPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: "", type: "email", status: "draft", startDate: "", endDate: "", budget: "", notes: "" });
 
   useEffect(() => {
@@ -53,19 +55,30 @@ export default function CampanhasPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setFormError("");
+    if (!form.name.trim()) return setFormError("O nome é obrigatório.");
+    if (form.startDate && form.endDate && form.endDate < form.startDate) return setFormError("A data de fim deve ser posterior à de início.");
+
+    setSaving(true);
     try {
       const res = await fetch("/api/campaigns", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+      const data = await res.json().catch(() => null);
       if (res.ok) {
-        const data = await res.json();
         setCampaigns((prev) => [data.campaign, ...prev]);
         setShowForm(false);
         setForm({ name: "", type: "email", status: "draft", startDate: "", endDate: "", budget: "", notes: "" });
+      } else {
+        setFormError(data?.error || "Erro ao criar campanha.");
       }
-    } catch {}
+    } catch {
+      setFormError("Erro de ligação. Tenta novamente.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -84,6 +97,9 @@ export default function CampanhasPage() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
           <div className="bg-white rounded-xl p-6 max-w-lg w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-bold text-ib-primary mb-4">Nova Campanha</h2>
+            {formError && (
+              <div className="mb-3 p-2.5 rounded-lg bg-red-50 text-red-600 text-sm">{formError}</div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-ib-primary mb-1">Nome</label>
@@ -123,7 +139,7 @@ export default function CampanhasPage() {
               </div>
               <div className="flex gap-3 justify-end pt-2">
                 <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 text-sm text-ib-muted hover:text-ib-primary transition-colors">Cancelar</button>
-                <button type="submit" className="px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-ib-accent/90 transition-colors">Criar Campanha</button>
+                <button type="submit" disabled={saving} className="px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-ib-accent/90 transition-colors disabled:opacity-50">{saving ? "A criar..." : "Criar Campanha"}</button>
               </div>
             </form>
           </div>

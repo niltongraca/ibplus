@@ -25,6 +25,8 @@ export default function FunilVendasPage() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [creating, setCreating] = useState(false);
   const [customers, setCustomers] = useState<{ id: string; name: string }[]>([]);
   const [form, setForm] = useState({ customerId: "", title: "", value: "", stage: "lead" });
 
@@ -41,26 +43,36 @@ export default function FunilVendasPage() {
   }, []);
 
   async function createOpportunity() {
+    setFormError("");
+    if (!form.customerId) return setFormError("O cliente é obrigatório.");
+    if (!form.title.trim()) return setFormError("O título é obrigatório.");
+
+    setCreating(true);
     const res = await fetch("/api/opportunities", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...form, value: parseFloat(form.value) || 0 }),
     });
+    const data = await res.json().catch(() => null);
+    setCreating(false);
     if (res.ok) {
-      const d = await res.json();
-      setOpportunities((prev) => [d.opportunity, ...prev]);
+      setOpportunities((prev) => [data.opportunity, ...prev]);
       setShowModal(false);
       setForm({ customerId: "", title: "", value: "", stage: "lead" });
+    } else {
+      setFormError(data?.error || "Erro ao criar oportunidade.");
     }
   }
 
   async function moveToStage(id: string, stage: string) {
-    await fetch("/api/opportunities", {
+    const res = await fetch("/api/opportunities", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, stage }),
     });
-    setOpportunities((prev) => prev.map((o) => (o.id === id ? { ...o, stage } : o)));
+    if (res.ok) {
+      setOpportunities((prev) => prev.map((o) => (o.id === id ? { ...o, stage } : o)));
+    }
   }
 
   const grouped = STAGES.map((s) => ({
@@ -160,6 +172,9 @@ export default function FunilVendasPage() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
             <h3 className="font-semibold text-ib-primary mb-4">Nova Oportunidade</h3>
+            {formError && (
+              <div className="mb-3 p-2.5 rounded-lg bg-red-50 text-red-600 text-sm">{formError}</div>
+            )}
             <div className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-ib-primary mb-1">Cliente</label>
@@ -189,7 +204,7 @@ export default function FunilVendasPage() {
             </div>
             <div className="flex justify-end gap-2 mt-6">
               <button onClick={() => setShowModal(false)} className="px-4 py-2 border border-gray-200 rounded-lg text-sm">Cancelar</button>
-              <button onClick={createOpportunity} disabled={!form.title} className="px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium disabled:opacity-50">Criar</button>
+              <button onClick={createOpportunity} disabled={creating || !form.title} className="px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium disabled:opacity-50">{creating ? "A criar..." : "Criar"}</button>
             </div>
           </div>
         </div>
