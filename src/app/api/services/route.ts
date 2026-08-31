@@ -36,19 +36,33 @@ export async function POST(request: Request) {
   if (!user.companyId) return NextResponse.json({ error: "Sem empresa associada." }, { status: 400 });
 
   try {
-    const { name, description, price, duration } = await request.json();
+    const body = await request.json();
+    const { name, description, price, duration } = body;
 
-    if (!name || price === undefined) {
+    const nameTrimmed = typeof name === "string" ? name.trim() : "";
+    if (!nameTrimmed || price === undefined || price === null || price === "") {
       return NextResponse.json({ error: "Nome e preço são obrigatórios." }, { status: 400 });
     }
 
+    const priceNum = Number(price);
+    if (!Number.isFinite(priceNum) || priceNum <= 0) {
+      return NextResponse.json({ error: "O preço deve ser um número positivo." }, { status: 400 });
+    }
+
     const service = await prisma.service.create({
-      data: { name, description, price: parseFloat(price), duration, companyId: user.companyId },
+      data: {
+        name: nameTrimmed,
+        description: description ? String(description).trim() : null,
+        price: priceNum,
+        duration: duration ? String(duration).trim() : null,
+        companyId: user.companyId,
+      },
     });
 
     await logAction("create", "service", service.id, `Serviço "${service.name}" criado`);
-    return NextResponse.json({ service });
-  } catch {
+    return NextResponse.json({ service }, { status: 201 });
+  } catch (err) {
+    console.error("Erro ao criar serviço:", err);
     return NextResponse.json({ error: "Erro ao criar serviço." }, { status: 500 });
   }
 }

@@ -8,6 +8,7 @@ import { useConfirm } from "@/components/ConfirmModal";
 import { CardSkeleton } from "@/components/Skeleton";
 import EmptyState from "@/components/EmptyState";
 import Pagination from "@/components/Pagination";
+import { formatCurrency } from "@/lib/utils";
 
 interface Service {
   id: string;
@@ -39,9 +40,12 @@ export default function ServicosPage() {
   async function handleDelete(id: string) {
     if (!(await confirm({ title: "Eliminar serviço", message: "Tem a certeza que pretende eliminar este serviço?", variant: "danger" }))) return;
     const res = await fetch(`/api/services/${id}`, { method: "DELETE" });
+    const data = await res.json().catch(() => null);
     if (res.ok) {
       setServices((prev) => prev.filter((s) => s.id !== id));
       toast("Serviço eliminado com sucesso!", "success");
+    } else {
+      toast(data?.error || "Erro ao eliminar serviço.", "error");
     }
   }
 
@@ -104,7 +108,7 @@ export default function ServicosPage() {
                   <p className="text-sm text-ib-muted mb-4 line-clamp-2">{service.description}</p>
                 )}
                 <div className="flex items-center justify-between">
-                  <span className="text-lg font-bold text-ib-primary">{service.price.toLocaleString()} Kz</span>
+                  <span className="text-lg font-bold text-ib-primary">{formatCurrency(service.price)}</span>
                   <div className="flex items-center gap-1">
                     <Link href={`/gestao/servicos/${service.id}/editar`} className="p-1.5 hover:bg-gray-100 rounded-lg text-ib-muted hover:text-ib-primary">
                       <Pencil className="w-4 h-4" />
