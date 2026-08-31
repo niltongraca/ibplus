@@ -22,7 +22,9 @@ export default function FuncionariosPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ name: "", email: "", position: "", salary: 0, phone: "" });
+  const [formError, setFormError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [formData, setFormData] = useState({ name: "", email: "", position: "", salary: 0, phone: "", hireDate: "" });
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -44,20 +46,34 @@ export default function FuncionariosPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError("");
+    if (!formData.name.trim()) return setFormError("O nome é obrigatório.");
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) return setFormError("O email não é válido.");
+
+    setSaving(true);
     try {
       const res = await fetch("/api/employees", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          email: formData.email.trim() || null,
+          hireDate: formData.hireDate ? new Date(formData.hireDate).toISOString() : null,
+        }),
       });
-      if (!res.ok) throw new Error();
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setFormError(data?.error || "Erro ao criar funcionário.");
+        return;
+      }
       setEmployees((prev) => [...prev, data.employee]);
       setShowForm(false);
-      setFormData({ name: "", email: "", position: "", salary: 0, phone: "" });
+      setFormData({ name: "", email: "", position: "", salary: 0, phone: "", hireDate: "" });
       toast("Funcionário criado com sucesso.");
     } catch {
-      toast("Erro ao criar funcionário.", "error");
+      setFormError("Erro de ligação. Tenta novamente.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -65,9 +81,13 @@ export default function FuncionariosPage() {
     if (!(await confirm({ title: "Eliminar funcionário", message: "Tem a certeza que deseja eliminar este funcionário?", variant: "danger" }))) return;
     try {
       const res = await fetch(`/api/employees/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error();
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        toast(data?.error || "Erro ao eliminar funcionário.", "error");
+        return;
+      }
       setEmployees((prev) => prev.filter((e) => e.id !== id));
-      toast("Funcionário eliminado com sucesso.");
+      toast(data?.message || "Funcionário eliminado com sucesso.");
     } catch {
       toast("Erro ao eliminar funcionário.", "error");
     }
@@ -149,6 +169,9 @@ export default function FuncionariosPage() {
               </button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {formError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2">{formError}</div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-ib-primary mb-1">Nome *</label>
                 <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
@@ -169,8 +192,12 @@ export default function FuncionariosPage() {
                 <label className="block text-sm font-medium text-ib-primary mb-1">Salário (KZ)</label>
                 <input type="number" min="0" value={formData.salary} onChange={(e) => setFormData({ ...formData, salary: Number(e.target.value) })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
               </div>
-              <button type="submit" className="w-full bg-ib-accent hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-medium">
-                Salvar
+              <div>
+                <label className="block text-sm font-medium text-ib-primary mb-1">Data de Admissão</label>
+                <input type="date" value={formData.hireDate} onChange={(e) => setFormData({ ...formData, hireDate: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+              </div>
+              <button type="submit" disabled={saving} className="w-full bg-ib-accent hover:bg-blue-700 disabled:opacity-50 text-white py-2.5 rounded-lg text-sm font-medium">
+                {saving ? "A salvar..." : "Salvar"}
               </button>
             </form>
           </div>
