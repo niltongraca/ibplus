@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Search, DollarSign, Download } from "lucide-react";
+import { Plus, Search, DollarSign, Download, XCircle } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 import { ClearInput } from "@/components/ui/ClearInput";
@@ -25,6 +25,8 @@ export default function VendasPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     setLoading(true);
@@ -34,6 +36,24 @@ export default function VendasPage() {
       .catch((err) => console.error("Erro ao carregar vendas:", err))
       .finally(() => setLoading(false));
   }, [page]);
+
+  async function cancelSale(id: string) {
+    if (!window.confirm("Tens a certeza que queres cancelar esta venda? O stock será reposto.")) return;
+    setError("");
+    setMessage("");
+    try {
+      const res = await fetch(`/api/sales/${id}`, { method: "DELETE" });
+      const data = await res.json().catch(() => null);
+      if (res.ok) {
+        setMessage(data?.message || "Venda cancelada.");
+        setSales((prev) => prev.filter((s) => s.id !== id));
+      } else {
+        setError(data?.error || "Não foi possível cancelar a venda.");
+      }
+    } catch {
+      setError("Erro de ligação. Tenta novamente.");
+    }
+  }
 
   const filtered = sales.filter((s) =>
     (s.customer?.name || "").toLowerCase().includes(search.toLowerCase())
@@ -75,6 +95,12 @@ export default function VendasPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200">
+        {message && (
+          <div className="border-b border-green-100 bg-green-50 px-4 py-3 text-sm text-green-700">{message}</div>
+        )}
+        {error && (
+          <div className="border-b border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+        )}
         <div className="p-4 border-b border-gray-100">
           <div className="relative max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-[2]" />
@@ -89,6 +115,18 @@ export default function VendasPage() {
             { key: "total", header: "Total", className: "text-right", render: (s) => <span className="font-semibold">{formatCurrency(s.total)}</span> },
             { key: "payment", header: "Pagamento", hide: "mobile", render: (s) => <span className="text-ib-muted">{s.paymentMethod || "—"}</span> },
             { key: "status", header: "Estado", hide: "mobile", className: "text-center", render: (s) => statusBadge(s.status) },
+            {
+              key: "actions", header: "", className: "text-right",
+              render: (s) => s.status !== "cancelled" ? (
+                <button
+                  onClick={() => cancelSale(s.id)}
+                  className="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded-lg transition-colors"
+                  title="Cancelar venda"
+                >
+                  <XCircle className="w-3.5 h-3.5" /> Cancelar
+                </button>
+              ) : <span />,
+            },
           ]}
           data={filtered}
           loading={loading}

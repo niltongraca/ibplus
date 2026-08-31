@@ -16,6 +16,7 @@ interface Product {
   name: string;
   price: number;
   unit: string;
+  stock: number;
 }
 
 interface LineItem {
@@ -30,6 +31,7 @@ export default function NovaVendaPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   const [form, setForm] = useState({
     customerId: "",
     paymentMethod: "cash",
@@ -51,10 +53,12 @@ export default function NovaVendaPage() {
 
   function addItem() {
     setItems([...items, { productId: "", productName: "", quantity: 1, unitPrice: 0 }]);
+    setError("");
   }
 
   function removeItem(index: number) {
     setItems(items.filter((_, i) => i !== index));
+    setError("");
   }
 
   function updateItem(index: number, field: keyof LineItem, value: string | number) {
@@ -66,6 +70,10 @@ export default function NovaVendaPage() {
         if (product) {
           newItem.productName = product.name;
           newItem.unitPrice = product.price;
+          newItem.quantity = 1;
+        } else {
+          newItem.productName = "";
+          newItem.unitPrice = 0;
         }
       }
       if (field === "quantity") newItem.quantity = Number(value);
@@ -73,14 +81,33 @@ export default function NovaVendaPage() {
       return newItem;
     });
     setItems(updated);
+    setError("");
   }
 
   const total = items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
 
+  function validateItems(): string {
+    if (items.length === 0) return "Adiciona pelo menos um item à venda.";
+    for (const item of items) {
+      if (!item.productId) return "Selecciona o produto em todos os itens.";
+      if (!Number.isInteger(item.quantity) || item.quantity <= 0) return "A quantidade deve ser um número inteiro positivo.";
+      const product = products.find((p) => p.id === item.productId);
+      if (product && item.quantity > product.stock) {
+        return `Stock insuficiente para "${product.name}" (disponível: ${product.stock}).`;
+      }
+    }
+    return "";
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (items.length === 0) return;
+    const validationError = validateItems();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
     setSaving(true);
+    setError("");
     try {
       const res = await fetch("/api/sales", {
         method: "POST",
@@ -96,8 +123,14 @@ export default function NovaVendaPage() {
           })),
         }),
       });
-      if (res.ok) router.push("/gestao/vendas");
+      if (res.ok) {
+        router.push("/gestao/vendas");
+        return;
+      }
+      const data = await res.json().catch(() => null);
+      setError(data?.error || "Erro ao registar a venda. Tenta novamente.");
     } catch {
+      setError("Erro de ligação. Verifica a tua ligação e tenta novamente.");
     } finally {
       setSaving(false);
     }
@@ -114,6 +147,12 @@ export default function NovaVendaPage() {
           <p className="text-ib-muted text-sm">Registar nova venda</p>
         </div>
       </div>
+
+      {error && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
         <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -188,6 +227,7 @@ export default function NovaVendaPage() {
                 <tbody>
                   {items.map((item, index) => {
                     const product = products.find((p) => p.id === item.productId);
+                    const stockError = product ? item.quantity > product.stock : false;
                     return (
                       <tr key={index} className="border-b border-gray-50">
                         <td className="py-2 pr-2">
@@ -198,9 +238,16 @@ export default function NovaVendaPage() {
                           >
                             <option value="">Seleccionar produto</option>
                             {products.map((p) => (
-                              <option key={p.id} value={p.id}>{p.name}</option>
+                              <option key={p.id} value={p.id}>
+                                {p.name} (stock: {p.stock})
+                              </option>
                             ))}
                           </select>
+                          {product && (
+                            <p className="mt-1 text-xs text-ib-muted">
+                              Stock disponível: <b>{product.stock} {product.unit}</b>
+                            </p>
+                          )}
                         </td>
                         <td className="py-2 px-1">
                           <input
@@ -208,8 +255,11 @@ export default function NovaVendaPage() {
                             min="1"
                             value={item.quantity}
                             onChange={(e) => updateItem(index, "quantity", e.target.value)}
-                            className="w-20 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40 text-center"
+                            className={`w-20 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40 text-center ${stockError ? "border-red-300 bg-red-50" : "border-gray-200"}`}
                           />
+                          {stockError && (
+                            <p className="mt-1 text-[11px] text-red-500 text-center">Máx {product?.stock}</p>
+                          )}
                         </td>
                         <td className="py-2 px-1">
                           <input
@@ -250,7 +300,7 @@ export default function NovaVendaPage() {
         <div className="flex items-center gap-3">
           <button
             type="submit"
-            disabled={saving || items.length === 0}
+            disabled={saving}
             className="flex items-center gap-2 bg-ib-accent hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium disabled:opacity-50"
           >
             <Save className="w-4 h-4" /> {saving ? "A guardar..." : "Finalizar Venda"}
