@@ -16,6 +16,7 @@ import { ChartsWidget } from "./widgets/ChartsWidget";
 import { KPIWidget } from "./widgets/KPIWidget";
 import { AlertsWidget } from "./widgets/AlertsWidget";
 import { TopProductsWidget } from "./widgets/TopProductsWidget";
+import { RecentClientsWidget } from "./widgets/RecentClientsWidget";
 
 export interface DashboardData {
   totalRevenue: number;
@@ -52,13 +53,16 @@ export interface DashboardData {
 }
 
 export function DashboardRenderer({ widgets, data }: { widgets: DashboardWidget[]; data: DashboardData | null }) {
+  const hasClientsModule = widgets.some((w) => w.id === "clients");
+
   return (
     <div>
       <KPIWidget data={data} />
       <ChartsWidget key="charts" data={data} />
-      <div className="grid lg:grid-cols-2 gap-6 mb-6">
+      <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
         <AlertsWidget data={data} />
         <TopProductsWidget data={data} />
+        {!hasClientsModule && <RecentClientsWidget clients={data?.recentClients} />}
       </div>
       {widgets.map((widget) => {
         switch (widget.id) {
