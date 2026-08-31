@@ -13,6 +13,7 @@ export default function EditarClientePage() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -44,29 +45,34 @@ export default function EditarClientePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError("");
+    if (!form.name.trim()) return setError("O nome é obrigatório.");
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return setError("O email não é válido.");
+
     setSaving(true);
     try {
       const res = await fetch(`/api/customers/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: form.name,
-          email: form.email || null,
-          phone: form.phone || null,
-          nif: form.nif || null,
-          address: form.address || null,
+          name: form.name.trim(),
+          email: form.email.trim() || null,
+          phone: form.phone.trim() || null,
+          nif: form.nif.trim() || null,
+          address: form.address.trim() || null,
           type: form.type,
-          notes: form.notes || null,
+          notes: form.notes.trim() || null,
         }),
       });
+      const data = await res.json().catch(() => null);
       if (res.ok) {
         toast("Cliente actualizado com sucesso!");
         router.push(`/gestao/clientes/${id}`);
       } else {
-        toast("Erro ao actualizar cliente.", "error");
+        setError(data?.error || "Erro ao actualizar cliente.");
       }
     } catch {
-      toast("Erro ao actualizar cliente.", "error");
+      setError("Erro de ligação. Tenta novamente.");
     } finally {
       setSaving(false);
     }
@@ -93,6 +99,11 @@ export default function EditarClientePage() {
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 max-w-2xl">
+        {error && (
+          <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-ib-primary mb-1">Nome *</label>

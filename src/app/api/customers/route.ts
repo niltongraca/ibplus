@@ -32,9 +32,28 @@ export async function POST(request: Request) {
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   try {
-    const data = await request.json();
+    const body = await request.json();
+    const name = typeof body.name === "string" ? body.name.trim() : "";
+    if (!name) return NextResponse.json({ error: "O nome é obrigatório." }, { status: 400 });
+
+    const email = body.email ? String(body.email).trim() : "";
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ error: "O email não é válido." }, { status: 400 });
+    }
+
+    const type = body.type === "empresa" ? "empresa" : "particular";
+
     const customer = await prisma.customer.create({
-      data: { ...data, companyId: user.companyId },
+      data: {
+        name,
+        companyId: user.companyId,
+        email: email || null,
+        phone: body.phone ? String(body.phone).trim() : null,
+        nif: body.nif ? String(body.nif).trim() : null,
+        address: body.address ? String(body.address).trim() : null,
+        type,
+        notes: body.notes ? String(body.notes).trim() : null,
+      },
     });
     await logAction("create", "customer", customer.id, `Cliente "${customer.name}" criado`);
     await createNotification(user.companyId, "customer", `Novo cliente: ${customer.name}`, undefined, "/gestao/clientes");

@@ -41,11 +41,12 @@ export default function ClientesPage() {
   async function handleDelete(id: string) {
     if (!(await confirm({ title: "Eliminar cliente", message: "Tem a certeza que deseja eliminar este cliente?", variant: "danger" }))) return;
     const res = await fetch(`/api/customers/${id}`, { method: "DELETE" });
+    const data = await res.json().catch(() => null);
     if (res.ok) {
       toast("Cliente eliminado com sucesso!");
       setCustomers((prev) => prev.filter((c) => c.id !== id));
     } else {
-      toast("Erro ao eliminar cliente.", "error");
+      toast(data?.error || "Erro ao eliminar cliente.", "error");
     }
   }
 

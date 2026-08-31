@@ -48,11 +48,12 @@ export default function ClienteDetailPage() {
   async function handleDelete() {
     if (!(await confirm({ title: "Eliminar cliente", message: "Tem a certeza que deseja eliminar este cliente?", variant: "danger" }))) return;
     const res = await fetch(`/api/customers/${id}`, { method: "DELETE" });
+    const data = await res.json().catch(() => null);
     if (res.ok) {
       toast("Cliente eliminado com sucesso!");
       router.push("/gestao/clientes");
     } else {
-      toast("Erro ao eliminar cliente.", "error");
+      toast(data?.error || "Erro ao eliminar cliente.", "error");
     }
   }
 
