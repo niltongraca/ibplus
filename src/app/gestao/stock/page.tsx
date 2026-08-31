@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Search, Warehouse } from "lucide-react";
+import { Plus, Search, Warehouse, TrendingUp, TrendingDown, PackageSearch } from "lucide-react";
 import { DataTable } from "@/components/ui/DataTable";
 import Pagination from "@/components/Pagination";
+import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 
 interface Product {
@@ -16,6 +17,15 @@ interface Product {
   price: number;
 }
 
+interface Movement {
+  id: string;
+  type: string;
+  quantity: number;
+  notes: string | null;
+  createdAt: string;
+  product: { name: string; unit: string };
+}
+
 export default function StockPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,17 +35,20 @@ export default function StockPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [movements, setMovements] = useState<Movement[]>([]);
 
   useEffect(() => {
     setLoading(true);
     Promise.all([
       fetch("/api/products?page=1&limit=10000").then((r) => r.json()),
       fetch(`/api/products?page=${page}&limit=20`).then((r) => r.json()),
-    ]).then(([all, pageData]) => {
+      fetch("/api/stock/movements?limit=8").then((r) => r.json()),
+    ]).then(([all, pageData, movData]) => {
       setAllProducts(all.products || []);
       setProducts(pageData.products || []);
       setTotalPages(pageData.totalPages || 1);
       setTotalCount(pageData.total || 0);
+      setMovements(movData.movements || []);
     }).catch((err) => console.error("Erro ao carregar stock:", err))
       .finally(() => setLoading(false));
   }, [page]);
@@ -132,6 +145,38 @@ export default function StockPage() {
           }}
         />
         <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 mt-6">
+        <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+          <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+            <PackageSearch className="w-4 h-4 text-blue-600" />
+            Movimentos Recentes
+          </h2>
+          <Link href="/gestao/stock/movimento" className="text-xs text-blue-500 hover:text-blue-700 font-medium">
+            Novo movimento
+          </Link>
+        </div>
+        {movements.length === 0 ? (
+          <p className="text-sm text-ib-muted py-8 text-center">Nenhum movimento registado ainda.</p>
+        ) : (
+          <div className="divide-y divide-gray-100">
+            {movements.map((m) => (
+              <div key={m.id} className="flex items-center gap-3 px-5 py-3">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${m.type === "IN" ? "bg-green-100/70 text-green-600" : "bg-red-100/70 text-red-500"}`}>
+                  {m.type === "IN" ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{m.product.name}</p>
+                  <p className="text-xs text-ib-muted truncate">{m.notes || (m.type === "IN" ? "Entrada" : "Saída")} • {formatDate(m.createdAt)}</p>
+                </div>
+                <span className={`text-sm font-semibold ${m.type === "IN" ? "text-green-600" : "text-red-500"}`}>
+                  {m.type === "IN" ? "+" : "−"}{m.quantity} {m.product.unit}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

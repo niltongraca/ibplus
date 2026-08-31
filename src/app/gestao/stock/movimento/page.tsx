@@ -40,14 +40,15 @@ export default function MovimentoStockPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           stockAdjust: tipo === "entrada" ? qty : -qty,
-          motivo,
+          notes: motivo.trim() || "Ajuste manual",
         }),
       });
 
-      if (!r.ok) throw new Error("Erro ao registar movimento");
+      const data = await r.json().catch(() => null);
+      if (!r.ok) throw new Error(data?.error || "Erro ao registar movimento");
       router.push("/gestao/stock");
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Erro ao registar movimento");
     }
   };
 
