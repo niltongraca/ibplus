@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Clock, FileText } from "lucide-react";
+import { AlertTriangle, Clock, FileText, PackageX } from "lucide-react";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
 import type { DashboardData } from "../DashboardRenderer";
@@ -8,15 +8,16 @@ import type { DashboardData } from "../DashboardRenderer";
 export function AlertsWidget({ data }: { data: DashboardData | null }) {
   if (!data) return null;
 
-  const alerts: { icon: any; label: string; value: string; href: string; color: string }[] = [];
+  const alerts: { icon: any; label: string; value: string; href: string; box: string; iconColor: string }[] = [];
 
   if (data.lowStockProducts.length > 0) {
     alerts.push({
-      icon: AlertTriangle,
+      icon: PackageX,
       label: "Stock Baixo",
       value: `${data.lowStockProducts.length} produto(s) com stock crítico`,
       href: "/gestao/stock",
-      color: "text-orange-500",
+      box: "bg-orange-100/70",
+      iconColor: "text-orange-500",
     });
   }
 
@@ -26,7 +27,8 @@ export function AlertsWidget({ data }: { data: DashboardData | null }) {
       label: "Faturas Pendentes",
       value: `${data.pendingInvoices} fatura(s) — ${formatCurrency(data.pendingInvoicesTotal)}`,
       href: "/finance/faturacao",
-      color: "text-blue-500",
+      box: "bg-blue-100/70",
+      iconColor: "text-blue-500",
     });
   }
 
@@ -36,7 +38,8 @@ export function AlertsWidget({ data }: { data: DashboardData | null }) {
       label: "Orçamentos Pendentes",
       value: `${data.pendingQuotes} orçamento(s) — ${formatCurrency(data.pendingQuotesTotal)}`,
       href: "/finance/orcamentos",
-      color: "text-purple-500",
+      box: "bg-purple-100/70",
+      iconColor: "text-purple-500",
     });
   }
 
@@ -46,7 +49,8 @@ export function AlertsWidget({ data }: { data: DashboardData | null }) {
       label: "Férias Pendentes",
       value: `${data.vacationPending} pedido(s) de férias`,
       href: "/rh/ferias",
-      color: "text-yellow-500",
+      box: "bg-yellow-100/70",
+      iconColor: "text-yellow-600",
     });
   }
 
@@ -61,7 +65,9 @@ export function AlertsWidget({ data }: { data: DashboardData | null }) {
       <div className="space-y-3">
         {alerts.map((alert, i) => (
           <Link key={i} href={alert.href} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
-            <alert.icon className={`w-4 h-4 ${alert.color} flex-shrink-0`} />
+            <div className={`w-10 h-10 rounded-full ${alert.box} flex items-center justify-center flex-shrink-0`}>
+              <alert.icon className={`w-4 h-4 ${alert.iconColor}`} />
+            </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900">{alert.label}</p>
               <p className="text-xs text-gray-500 truncate">{alert.value}</p>
