@@ -36,10 +36,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   if (!company) return { title: "Empresa não encontrada" };
   return {
     title: company.name,
-    description: company.descriptionLoja || company.sobreNos || `${company.name} — Empresa registada na Praça IBPlus+. ${company._count?.products || 0} produtos disponíveis.`,
+    description: company.descricaoLoja || company.sobreNos || `${company.name} — Empresa registada na Praça IBPlus+. ${company._count?.products || 0} produtos disponíveis.`,
     openGraph: {
       title: `${company.name} — Praça IBPlus+`,
-      description: company.descriptionLoja || company.sobreNos || `${company.name} na plataforma IBPlus+.`,
+      description: company.descricaoLoja || company.sobreNos || `${company.name} na plataforma IBPlus+.`,
     },
   };
 }
