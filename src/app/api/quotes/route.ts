@@ -24,7 +24,31 @@ export async function POST(request: Request) {
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   try {
-    const { customer, validUntil, notes, items } = await request.json();
+    const body = await request.json();
+    const customer = body.customer ? String(body.customer).trim() : null;
+    const notes = body.notes ? String(body.notes).trim() : null;
+    const status = typeof body.status === "string" && ["draft", "pendente", "aprovado", "rejeitado", "expirado"].includes(body.status) ? body.status : "pendente";
+
+    let validUntil: Date | null = null;
+    if (body.validUntil) {
+      validUntil = new Date(body.validUntil);
+      if (isNaN(validUntil.getTime())) return NextResponse.json({ error: "A data de validade não é válida." }, { status: 400 });
+    }
+
+    const items = Array.isArray(body.items) ? body.items : [];
+    if (!items.length) return NextResponse.json({ error: "O orçamento precisa de pelo menos um item." }, { status: 400 });
+
+    const normalizedItems = items.map((i) => {
+      const description = i.description ? String(i.description).trim() : "";
+      const quantity = Number(i.quantity);
+      const unitPrice = Number(i.unitPrice);
+      if (!description) throw new Error("A descrição de cada item é obrigatória.");
+      if (!Number.isInteger(quantity) || quantity <= 0) throw new Error("A quantidade deve ser um número inteiro positivo.");
+      if (!Number.isFinite(unitPrice) || unitPrice < 0) throw new Error("O preço unitário não pode ser negativo.");
+      return { description, quantity, unitPrice, total: quantity * unitPrice };
+    });
+
+    const total = normalizedItems.reduce((sum, i) => sum + i.total, 0);
 
     const count = await prisma.quote.count({ where: { companyId: user.companyId } });
     const now = new Date();
@@ -36,23 +60,19 @@ export async function POST(request: Request) {
         companyId: user.companyId,
         number,
         customer,
-        validUntil: validUntil ? new Date(validUntil) : null,
-        total: items.reduce((sum: number, i: { quantity: number; unitPrice: number }) => sum + i.quantity * i.unitPrice, 0),
+        validUntil,
+        total,
+        status,
         notes,
-        items: {
-          create: items.map((i: { description: string; quantity: number; unitPrice: number }) => ({
-            description: i.description,
-            quantity: i.quantity,
-            unitPrice: i.unitPrice,
-            total: i.quantity * i.unitPrice,
-          })),
-        },
+        items: { create: normalizedItems },
       },
       include: { items: true },
     });
 
     return NextResponse.json({ quote }, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Erro ao criar orçamento." }, { status: 400 });
+  } catch (err: any) {
+    const message = typeof err?.message === "string" ? err.message : "";
+    const error = /descrição|quantidade|preço/.test(message) ? message : "Erro ao criar orçamento.";
+    return NextResponse.json({ error }, { status: 400 });
   }
 }
