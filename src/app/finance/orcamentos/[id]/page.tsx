@@ -33,7 +33,7 @@ export default function OrcamentoDetailPage() {
   const router = useRouter();
   const { confirm } = useConfirm();
   const [quote, setQuote] = useState<Quote | null>(null);
-  const [company, setCompany] = useState<{ name: string; nif?: string | null; email?: string | null; phone?: string | null; address?: string | null } | null>(null);
+  const [company, setCompany] = useState<{ name: string; nif?: string | null; email?: string | null; phone?: string | null; address?: string | null; logo?: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -71,11 +71,20 @@ export default function OrcamentoDetailPage() {
       (i) => `<tr><td style="padding:8px;border-bottom:1px solid #eee;">${i.description}</td><td style="padding:8px;border-bottom:1px solid #eee;text-align:center">${i.quantity}</td><td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${i.unitPrice.toLocaleString("pt-AO", { minimumFractionDigits: 2 })} Kz</td><td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${i.total.toLocaleString("pt-AO", { minimumFractionDigits: 2 })} Kz</td></tr>`
     ).join("");
     const statusLabel: Record<string, string> = { draft: "Rascunho", sent: "Enviado", approved: "Aprovado", rejected: "Rejeitado", converted: "Convertido" };
+    const companyName = company?.name || "IBPlus+";
+    const logoHtml = company?.logo ? `<img src="${company.logo}" alt="${companyName}" style="height:60px;object-fit:contain;border-radius:8px;background:rgba(255,255,255,0.1);padding:4px;" />` : `<span style="font-size:24px;font-weight:bold;color:#0056b3;">${companyName}</span>`;
+    const companyDetails = [
+      company?.nif ? `NIF: ${company.nif}` : "",
+      company?.email || "",
+      company?.phone || "",
+      company?.address || "",
+    ].filter(Boolean).join(" &mdash; ");
     win.document.write(`
       <!DOCTYPE html><html><head><meta charset="utf-8"><title>Orçamento ${quote.number}</title>
       <style>body{font-family:Arial,sans-serif;margin:40px;color:#1a2a4a;}
-        .header{display:flex;justify-content:space-between;margin-bottom:40px;}
-        .logo{font-size:24px;font-weight:bold;color:#0056b3;}
+        .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px;}
+        .company-name{font-size:24px;font-weight:bold;color:#0056b3;}
+        .company-details{font-size:11px;color:#888;margin-top:4px;}
         .title{font-size:28px;font-weight:bold;}
         .info{display:flex;justify-content:space-between;margin-bottom:30px;font-size:13px;color:#666;}
         .info strong{color:#1a2a4a;}
@@ -86,7 +95,7 @@ export default function OrcamentoDetailPage() {
         .footer{font-size:12px;color:#999;border-top:1px solid #eee;padding-top:20px;}
       </style></head>
       <body>
-        <div class="header"><div class="logo">IBPlus+</div><div class="title">ORÇAMENTO</div></div>
+        <div class="header"><div>${logoHtml}${companyDetails ? `<div class="company-details">${companyDetails}</div>` : ""}</div><div class="title">ORÇAMENTO</div></div>
         <div class="info">
           <div><strong>N.º:</strong> ${quote.number}<br><strong>Data:</strong> ${quote.date}<br><strong>Validade:</strong> ${quote.validUntil || "—"}</div>
           <div style="text-align:right"><strong>Cliente:</strong> ${quote.customer || "—"}<br><strong>Estado:</strong> ${statusLabel[quote.status] || quote.status}</div>
@@ -94,7 +103,7 @@ export default function OrcamentoDetailPage() {
         <table><thead><tr><th>Descrição</th><th style="text-align:center">Qtd</th><th style="text-align:right">Preço Unit.</th><th style="text-align:right">Total</th></tr></thead><tbody>${itemsRows}</tbody></table>
         <div class="total">Total: ${quote.total.toLocaleString("pt-AO", { minimumFractionDigits: 2 })} Kz</div>
         ${quote.notes ? `<p style="font-size:13px;color:#666;margin-bottom:30px"><strong>Observações:</strong> ${quote.notes}</p>` : ""}
-        <div class="footer">Documento gerado pelo IBPlus+ — Plataforma de Gestão Empresarial</div>
+        <div class="footer">Documento gerado por ${companyName}</div>
         <script>window.print();<\/script>
       </body></html>
     `);

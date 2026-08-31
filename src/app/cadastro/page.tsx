@@ -4,7 +4,8 @@ import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { Eye, EyeOff, UserPlus, ArrowLeft, ArrowRight, Check, User, Building2, Users, MapPin, Briefcase, Sparkles, Heart, GraduationCap, Handshake, Link2 } from "lucide-react";
+import { SuccessCheck } from "@/components/ui/SuccessCheck";
+import { Eye, EyeOff, UserPlus, ArrowLeft, ArrowRight, User, Building2, Users, MapPin, Briefcase, Sparkles, Heart, GraduationCap, Handshake, Link2 } from "lucide-react";
 
 const ACCOUNT_TYPES = [
   { value: "EMPREENDEDOR", label: "Empreendedor", desc: "Ideal para quem trabalha por conta própria.", icon: User },
@@ -123,9 +124,7 @@ function CadastroPage() {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="text-center">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: "rgba(16, 185, 129, 0.15)" }}>
-            <Check className="w-8 h-8" style={{ color: "var(--color-ib-success)" }} />
-          </div>
+          <SuccessCheck className="mx-auto mb-6" size={96} />
           <h2 className="text-2xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>Conta criada com sucesso!</h2>
           <p style={{ color: "var(--text-muted)" }}>A redirecionar para o painel...</p>
         </div>

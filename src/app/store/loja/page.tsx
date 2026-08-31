@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, ShoppingBag, ShoppingCart, Plus, Minus, Trash2, CreditCard, X, CheckCircle } from "lucide-react";
+import { Search, ShoppingBag, ShoppingCart, Plus, Minus, Trash2, CreditCard, X } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { SuccessCheck } from "@/components/ui/SuccessCheck";
+import { ClearInput } from "@/components/ui/ClearInput";
 
 interface Category { name: string; }
 
@@ -118,8 +120,8 @@ export default function LojaOnlinePage() {
 
       <div className="mb-6">
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input type="text" placeholder="Pesquisar produtos..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-[2]" />
+          <ClearInput value={search} onChange={setSearch} placeholder="Pesquisar produtos..." />
         </div>
       </div>
 
@@ -216,7 +218,7 @@ export default function LojaOnlinePage() {
           <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
             {checkoutDone ? (
               <div className="text-center py-6">
-                <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                <SuccessCheck className="mx-auto mb-4" size={80} />
                 <h3 className="text-lg font-bold text-ib-primary mb-2">Compra Finalizada!</h3>
                 <p className="text-sm text-ib-muted">A sua encomenda foi registada com sucesso.</p>
               </div>

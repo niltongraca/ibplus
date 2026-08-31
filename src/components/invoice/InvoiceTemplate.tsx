@@ -65,25 +65,30 @@ export function InvoiceTemplate({ data, type, typeLabel, company }: InvoiceTempl
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden print:border-none">
       <div className="bg-gradient-to-r from-[#0a1628] via-[#0f1f3d] to-[#1a2a4a] px-8 py-6 print:px-6 print:py-4">
         <div className="flex justify-between items-start">
-          <div>
-            <h2 className="text-xl font-bold text-white tracking-tight">{company?.name || "IBPlus+"}</h2>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
-              {company?.nif && (
-                <p className="text-xs text-blue-300/70">NIF: {company.nif}</p>
+          <div className="flex items-start gap-4">
+            {company?.logo && (
+              <img src={company.logo} alt={company.name} className="w-16 h-16 object-contain rounded-lg bg-white/10 p-1" />
+            )}
+            <div>
+              <h2 className="text-xl font-bold text-white tracking-tight">{company?.name || "IBPlus+"}</h2>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                {company?.nif && (
+                  <p className="text-xs text-blue-300/70">NIF: {company.nif}</p>
+                )}
+                {company?.email && (
+                  <p className="text-xs text-blue-300/70">{company.email}</p>
+                )}
+                {company?.phone && (
+                  <p className="text-xs text-blue-300/70">{company.phone}</p>
+                )}
+              </div>
+              {company?.address && (
+                <p className="text-xs text-blue-300/50 mt-0.5">{company.address}</p>
               )}
-              {company?.email && (
-                <p className="text-xs text-blue-300/70">{company.email}</p>
-              )}
-              {company?.phone && (
-                <p className="text-xs text-blue-300/70">{company.phone}</p>
+              {!company && (
+                <p className="text-xs text-blue-300/70 mt-0.5">Plataforma de Gestão Empresarial</p>
               )}
             </div>
-            {company?.address && (
-              <p className="text-xs text-blue-300/50 mt-0.5">{company.address}</p>
-            )}
-            {!company && (
-              <p className="text-xs text-blue-300/70 mt-0.5">Plataforma de Gestão Empresarial</p>
-            )}
           </div>
           <div className="text-right">
             <h3 className="text-3xl font-bold text-white tracking-wider">{type}</h3>

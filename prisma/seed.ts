@@ -12,7 +12,8 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  const password = await bcrypt.hash("123456", 10);
+  const seedPassword = process.env.SEED_ADMIN_PASSWORD || "ibplus-change-me";
+  const password = await bcrypt.hash(seedPassword, 10);
 
   const company = await prisma.company.create({
     data: {
@@ -41,7 +42,7 @@ async function main() {
     console.log("Admin já existe, a continuar...");
   });
 
-  const adminPassword = await bcrypt.hash("@Gracepu47", 10);
+  const adminPassword = await bcrypt.hash(process.env.SEED_ADMIN_PASSWORD || "ibplus-change-me", 10);
   await prisma.user.create({
     data: {
       name: "Admin IBPlus+",
@@ -65,10 +66,10 @@ async function main() {
     return;
   }
 
-  const cat1 = await prisma.category.create({ data: { name: "Alimentação" } });
-  const cat2 = await prisma.category.create({ data: { name: "Bebidas" } });
-  const cat3 = await prisma.category.create({ data: { name: "Higiene" } });
-  const cat4 = await prisma.category.create({ data: { name: "Material de Escritório" } });
+  const cat1 = await prisma.category.create({ data: { companyId: company.id, name: "Alimentação" } });
+  const cat2 = await prisma.category.create({ data: { companyId: company.id, name: "Bebidas" } });
+  const cat3 = await prisma.category.create({ data: { companyId: company.id, name: "Higiene" } });
+  const cat4 = await prisma.category.create({ data: { companyId: company.id, name: "Material de Escritório" } });
 
   await prisma.product.createMany({
     data: [

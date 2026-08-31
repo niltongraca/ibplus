@@ -13,6 +13,32 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Carrinho vazio." }, { status: 400 });
     }
 
+    const productIds = items.map((item: any) => item.productId);
+
+    const products = await prisma.product.findMany({
+      where: { id: { in: productIds }, companyId: user.companyId },
+      select: { id: true, stock: true, price: true },
+    });
+
+    if (products.length !== new Set(productIds).size) {
+      return NextResponse.json({ error: "Um ou mais produtos não foram encontrados." }, { status: 400 });
+    }
+
+    const productMap = new Map(products.map((p) => [p.id, p]));
+
+    for (const item of items) {
+      const product = productMap.get(item.productId);
+      if (!product) {
+        return NextResponse.json({ error: "Produto inválido." }, { status: 400 });
+      }
+      if (item.quantity <= 0 || !Number.isFinite(item.quantity)) {
+        return NextResponse.json({ error: "Quantidade inválida." }, { status: 400 });
+      }
+      if (product.stock < item.quantity) {
+        return NextResponse.json({ error: "Stock insuficiente." }, { status: 400 });
+      }
+    }
+
     const total = items.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
 
     let customerId: string | undefined;
@@ -45,7 +71,7 @@ export async function POST(request: Request) {
 
     for (const item of items) {
       await prisma.product.update({
-        where: { id: item.productId },
+        where: { id: item.productId, companyId: user.companyId },
         data: { stock: { decrement: item.quantity } },
       });
       await prisma.stockMovement.create({

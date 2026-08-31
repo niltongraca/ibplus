@@ -11,6 +11,7 @@ import {
 import { FileUpload } from "@/components/FileUpload";
 import { InviteManager } from "@/components/InviteManager";
 import { useTheme } from "@/contexts/ThemeContext";
+import { AnimatedTabs } from "@/components/ui/transitions/AnimatedTabs";
 
 interface CompanyData {
   name: string;
@@ -126,20 +127,17 @@ export default function PerfilPage() {
       </div>
 
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-              activeTab === tab.key
-                ? "bg-ib-accent text-white"
-                : "bg-white border border-gray-200 text-ib-muted hover:bg-gray-50"
-            }`}
-          >
-            <tab.icon className="w-4 h-4" />
-            {tab.label}
-          </button>
-        ))}
+        <AnimatedTabs
+          tabs={tabs.map((t) => ({ ...t, icon: <t.icon /> }))}
+          active={activeTab}
+          onChange={setActiveTab}
+          pillClassName="bg-ib-accent shadow-md"
+          trackClassName="bg-gray-100"
+          mode="light"
+          btnClassName="text-ib-muted hover:text-ib-primary"
+          activeBtnClassName="text-white font-semibold"
+          iconClassName="w-4 h-4"
+        />
       </div>
 
       {activeTab === "perfil" && (

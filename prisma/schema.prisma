@@ -36,6 +36,7 @@ model User {
 
   resetToken        String?
   resetTokenExpires DateTime?
+  tokenVersion      Int       @default(0)
 
   profile         Profile?
   companyProfile  CompanyProfile?
@@ -159,6 +160,7 @@ model Company {
   services            Service[]
   customers           Customer[]
   products            Product[]
+  categories          Category[]
   sales               Sale[]
   purchases           Purchase[]
   expenses            Expense[]
@@ -191,6 +193,8 @@ model Student {
   notes          String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+
+  @@index([companyId])
 }
 
 model Customer {
@@ -209,6 +213,8 @@ model Customer {
   opportunities Opportunity[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+  @@index([companyId])
 }
 
 model Opportunity {
@@ -223,12 +229,19 @@ model Opportunity {
   notes       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([customerId])
 }
 
 model Category {
-  id       String    @id @default(cuid())
-  name     String
-  products Product[]
+  id         String    @id @default(cuid())
+  companyId  String
+  company    Company   @relation(fields: [companyId], references: [id])
+  name       String
+  products   Product[]
+
+  @@index([companyId])
 }
 
 model Product {
@@ -251,6 +264,9 @@ model Product {
   stockMovements StockMovement[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+
+  @@index([companyId])
+  @@index([categoryId])
 }
 
 model Sale {
@@ -267,6 +283,9 @@ model Sale {
   items      SaleItem[]
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
+
+  @@index([companyId])
+  @@index([customerId])
 }
 
 model SaleItem {
@@ -278,6 +297,9 @@ model SaleItem {
   quantity  Int
   unitPrice Float
   total     Float
+
+  @@index([saleId])
+  @@index([productId])
 }
 
 model Purchase {
@@ -292,6 +314,8 @@ model Purchase {
   items     PurchaseItem[]
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
+
+  @@index([companyId])
 }
 
 model PurchaseItem {
@@ -303,6 +327,9 @@ model PurchaseItem {
   quantity   Int
   unitPrice  Float
   total      Float
+
+  @@index([purchaseId])
+  @@index([productId])
 }
 
 model Expense {
@@ -317,6 +344,8 @@ model Expense {
   notes       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([companyId])
 }
 
 model StockMovement {
@@ -327,13 +356,15 @@ model StockMovement {
   quantity  Int
   notes     String?
   createdAt DateTime @default(now())
+
+  @@index([productId])
 }
 
 model Invoice {
   id        String       @id @default(cuid())
   companyId String
   company   Company      @relation(fields: [companyId], references: [id])
-  number    String       @unique
+  number    String
   customer  String?
   date      DateTime     @default(now())
   dueDate   DateTime?
@@ -343,6 +374,9 @@ model Invoice {
   items     InvoiceItem[]
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
+
+  @@unique([companyId, number])
+  @@index([companyId])
 }
 
 model InvoiceItem {
@@ -353,13 +387,15 @@ model InvoiceItem {
   quantity  Int
   unitPrice Float
   total     Float
+
+  @@index([invoiceId])
 }
 
 model Quote {
   id        String      @id @default(cuid())
   companyId String
   company   Company     @relation(fields: [companyId], references: [id])
-  number    String      @unique
+  number    String
   customer  String?
   date      DateTime    @default(now())
   validUntil DateTime?
@@ -369,6 +405,9 @@ model Quote {
   items     QuoteItem[]
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+
+  @@unique([companyId, number])
+  @@index([companyId])
 }
 
 model QuoteItem {
@@ -379,6 +418,8 @@ model QuoteItem {
   quantity  Int
   unitPrice Float
   total     Float
+
+  @@index([quoteId])
 }
 
 model Service {
@@ -392,6 +433,8 @@ model Service {
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([companyId])
 }
 
 model Campaign {
@@ -407,6 +450,8 @@ model Campaign {
   notes       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([companyId])
 }
 
 model Employee {
@@ -424,6 +469,8 @@ model Employee {
   vacations  Vacation[]
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+
+  @@index([companyId])
 }
 
 model Attendance {
@@ -435,6 +482,8 @@ model Attendance {
   checkOut   DateTime?
   status     String   @default("present")
   notes      String?
+
+  @@index([employeeId])
 }
 
 model Vacation {
@@ -446,6 +495,8 @@ model Vacation {
   status     String   @default("pending")
   notes      String?
   createdAt  DateTime @default(now())
+
+  @@index([employeeId])
 }
 
 enum ContentType {
@@ -504,6 +555,8 @@ model Invite {
   used      Boolean  @default(false)
   createdAt DateTime @default(now())
   expiresAt DateTime
+
+  @@index([companyId])
 }
 
 model AuditLog {
@@ -516,6 +569,8 @@ model AuditLog {
   entityId  String?
   details   String?
   createdAt DateTime @default(now())
+
+  @@index([companyId])
 }
 
 model Notification {
@@ -528,4 +583,6 @@ model Notification {
   link      String?
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+
+  @@index([companyId])
 }

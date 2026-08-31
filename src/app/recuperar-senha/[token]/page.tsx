@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Lock, ArrowLeft, Check } from "lucide-react";
+import { Lock, ArrowLeft } from "lucide-react";
 import { useToast } from "@/components/Toast";
+import { SuccessCheck } from "@/components/ui/SuccessCheck";
 
 export default function ResetarSenhaPage() {
   const { token } = useParams<{ token: string }>();
@@ -59,9 +60,7 @@ export default function ResetarSenhaPage() {
 
           <div className="bg-white p-8 rounded-xl border border-gray-200 space-y-5 text-center">
             <div className="flex justify-center">
-              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-                <Check className="h-6 w-6 text-green-600" />
-              </div>
+              <SuccessCheck size={64} />
             </div>
             <p className="text-ib-primary font-medium">Senha redefinida com sucesso!</p>
             <Link

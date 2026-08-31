@@ -232,7 +232,7 @@ export async function POST(request: Request) {
 
       return tx.user.create({
         data: createData,
-        select: { id: true, name: true, email: true, phone: true, accountType: true, plan: true, role: true, companyId: true },
+        select: { id: true, name: true, email: true, phone: true, accountType: true, plan: true, role: true, companyId: true, tokenVersion: true },
       });
     });
 
@@ -240,7 +240,7 @@ export async function POST(request: Request) {
     await sendEmail(user.email, mail.subject, mail.html);
 
     const token = signToken({
-      userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType, plan: user.plan,
+      userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType, plan: user.plan, tokenVersion: user.tokenVersion,
     });
 
     const response = NextResponse.json({ user });

@@ -1,15 +1,23 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { jwtVerify } from "jose";
 import { ROUTE_PERMISSIONS, PUBLIC_ROUTES } from "@/config/rbacRoutes";
 
-function decodeJwtPayload(token: string): Record<string, any> | null {
+async function verifyTokenEdge(token: string): Promise<Record<string, any> | null> {
   try {
-    const parts = token.split(".");
-    if (parts.length !== 3) return null;
-    return JSON.parse(atob(parts[1]));
+    const secret = getJwtSecret();
+    if (!secret) return null;
+    const { payload } = await jwtVerify(token, new TextEncoder().encode(secret));
+    return payload as Record<string, any>;
   } catch {
     return null;
   }
+}
+
+function getJwtSecret(): string {
+  if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
+  if (process.env.NODE_ENV !== "production") return "ibplus-dev-secret-change-in-production";
+  return "";
 }
 
 function matchRoute(pathname: string, routes: Record<string, string[]>): string | null {
@@ -52,7 +60,7 @@ export async function middleware(request: NextRequest) {
     return redirectRes;
   }
 
-  const payload = decodeJwtPayload(token);
+  const payload = await verifyTokenEdge(token);
   if (!payload) {
     const res = NextResponse.redirect(new URL("/login", request.url));
     res.cookies.delete("ibplus_session");

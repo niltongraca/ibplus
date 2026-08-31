@@ -3,6 +3,16 @@ import { Store, ShoppingBag, MapPin, Phone, Mail, ArrowRight } from "lucide-reac
 import Link from "next/link";
 import SiteHeader from "@/components/site/Header";
 import SiteFooter from "@/components/site/Footer";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Praça",
+  description: "Explore as empresas registadas na plataforma IBPlus+ e descubra os seus produtos e serviços. Marketplace empresarial em Angola.",
+  openGraph: {
+    title: "Praça — IBPlus+",
+    description: "Explore as empresas e os seus produtos e serviços na plataforma IBPlus+.",
+  },
+};
 
 async function getCompanies() {
   const companies = await prisma.company.findMany({

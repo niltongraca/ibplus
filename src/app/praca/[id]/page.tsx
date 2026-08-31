@@ -5,11 +5,13 @@ import { Store, MapPin, Phone, Mail, ArrowLeft, Package, Globe, Facebook, Instag
 import Link from "next/link";
 import SiteHeader from "@/components/site/Header";
 import SiteFooter from "@/components/site/Footer";
+import type { Metadata } from "next";
 
 async function getCompany(id: string) {
   const company = await prisma.company.findUnique({
     where: { id },
     include: {
+      _count: { select: { products: { where: { active: true } } } },
       users: {
         include: {
           profile: true,
@@ -26,6 +28,20 @@ async function getCompany(id: string) {
     },
   });
   return company;
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const company = await getCompany(id);
+  if (!company) return { title: "Empresa não encontrada" };
+  return {
+    title: company.name,
+    description: company.descriptionLoja || company.sobreNos || `${company.name} — Empresa registada na Praça IBPlus+. ${company._count?.products || 0} produtos disponíveis.`,
+    openGraph: {
+      title: `${company.name} — Praça IBPlus+`,
+      description: company.descriptionLoja || company.sobreNos || `${company.name} na plataforma IBPlus+.`,
+    },
+  };
 }
 
 function getProfileInfo(user: any) {

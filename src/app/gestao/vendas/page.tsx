@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Plus, Search, DollarSign, Download } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
+import { ClearInput } from "@/components/ui/ClearInput";
 import { jsonToCsv, downloadCsv } from "@/lib/csv";
 import Pagination from "@/components/Pagination";
 import Link from "next/link";
@@ -76,8 +77,8 @@ export default function VendasPage() {
       <div className="bg-white rounded-xl border border-gray-200">
         <div className="p-4 border-b border-gray-100">
           <div className="relative max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input type="text" placeholder="Pesquisar vendas..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-[2]" />
+            <ClearInput value={search} onChange={setSearch} placeholder="Pesquisar vendas..." />
           </div>
         </div>
 

@@ -2,6 +2,16 @@ import { Shield, Zap, Globe, Heart, GraduationCap, Handshake, BookOpen, CheckCir
 import Link from "next/link";
 import SiteHeader from "@/components/site/Header";
 import SiteFooter from "@/components/site/Footer";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Sobre",
+  description: "Conheça o IBPlus+ — plataforma completa de gestão empresarial adaptada a empreendedores, empresas, ONG, associações, educação e cooperativas em Angola.",
+  openGraph: {
+    title: "Sobre o IBPlus+",
+    description: "Plataforma completa de gestão empresarial adaptada a diferentes tipos de organização em Angola.",
+  },
+};
 
 const accountTypes = [
   { icon: Zap, name: "Empreendedor", desc: "Profissional individual que quer gerir clientes, serviços e finanças pessoais." },

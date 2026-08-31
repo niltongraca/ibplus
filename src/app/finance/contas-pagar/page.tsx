@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { DataTable } from "@/components/ui/DataTable";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Search, FileText } from "lucide-react";
+import { AnimatedTabs } from "@/components/ui/transitions/AnimatedTabs";
 
 interface Expense {
   id: string;
@@ -142,21 +143,16 @@ export default function ContasPagarPage() {
               className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40"
             />
           </div>
-          <div className="flex gap-1">
-            {tabs.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`px-3 py-1.5 text-sm rounded-lg font-medium transition-colors ${
-                  activeTab === tab.key
-                    ? "bg-ib-accent text-white"
-                    : "text-ib-muted hover:bg-gray-100"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          <AnimatedTabs
+            tabs={tabs}
+            active={activeTab}
+            onChange={setActiveTab}
+            pillClassName="bg-ib-accent shadow-sm"
+            trackClassName="bg-gray-100"
+            mode="light"
+            btnClassName="text-ib-muted hover:text-ib-primary"
+            activeBtnClassName="text-white font-medium"
+          />
         </div>
 
         <DataTable

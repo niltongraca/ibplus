@@ -7,6 +7,7 @@ export async function GET(request: Request) {
   try {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+    if (!user.companyId) return NextResponse.json({ error: "Sem empresa associada." }, { status: 400 });
 
     const url = new URL(request.url);
     const page = parseInt(url.searchParams.get("page") || "1");
@@ -15,12 +16,12 @@ export async function GET(request: Request) {
 
     const [services, total] = await Promise.all([
       prisma.service.findMany({
-        where: { companyId: user.companyId! },
+        where: { companyId: user.companyId },
         orderBy: { createdAt: "desc" },
         skip,
         take: limit,
       }),
-      prisma.service.count({ where: { companyId: user.companyId! } }),
+      prisma.service.count({ where: { companyId: user.companyId } }),
     ]);
 
     return NextResponse.json({ services, total, page, totalPages: Math.ceil(total / limit) });
@@ -32,6 +33,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  if (!user.companyId) return NextResponse.json({ error: "Sem empresa associada." }, { status: 400 });
 
   try {
     const { name, description, price, duration } = await request.json();
@@ -41,7 +43,7 @@ export async function POST(request: Request) {
     }
 
     const service = await prisma.service.create({
-      data: { name, description, price: parseFloat(price), duration, companyId: user.companyId! },
+      data: { name, description, price: parseFloat(price), duration, companyId: user.companyId },
     });
 
     await logAction("create", "service", service.id, `Serviço "${service.name}" criado`);

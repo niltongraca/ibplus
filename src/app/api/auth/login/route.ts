@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email ou senha inválidos." }, { status: 401 });
     }
 
-    const token = signToken({ userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType, plan: user.plan });
+    const token = signToken({ userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType, plan: user.plan, tokenVersion: user.tokenVersion });
 
     const response = NextResponse.json({
       user: { id: user.id, name: user.name, email: user.email, phone: user.phone, avatar: user.avatar, accountType: user.accountType, plan: user.plan, companyId: user.companyId, role: user.role },

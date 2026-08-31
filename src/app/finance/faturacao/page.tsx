@@ -19,13 +19,19 @@ interface Invoice {
 export default function FaturacaoPage() {
   const { confirm } = useConfirm();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [company, setCompany] = useState<{ name: string; nif?: string | null; email?: string | null; phone?: string | null; address?: string | null; logo?: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetch("/api/invoices")
-      .then((r) => r.json())
-      .then((d) => setInvoices(d.invoices))
+    Promise.all([
+      fetch("/api/invoices").then((r) => r.json()),
+      fetch("/api/company").then((r) => r.json()).catch(() => ({ company: null })),
+    ])
+      .then(([d, c]) => {
+        setInvoices(d.invoices);
+        setCompany(c.company);
+      })
       .catch((err) => console.error("Erro ao carregar faturação:", err))
       .finally(() => setLoading(false));
   }, []);
@@ -65,14 +71,22 @@ export default function FaturacaoPage() {
   function handleExportPDF(inv: Invoice) {
     const win = window.open("", "_blank");
     if (!win) return;
+    const companyName = company?.name || "IBPlus+";
+    const logoHtml = company?.logo ? `<img src="${company.logo}" alt="${companyName}" style="height:60px;object-fit:contain;border-radius:8px;background:rgba(255,255,255,0.1);padding:4px;" />` : `<span style="font-size:24px;font-weight:bold;color:#0056b3;">${companyName}</span>`;
+    const companyDetails = [
+      company?.nif ? `NIF: ${company.nif}` : "",
+      company?.email || "",
+      company?.phone || "",
+      company?.address || "",
+    ].filter(Boolean).join(" &mdash; ");
     win.document.write(`
       <!DOCTYPE html>
       <html>
       <head><meta charset="utf-8"><title>Fatura ${inv.number}</title>
       <style>
         body { font-family: Arial, sans-serif; margin: 40px; color: #1a2a4a; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
-        .logo { font-size: 24px; font-weight: bold; color: #0056b3; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
+        .company-details { font-size: 11px; color: #888; margin-top: 4px; }
         .title { font-size: 28px; font-weight: bold; color: #1a2a4a; }
         .info { display: flex; justify-content: space-between; margin-bottom: 30px; font-size: 13px; color: #666; }
         .info strong { color: #1a2a4a; }
@@ -84,14 +98,14 @@ export default function FaturacaoPage() {
       </style>
       </head>
       <body>
-        <div class="header"><div class="logo">IBPlus+</div><div class="title">FATURA</div></div>
+        <div class="header"><div>${logoHtml}${companyDetails ? `<div class="company-details">${companyDetails}</div>` : ""}</div><div class="title">FATURA</div></div>
         <div class="info">
           <div><strong>N.º:</strong> ${inv.number}<br><strong>Data:</strong> ${formatDate(inv.date)}<br><strong>Vencimento:</strong> ${inv.dueDate ? formatDate(inv.dueDate) : "—"}</div>
           <div style="text-align:right"><strong>Cliente:</strong> ${inv.customer || "—"}</div>
         </div>
         <p style="text-align:center;color:#999;padding:40px 0;">Detalhes completos disponíveis na plataforma.</p>
         <div class="total">Total: ${formatCurrency(inv.total)}</div>
-        <div class="footer">Documento gerado pelo IBPlus+</div>
+        <div class="footer">Documento gerado por ${companyName}</div>
         <script>window.print();<\/script>
       </body>
       </html>

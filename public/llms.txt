@@ -1,0 +1,45 @@
+# IBPlus+
+
+A plataforma inteligente para gerir e fazer crescer o seu negócio.
+
+## Sobre
+
+IBPlus+ é uma plataforma SaaS de gestão empresarial que reúne num só lugar todas as ferramentas necessárias para administrar o seu negócio ou organização. Desde o controlo financeiro até à gestão de clientes, passando por RH, marketing, vendas e muito mais.
+
+## Tipos de Conta Suportados
+
+- Empreendedor
+- Empresa (PME)
+- ONG
+- Associação
+- Educação (escolas, universidades, centros de formação)
+- Cooperativa
+
+## Módulos
+
+- Dashboard inteligente adaptado ao perfil
+- CRM com gestão de clientes, funil de vendas e follow-up
+- Financeiro: facturação, orçamentos, contas a pagar/receber, fluxo de caixa
+- Praça online para expor produtos e serviços
+- RH: funcionários, presenças, férias, salários
+- Educação: gestão de alunos e instituições
+- Marketing: campanhas, email marketing, fidelização, promoções
+- IA: análise de vendas, assistente virtual, previsões, recomendações
+- Gestão de stock, produtos, serviços, compras e despesas
+
+## Características
+
+- RBAC dinâmico com permissões por tipo de conta
+- 100% gratuito — sem custos escondidos
+- Interface moderna e responsiva
+- Suporte a múltiplas línguas (português)
+- Facturação e orçamentos profissionais com logo da empresa
+- Relatórios e análises financeiras
+
+## Website
+
+https://ibplus.co.ao
+
+## Contacto
+
+Plataforma de gestão empresarial para micro, pequenas e médias empresas em Angola.

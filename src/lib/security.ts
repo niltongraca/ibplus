@@ -1,4 +1,5 @@
 import { createHash } from "crypto";
+import { getEncryptionKey } from "./secrets";
 
 export function sanitize(input: string): string {
   return input
@@ -19,7 +20,7 @@ export function sanitizeObject<T extends Record<string, any>>(obj: T): T {
 }
 
 export function encrypt(text: string): string {
-  const key = process.env.ENCRYPTION_KEY || "ibplus-default-key-change-in-production-32chars";
+  const key = getEncryptionKey();
   const algo = "aes-256-cbc";
   const crypto = require("crypto");
   const iv = crypto.randomBytes(16);
@@ -31,7 +32,7 @@ export function encrypt(text: string): string {
 
 export function decrypt(encryptedText: string): string {
   try {
-    const key = process.env.ENCRYPTION_KEY || "ibplus-default-key-change-in-production-32chars";
+    const key = getEncryptionKey();
     const algo = "aes-256-cbc";
     const crypto = require("crypto");
     const parts = encryptedText.split(":");

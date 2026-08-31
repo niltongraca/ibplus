@@ -2,6 +2,7 @@
 
 import { useState, useCallback, createContext, useContext, ReactNode } from "react";
 import { AlertTriangle, X } from "lucide-react";
+import { AnimatedModal } from "@/components/ui/transitions/AnimatedModal";
 
 interface ConfirmOptions {
   title: string;
@@ -66,9 +67,8 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
     <ConfirmContext.Provider value={{ confirm }}>
       {children}
       {state && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center">
-          <div className="fixed inset-0 bg-black/40" onClick={handleCancel} />
-          <div className="relative z-10 bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-6 animate-in fade-in zoom-in-95">
+        <AnimatedModal open onClose={handleCancel} closeOnBackdrop panelClassName="relative">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
             <button
               onClick={handleCancel}
               className="absolute top-3 right-3 p-1 hover:bg-gray-100 rounded-lg"
@@ -103,7 +103,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
               </button>
             </div>
           </div>
-        </div>
+        </AnimatedModal>
       )}
     </ConfirmContext.Provider>
   );
