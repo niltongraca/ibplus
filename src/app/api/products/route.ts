@@ -31,29 +31,60 @@ export async function POST(request: Request) {
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   try {
-    const { name, description, price, cost, stock, minStock, unit, categoryId } = await request.json();
+    const body = await request.json();
+    const { name, description, price, cost, stock, minStock, unit, categoryId } = body;
 
-    if (!name || price === undefined) {
+    const nameTrimmed = typeof name === "string" ? name.trim() : "";
+    if (!nameTrimmed || price === undefined || price === null || price === "") {
       return NextResponse.json({ error: "Nome e preço são obrigatórios." }, { status: 400 });
+    }
+
+    const priceNum = Number(price);
+    if (!Number.isFinite(priceNum) || priceNum <= 0) {
+      return NextResponse.json({ error: "O preço deve ser um número positivo." }, { status: 400 });
+    }
+
+    const costNum = cost === undefined || cost === null || cost === "" ? 0 : Number(cost);
+    if (!Number.isFinite(costNum) || costNum < 0) {
+      return NextResponse.json({ error: "O custo não pode ser negativo." }, { status: 400 });
+    }
+
+    const stockNum = stock === undefined || stock === null || stock === "" ? 0 : Number(stock);
+    const minStockNum = minStock === undefined || minStock === null || minStock === "" ? 0 : Number(minStock);
+    if (!Number.isInteger(stockNum) || stockNum < 0) return NextResponse.json({ error: "O stock deve ser um número inteiro não negativo." }, { status: 400 });
+    if (!Number.isInteger(minStockNum) || minStockNum < 0) return NextResponse.json({ error: "O stock mínimo deve ser um número inteiro não negativo." }, { status: 400 });
+
+    const catId = categoryId || null;
+    if (catId) {
+      const category = await prisma.category.findFirst({ where: { id: catId, companyId: user.companyId } });
+      if (!category) return NextResponse.json({ error: "Categoria inválida." }, { status: 400 });
     }
 
     const product = await prisma.product.create({
       data: {
-        name,
+        name: nameTrimmed,
         description: description || null,
-        price: parseFloat(price),
-        cost: parseFloat(cost) || 0,
-        stock: parseInt(stock) || 0,
-        minStock: parseInt(minStock) || 0,
+        price: priceNum,
+        cost: costNum,
+        stock: stockNum,
+        minStock: minStockNum,
         unit: unit || "un",
-        categoryId: categoryId || null,
+        categoryId: catId,
         companyId: user.companyId,
       },
       include: { category: true },
     });
+
+    if (stockNum > 0) {
+      await prisma.stockMovement.create({
+        data: { productId: product.id, type: "IN", quantity: stockNum, notes: "Stock inicial" },
+      });
+    }
+
     await logAction("create", "product", product.id, `Produto "${product.name}" criado`);
     return NextResponse.json({ product }, { status: 201 });
-  } catch {
+  } catch (err) {
+    console.error("Erro ao criar produto:", err);
     return NextResponse.json({ error: "Erro ao criar produto." }, { status: 400 });
   }
 }

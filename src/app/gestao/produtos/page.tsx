@@ -45,11 +45,12 @@ export default function ProdutosPage() {
   async function handleDelete(id: string) {
     if (!(await confirm({ title: "Eliminar produto", message: "Tem a certeza que deseja eliminar este produto?", variant: "danger" }))) return;
     const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
+    const data = await res.json().catch(() => null);
     if (res.ok) {
-      toast("Produto eliminado com sucesso!");
+      toast(data?.message || "Produto eliminado com sucesso!");
       setProducts((prev) => prev.filter((p) => p.id !== id));
     } else {
-      toast("Erro ao eliminar produto.", "error");
+      toast(data?.error || "Erro ao eliminar produto.", "error");
     }
   }
 

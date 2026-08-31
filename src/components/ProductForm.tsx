@@ -37,6 +37,7 @@ export default function ProductForm({ mode, type, id, initialData }: ProductForm
   const { user } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   const isCommerce = user?.accountType ? COMMERCE_TYPES.includes(user.accountType) : false;
 
@@ -63,18 +64,33 @@ export default function ProductForm({ mode, type, id, initialData }: ProductForm
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError("");
+
+    const priceNum = Number(form.price);
+    if (!form.name.trim()) return setError("Indica o nome do produto/serviço.");
+    if (!form.price || !Number.isFinite(priceNum) || priceNum <= 0) return setError("O preço deve ser um número positivo.");
+
+    if (type === "product") {
+      const costNum = form.cost === "" ? 0 : Number(form.cost);
+      const stockNum = Number(form.stock);
+      const minStockNum = Number(form.minStock);
+      if (costNum < 0) return setError("O custo não pode ser negativo.");
+      if (!Number.isInteger(stockNum) || stockNum < 0) return setError("O stock deve ser um número inteiro não negativo.");
+      if (!Number.isInteger(minStockNum) || minStockNum < 0) return setError("O stock mínimo deve ser um número inteiro não negativo.");
+    }
+
     setSaving(true);
 
     const body: Record<string, any> = {
       name: form.name,
       description: form.description || null,
-      price: parseFloat(form.price),
+      price: priceNum,
     };
 
     if (type === "product") {
-      body.cost = parseFloat(form.cost) || 0;
-      body.stock = parseInt(form.stock) || 0;
-      body.minStock = parseInt(form.minStock) || 0;
+      body.cost = Number(form.cost) || 0;
+      body.stock = Number(form.stock) || 0;
+      body.minStock = Number(form.minStock) || 0;
       body.unit = form.unit;
       body.categoryId = form.categoryId || null;
     } else {
@@ -94,15 +110,17 @@ export default function ProductForm({ mode, type, id, initialData }: ProductForm
         body: JSON.stringify(body),
       });
 
+      const data = await res.json().catch(() => null);
+
       if (res.ok) {
         const msg = type === "product" ? "Produto" : "Serviço";
         toast(`${msg} ${mode === "create" ? "criado" : "actualizado"} com sucesso!`);
         router.push(type === "product" ? "/gestao/produtos" : "/gestao/servicos");
       } else {
-        toast("Erro ao guardar.", "error");
+        setError(data?.error || "Erro ao guardar.");
       }
     } catch {
-      toast("Erro ao guardar.", "error");
+      setError("Erro de ligação. Tenta novamente.");
     } finally {
       setSaving(false);
     }
@@ -132,6 +150,11 @@ export default function ProductForm({ mode, type, id, initialData }: ProductForm
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 max-w-2xl">
+        {error && (
+          <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-ib-primary mb-1">Nome *</label>
