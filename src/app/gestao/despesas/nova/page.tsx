@@ -12,6 +12,7 @@ const CATEGORIES = [
 export default function NovaDespesaPage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   const [form, setForm] = useState({
     description: "",
     amount: "",
@@ -23,23 +24,34 @@ export default function NovaDespesaPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError("");
+    const amountNum = Number(form.amount);
+    if (!form.description.trim()) return setError("A descrição é obrigatória.");
+    if (!form.amount || !Number.isFinite(amountNum) || amountNum <= 0) return setError("O valor deve ser um número positivo.");
+
     setSaving(true);
     try {
       const res = await fetch("/api/expenses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          description: form.description,
-          amount: parseFloat(form.amount),
+          description: form.description.trim(),
+          amount: amountNum,
           category: form.category,
           date: new Date(form.date).toISOString(),
           paid: form.paid,
-          notes: form.notes || null,
+          notes: form.notes.trim() || null,
         }),
       });
-      if (res.ok) router.push("/gestao/despesas");
+      const data = await res.json().catch(() => null);
+      if (res.ok) {
+        router.push("/gestao/despesas");
+      } else {
+        setError(data?.error || "Erro ao criar despesa.");
+      }
     } catch (err) {
       console.error("Erro ao criar despesa:", err);
+      setError("Erro de ligação. Tenta novamente.");
     } finally {
       setSaving(false);
     }
@@ -58,6 +70,11 @@ export default function NovaDespesaPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 max-w-2xl">
+        {error && (
+          <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-ib-primary mb-1">Descrição *</label>

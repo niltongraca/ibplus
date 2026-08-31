@@ -29,9 +29,29 @@ export async function POST(request: Request) {
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   try {
-    const data = await request.json();
+    const body = await request.json();
+    const description = typeof body.description === "string" ? body.description.trim() : "";
+    if (!description) return NextResponse.json({ error: "A descrição é obrigatória." }, { status: 400 });
+
+    const amount = Number(body.amount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return NextResponse.json({ error: "O valor deve ser um número positivo." }, { status: 400 });
+    }
+
+    const category = body.category ? String(body.category).trim() : "outros";
+    const date = body.date ? new Date(body.date) : new Date();
+    if (isNaN(date.getTime())) return NextResponse.json({ error: "A data não é válida." }, { status: 400 });
+
     const expense = await prisma.expense.create({
-      data: { ...data, companyId: user.companyId },
+      data: {
+        companyId: user.companyId,
+        description,
+        amount,
+        category,
+        date,
+        paid: body.paid === true,
+        notes: body.notes ? String(body.notes).trim() : null,
+      },
     });
     return NextResponse.json({ expense }, { status: 201 });
   } catch {

@@ -24,6 +24,7 @@ export default function NovaCompraPage() {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   const [form, setForm] = useState({
     supplier: "",
     notes: "",
@@ -39,10 +40,12 @@ export default function NovaCompraPage() {
 
   function addItem() {
     setItems([...items, { productId: "", productName: "", quantity: 1, unitPrice: 0 }]);
+    setError("");
   }
 
   function removeItem(index: number) {
     setItems(items.filter((_, i) => i !== index));
+    setError("");
   }
 
   function updateItem(index: number, field: keyof LineItem, value: string | number) {
@@ -54,6 +57,10 @@ export default function NovaCompraPage() {
         if (product) {
           newItem.productName = product.name;
           newItem.unitPrice = product.price;
+          newItem.quantity = 1;
+        } else {
+          newItem.productName = "";
+          newItem.unitPrice = 0;
         }
       }
       if (field === "quantity") newItem.quantity = Number(value);
@@ -61,21 +68,36 @@ export default function NovaCompraPage() {
       return newItem;
     });
     setItems(updated);
+    setError("");
   }
 
   const total = items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
 
+  function validateItems(): string {
+    if (items.length === 0) return "Adiciona pelo menos um item à compra.";
+    for (const item of items) {
+      if (!item.productId) return "Selecciona o produto em todos os itens.";
+      if (!Number.isInteger(item.quantity) || item.quantity <= 0) return "A quantidade deve ser um número inteiro positivo.";
+    }
+    return "";
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (items.length === 0) return;
+    const validationError = validateItems();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
     setSaving(true);
+    setError("");
     try {
       const res = await fetch("/api/purchases", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          supplier: form.supplier || null,
-          notes: form.notes || null,
+          supplier: form.supplier?.trim() || null,
+          notes: form.notes?.trim() || null,
           items: items.map((i) => ({
             productId: i.productId,
             quantity: i.quantity,
@@ -83,8 +105,14 @@ export default function NovaCompraPage() {
           })),
         }),
       });
-      if (res.ok) router.push("/gestao/compras");
+      const data = await res.json().catch(() => null);
+      if (res.ok) {
+        router.push("/gestao/compras");
+      } else {
+        setError(data?.error || "Erro ao registar a compra.");
+      }
     } catch {
+      setError("Erro de ligação. Tenta novamente.");
     } finally {
       setSaving(false);
     }
@@ -101,6 +129,12 @@ export default function NovaCompraPage() {
           <p className="text-ib-muted text-sm">Registar nova compra a fornecedor</p>
         </div>
       </div>
+
+      {error && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
         <div className="bg-white rounded-xl border border-gray-200 p-6">
