@@ -37,6 +37,7 @@ export default function LojaOnlinePage() {
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [checkingOut, setCheckingOut] = useState(false);
   const [checkoutDone, setCheckoutDone] = useState(false);
+  const [checkoutError, setCheckoutError] = useState("");
 
   useEffect(() => {
     fetch("/api/products")
@@ -84,6 +85,7 @@ export default function LojaOnlinePage() {
 
   async function handleCheckout() {
     setCheckingOut(true);
+    setCheckoutError("");
     try {
       const res = await fetch("/api/cart/checkout", {
         method: "POST",
@@ -94,12 +96,17 @@ export default function LojaOnlinePage() {
           paymentMethod,
         }),
       });
+      const data = await res.json().catch(() => null);
       if (res.ok) {
         setCart([]);
         setCheckoutDone(true);
         setTimeout(() => { setShowCheckout(false); setCheckoutDone(false); setShowCart(false); }, 2000);
+      } else {
+        setCheckoutError(data?.error || "Erro ao processar checkout.");
       }
-    } catch {}
+    } catch {
+      setCheckoutError("Erro de ligação. Tenta novamente.");
+    }
     setCheckingOut(false);
   }
 
@@ -225,6 +232,9 @@ export default function LojaOnlinePage() {
             ) : (
               <>
                 <h2 className="text-lg font-bold text-ib-primary mb-4">Checkout</h2>
+                {checkoutError && (
+                  <div className="mb-4 p-2.5 rounded-lg bg-red-50 text-red-600 text-sm">{checkoutError}</div>
+                )}
                 <div className="space-y-4 mb-6">
                   {cart.map((item) => (
                     <div key={item.productId} className="flex items-center justify-between text-sm">
