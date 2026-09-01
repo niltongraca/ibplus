@@ -39,6 +39,8 @@ export default function PresencasPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ employeeId: "", date: "", checkIn: "", checkOut: "", status: "present", notes: "" });
 
   useEffect(() => {
@@ -57,6 +59,12 @@ export default function PresencasPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setFormError("");
+    if (!form.employeeId) return setFormError("Seleccione o funcionário.");
+    if (!form.date) return setFormError("A data é obrigatória.");
+    if (form.checkIn && form.checkOut && form.checkOut < form.checkIn) return setFormError("A saída deve ser após a entrada.");
+
+    setSaving(true);
     try {
       const payload: any = { employeeId: form.employeeId, date: form.date, status: form.status, notes: form.notes };
       if (form.checkIn) payload.checkIn = `${form.date}T${form.checkIn}:00`;
@@ -66,14 +74,20 @@ export default function PresencasPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+      const data = await res.json().catch(() => null);
       if (res.ok) {
-        const data = await res.json();
         const emp = employees.find((e) => e.id === form.employeeId);
         setAttendances((prev) => [{ ...data.attendance, employee: { name: emp?.name || "" } }, ...prev]);
         setShowForm(false);
         setForm({ employeeId: "", date: "", checkIn: "", checkOut: "", status: "present", notes: "" });
+      } else {
+        setFormError(data?.error || "Erro ao registar presença.");
       }
-    } catch {}
+    } catch {
+      setFormError("Erro de ligação. Tenta novamente.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -92,6 +106,9 @@ export default function PresencasPage() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
           <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-bold text-ib-primary mb-4">Registar Presença</h2>
+            {formError && (
+              <div className="mb-3 p-2.5 rounded-lg bg-red-50 text-red-600 text-sm">{formError}</div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-ib-primary mb-1">Funcionário</label>
@@ -126,7 +143,7 @@ export default function PresencasPage() {
               </div>
               <div className="flex gap-3 justify-end pt-2">
                 <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 text-sm text-ib-muted hover:text-ib-primary transition-colors">Cancelar</button>
-                <button type="submit" className="px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-ib-accent/90 transition-colors">Registar</button>
+                <button type="submit" disabled={saving} className="px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-ib-accent/90 transition-colors disabled:opacity-50">{saving ? "A registar..." : "Registar"}</button>
               </div>
             </form>
           </div>

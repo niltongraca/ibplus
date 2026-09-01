@@ -37,6 +37,8 @@ export default function FeriasPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ employeeId: "", startDate: "", endDate: "", notes: "" });
 
   useEffect(() => {
@@ -55,20 +57,33 @@ export default function FeriasPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setFormError("");
+    if (!form.employeeId) return setFormError("Seleccione o funcionário.");
+    if (!form.startDate) return setFormError("A data de início é obrigatória.");
+    if (!form.endDate) return setFormError("A data de fim é obrigatória.");
+    if (form.endDate < form.startDate) return setFormError("A data de fim deve ser posterior à de início.");
+
+    setSaving(true);
     try {
       const res = await fetch("/api/vacations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+      const data = await res.json().catch(() => null);
       if (res.ok) {
-        const data = await res.json();
         const emp = employees.find((e) => e.id === form.employeeId);
         setVacations((prev) => [{ ...data.vacation, employee: { name: emp?.name || "" } }, ...prev]);
         setShowForm(false);
         setForm({ employeeId: "", startDate: "", endDate: "", notes: "" });
+      } else {
+        setFormError(data?.error || "Erro ao criar período de férias.");
       }
-    } catch {}
+    } catch {
+      setFormError("Erro de ligação. Tenta novamente.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -87,6 +102,9 @@ export default function FeriasPage() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
           <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-bold text-ib-primary mb-4">Solicitar Férias</h2>
+            {formError && (
+              <div className="mb-3 p-2.5 rounded-lg bg-red-50 text-red-600 text-sm">{formError}</div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-ib-primary mb-1">Funcionário</label>
@@ -111,7 +129,7 @@ export default function FeriasPage() {
               </div>
               <div className="flex gap-3 justify-end pt-2">
                 <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 text-sm text-ib-muted hover:text-ib-primary transition-colors">Cancelar</button>
-                <button type="submit" className="px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-ib-accent/90 transition-colors">Solicitar</button>
+                <button type="submit" disabled={saving} className="px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-ib-accent/90 transition-colors disabled:opacity-50">{saving ? "A solicitar..." : "Solicitar"}</button>
               </div>
             </form>
           </div>
