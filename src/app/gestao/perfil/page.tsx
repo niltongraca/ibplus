@@ -83,11 +83,12 @@ export default function PerfilPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+      const responseData = await res.json().catch(() => null);
       if (res.ok) {
         toast("Configurações salvas!", "success");
         setCompany((prev) => ({ ...prev, ...data }));
       } else {
-        toast("Erro ao salvar.", "error");
+        toast(responseData?.error || "Erro ao salvar.", "error");
       }
     } catch {
       toast("Erro ao salvar.", "error");
@@ -98,13 +99,23 @@ export default function PerfilPage() {
 
   async function saveProfile() {
     setSaving(true);
-    await fetch("/api/auth/profile", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: profile.name }),
-    });
-    setSaving(false);
-    toast("Perfil actualizado!", "success");
+    try {
+      const res = await fetch("/api/auth/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: profile.name, phone: profile.phone }),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok) {
+        toast("Perfil actualizado!", "success");
+      } else {
+        toast(data?.error || "Erro ao actualizar perfil.", "error");
+      }
+    } catch {
+      toast("Erro ao actualizar perfil.", "error");
+    } finally {
+      setSaving(false);
+    }
   }
 
   const tabs = [

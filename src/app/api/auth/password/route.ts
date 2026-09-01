@@ -2,10 +2,15 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 
 export async function PUT(request: Request) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+
+  const ip = getClientIp(request);
+  const check = checkRateLimit(`password:${user.id}:${ip}`, "medium");
+  if (!check.allowed) return rateLimitResponse(check.retryAfter!);
 
   const { currentPassword, newPassword } = await request.json();
   if (!currentPassword || !newPassword) {
@@ -13,6 +18,9 @@ export async function PUT(request: Request) {
   }
   if (newPassword.length < 6) {
     return NextResponse.json({ error: "A nova senha deve ter pelo menos 6 caracteres." }, { status: 400 });
+  }
+  if (currentPassword === newPassword) {
+    return NextResponse.json({ error: "A nova senha deve ser diferente da actual." }, { status: 400 });
   }
 
   const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
@@ -22,7 +30,7 @@ export async function PUT(request: Request) {
   if (!valid) return NextResponse.json({ error: "Senha actual incorrecta." }, { status: 401 });
 
   const hashed = await bcrypt.hash(newPassword, 10);
-  await prisma.user.update({ where: { id: user.id }, data: { password: hashed } });
+  await prisma.user.update({ where: { id: user.id }, data: { password: hashed, tokenVersion: { increment: 1 } } });
 
   return NextResponse.json({ success: true });
 }
