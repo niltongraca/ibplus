@@ -93,6 +93,9 @@ export function InvoiceTemplate({ data, type, typeLabel, company }: InvoiceTempl
           <div className="text-right">
             <h3 className="text-3xl font-bold text-white tracking-wider">{type}</h3>
             <p className="text-sm text-blue-300/80 mt-1 font-mono">{data.number}</p>
+            <span className={`inline-block text-xs px-2.5 py-1 rounded-full font-semibold border mt-3 ${statusStyles[data.status] || "bg-gray-100 text-gray-600 border-gray-200"}`}>
+              {statusLabels[data.status] || data.status}
+            </span>
           </div>
         </div>
       </div>
@@ -114,41 +117,44 @@ export function InvoiceTemplate({ data, type, typeLabel, company }: InvoiceTempl
           <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
             <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Cliente</p>
             <div className="space-y-1 text-sm">
-              <p className="font-medium text-gray-900">{data.customer || "—"}</p>
-              <p>
-                <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium border ${statusStyles[data.status] || "bg-gray-100 text-gray-600"}`}>
-                  {statusLabels[data.status] || data.status}
-                </span>
-              </p>
+              <p className="font-medium text-gray-900 break-words">{data.customer || "—"}</p>
             </div>
           </div>
         </div>
 
-        <table className="w-full text-sm mb-8">
+        <div className="rounded-xl border border-gray-100 overflow-x-auto mb-8">
+          <table className="w-full text-sm min-w-[520px]">
           <thead>
             <tr className="bg-gradient-to-r from-[#0a1628] via-[#0f1f3d] to-[#1a2a4a] text-white">
               <th className="text-left p-3 font-medium text-xs uppercase tracking-wider">Descrição</th>
-              <th className="text-center p-3 font-medium text-xs uppercase tracking-wider w-20">Qtd</th>
+              <th className="text-center p-3 font-medium text-xs uppercase tracking-wider w-16">Qtd</th>
               <th className="text-right p-3 font-medium text-xs uppercase tracking-wider w-32">Preço Unit.</th>
               <th className="text-right p-3 font-medium text-xs uppercase tracking-wider w-32">Total</th>
             </tr>
           </thead>
           <tbody>
-            {data.items.map((item, idx) => (
-              <tr key={item.id || idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50/50"}>
-                <td className="p-3 text-gray-900 border-b border-gray-100">{item.description}</td>
-                <td className="p-3 text-center text-gray-700 border-b border-gray-100">{item.quantity}</td>
-                <td className="p-3 text-right text-gray-700 border-b border-gray-100">{formatCurrency(item.unitPrice)}</td>
-                <td className="p-3 text-right font-medium text-gray-900 border-b border-gray-100">{formatCurrency(item.total)}</td>
+            {data.items.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="p-8 text-center text-gray-400">Sem itens registados.</td>
               </tr>
-            ))}
+            ) : (
+              data.items.map((item, idx) => (
+                <tr key={item.id || idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50/50"}>
+                  <td className="p-3 text-gray-900 border-b border-gray-100">{item.description}</td>
+                  <td className="p-3 text-center text-gray-700 border-b border-gray-100 whitespace-nowrap">{item.quantity}</td>
+                  <td className="p-3 text-right text-gray-700 border-b border-gray-100 whitespace-nowrap">{formatCurrency(item.unitPrice)}</td>
+                  <td className="p-3 text-right font-medium text-gray-900 border-b border-gray-100 whitespace-nowrap">{formatCurrency(item.total)}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
+        </div>
 
         <div className="flex justify-end mb-6">
-          <div className="w-64 bg-gradient-to-br from-[#0a1628] to-[#1a2a4a] rounded-lg p-4 text-white">
+          <div className="w-full sm:w-72 bg-gradient-to-br from-[#0a1628] to-[#1a2a4a] rounded-xl p-5 text-white">
             <p className="text-xs text-blue-300/80 uppercase tracking-wider mb-1">Total {typeLabel}</p>
-            <p className="text-2xl font-bold">{formatCurrency(data.total)}</p>
+            <p className="text-2xl font-bold tracking-tight">{formatCurrency(data.total)}</p>
           </div>
         </div>
 

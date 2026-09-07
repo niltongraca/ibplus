@@ -6,6 +6,7 @@ import { ArrowLeft, FileDown, Printer, Send, Trash2, CheckCircle, XCircle } from
 import Link from "next/link";
 import { useConfirm } from "@/components/ConfirmModal";
 import { InvoiceTemplate } from "@/components/invoice/InvoiceTemplate";
+import { buildDocumentHtml } from "@/lib/exportDocument";
 
 interface QuoteItem {
   id: string;
@@ -67,46 +68,24 @@ export default function OrcamentoDetailPage() {
   function handleExportPDF() {
     const win = window.open("", "_blank");
     if (!win || !quote) return;
-    const itemsRows = quote.items.map(
-      (i) => `<tr><td style="padding:8px;border-bottom:1px solid #eee;">${i.description}</td><td style="padding:8px;border-bottom:1px solid #eee;text-align:center">${i.quantity}</td><td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${i.unitPrice.toLocaleString("pt-AO", { minimumFractionDigits: 2 })} Kz</td><td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${i.total.toLocaleString("pt-AO", { minimumFractionDigits: 2 })} Kz</td></tr>`
-    ).join("");
-    const statusLabel: Record<string, string> = { draft: "Rascunho", sent: "Enviado", approved: "Aprovado", rejected: "Rejeitado", converted: "Convertido" };
-    const companyName = company?.name || "IBPlus+";
-    const logoHtml = company?.logo ? `<img src="${company.logo}" alt="${companyName}" style="height:60px;object-fit:contain;border-radius:8px;background:rgba(255,255,255,0.1);padding:4px;" />` : `<span style="font-size:24px;font-weight:bold;color:#0056b3;">${companyName}</span>`;
-    const companyDetails = [
-      company?.nif ? `NIF: ${company.nif}` : "",
-      company?.email || "",
-      company?.phone || "",
-      company?.address || "",
-    ].filter(Boolean).join(" &mdash; ");
-    win.document.write(`
-      <!DOCTYPE html><html><head><meta charset="utf-8"><title>Orçamento ${quote.number}</title>
-      <style>body{font-family:Arial,sans-serif;margin:40px;color:#1a2a4a;}
-        .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px;}
-        .company-name{font-size:24px;font-weight:bold;color:#0056b3;}
-        .company-details{font-size:11px;color:#888;margin-top:4px;}
-        .title{font-size:28px;font-weight:bold;}
-        .info{display:flex;justify-content:space-between;margin-bottom:30px;font-size:13px;color:#666;}
-        .info strong{color:#1a2a4a;}
-        table{width:100%;border-collapse:collapse;margin-bottom:30px;}
-        th{background:#1a2a4a;color:white;padding:10px 8px;text-align:left;font-size:12px;text-transform:uppercase;}
-        td{font-size:13px;}
-        .total{text-align:right;font-size:18px;font-weight:bold;margin-bottom:30px;}
-        .footer{font-size:12px;color:#999;border-top:1px solid #eee;padding-top:20px;}
-      </style></head>
-      <body>
-        <div class="header"><div>${logoHtml}${companyDetails ? `<div class="company-details">${companyDetails}</div>` : ""}</div><div class="title">ORÇAMENTO</div></div>
-        <div class="info">
-          <div><strong>N.º:</strong> ${quote.number}<br><strong>Data:</strong> ${quote.date}<br><strong>Validade:</strong> ${quote.validUntil || "—"}</div>
-          <div style="text-align:right"><strong>Cliente:</strong> ${quote.customer || "—"}<br><strong>Estado:</strong> ${statusLabel[quote.status] || quote.status}</div>
-        </div>
-        <table><thead><tr><th>Descrição</th><th style="text-align:center">Qtd</th><th style="text-align:right">Preço Unit.</th><th style="text-align:right">Total</th></tr></thead><tbody>${itemsRows}</tbody></table>
-        <div class="total">Total: ${quote.total.toLocaleString("pt-AO", { minimumFractionDigits: 2 })} Kz</div>
-        ${quote.notes ? `<p style="font-size:13px;color:#666;margin-bottom:30px"><strong>Observações:</strong> ${quote.notes}</p>` : ""}
-        <div class="footer">Documento gerado por ${companyName}</div>
-        <script>window.print();<\/script>
-      </body></html>
-    `);
+    win.document.write(
+      buildDocumentHtml(
+        {
+          type: "ORÇAMENTO",
+          typeLabel: "do Orçamento",
+          number: quote.number,
+          customer: quote.customer,
+          date: quote.date,
+          secondaryDateLabel: "Validade",
+          secondaryDate: quote.validUntil,
+          status: quote.status,
+          notes: quote.notes,
+          items: quote.items,
+          total: quote.total,
+        },
+        company
+      )
+    );
     win.document.close();
   }
 

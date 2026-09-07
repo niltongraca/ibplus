@@ -6,6 +6,7 @@ import { ArrowLeft, FileDown, Printer, Trash2, Send, CheckCircle } from "lucide-
 import Link from "next/link";
 import { useConfirm } from "@/components/ConfirmModal";
 import { InvoiceTemplate } from "@/components/invoice/InvoiceTemplate";
+import { buildDocumentHtml } from "@/lib/exportDocument";
 
 interface InvoiceItem {
   id: string;
@@ -67,46 +68,24 @@ export default function FaturaDetailPage() {
   function handleExportPDF() {
     const win = window.open("", "_blank");
     if (!win || !invoice) return;
-    const itemsRows = invoice.items.map(
-      (i) => `<tr><td style="padding:8px;border-bottom:1px solid #eee;">${i.description}</td><td style="padding:8px;border-bottom:1px solid #eee;text-align:center">${i.quantity}</td><td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${i.unitPrice.toLocaleString("pt-AO", { minimumFractionDigits: 2 })} Kz</td><td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${i.total.toLocaleString("pt-AO", { minimumFractionDigits: 2 })} Kz</td></tr>`
-    ).join("");
-    const statusLabel: Record<string, string> = { draft: "Rascunho", sent: "Enviada", paid: "Paga", overdue: "Vencida", cancelled: "Cancelada" };
-    const companyName = company?.name || "IBPlus+";
-    const logoHtml = company?.logo ? `<img src="${company.logo}" alt="${companyName}" style="height:60px;object-fit:contain;border-radius:8px;background:rgba(255,255,255,0.1);padding:4px;" />` : `<span style="font-size:24px;font-weight:bold;color:#0056b3;">${companyName}</span>`;
-    const companyDetails = [
-      company?.nif ? `NIF: ${company.nif}` : "",
-      company?.email || "",
-      company?.phone || "",
-      company?.address || "",
-    ].filter(Boolean).join(" &mdash; ");
-    win.document.write(`
-      <!DOCTYPE html><html><head><meta charset="utf-8"><title>Fatura ${invoice.number}</title>
-      <style>body{font-family:Arial,sans-serif;margin:40px;color:#1a2a4a;}
-        .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px;}
-        .company-name{font-size:24px;font-weight:bold;color:#0056b3;}
-        .company-details{font-size:11px;color:#888;margin-top:4px;}
-        .title{font-size:28px;font-weight:bold;}
-        .info{display:flex;justify-content:space-between;margin-bottom:30px;font-size:13px;color:#666;}
-        .info strong{color:#1a2a4a;}
-        table{width:100%;border-collapse:collapse;margin-bottom:30px;}
-        th{background:#1a2a4a;color:white;padding:10px 8px;text-align:left;font-size:12px;text-transform:uppercase;}
-        td{font-size:13px;}
-        .total{text-align:right;font-size:18px;font-weight:bold;margin-bottom:30px;}
-        .footer{font-size:12px;color:#999;border-top:1px solid #eee;padding-top:20px;}
-      </style></head>
-      <body>
-        <div class="header"><div>${logoHtml}${companyDetails ? `<div class="company-details">${companyDetails}</div>` : ""}</div><div class="title">FATURA</div></div>
-        <div class="info">
-          <div><strong>N.º:</strong> ${invoice.number}<br><strong>Data:</strong> ${invoice.date}<br><strong>Vencimento:</strong> ${invoice.dueDate || "—"}</div>
-          <div style="text-align:right"><strong>Cliente:</strong> ${invoice.customer || "—"}<br><strong>Estado:</strong> ${statusLabel[invoice.status] || invoice.status}</div>
-        </div>
-        <table><thead><tr><th>Descrição</th><th style="text-align:center">Qtd</th><th style="text-align:right">Preço Unit.</th><th style="text-align:right">Total</th></tr></thead><tbody>${itemsRows}</tbody></table>
-        <div class="total">Total: ${invoice.total.toLocaleString("pt-AO", { minimumFractionDigits: 2 })} Kz</div>
-        ${invoice.notes ? `<p style="font-size:13px;color:#666;margin-bottom:30px"><strong>Observações:</strong> ${invoice.notes}</p>` : ""}
-        <div class="footer">Documento gerado por ${companyName}</div>
-        <script>window.print();<\/script>
-      </body></html>
-    `);
+    win.document.write(
+      buildDocumentHtml(
+        {
+          type: "FATURA",
+          typeLabel: "da Factura",
+          number: invoice.number,
+          customer: invoice.customer,
+          date: invoice.date,
+          secondaryDateLabel: "Vencimento",
+          secondaryDate: invoice.dueDate,
+          status: invoice.status,
+          notes: invoice.notes,
+          items: invoice.items,
+          total: invoice.total,
+        },
+        company
+      )
+    );
     win.document.close();
   }
 

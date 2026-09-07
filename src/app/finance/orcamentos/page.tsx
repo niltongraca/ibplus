@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Search, FileDown, Eye, Trash2, ScrollText } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { buildDocumentHtml } from "@/lib/exportDocument";
 import { useConfirm } from "@/components/ConfirmModal";
 import Link from "next/link";
 
@@ -19,13 +20,19 @@ interface Quote {
 export default function OrcamentosPage() {
   const { confirm } = useConfirm();
   const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [company, setCompany] = useState<{ name: string; nif?: string | null; email?: string | null; phone?: string | null; address?: string | null; logo?: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetch("/api/quotes")
-      .then((r) => r.json())
-      .then((d) => setQuotes(d.quotes))
+    Promise.all([
+      fetch("/api/quotes").then((r) => r.json()),
+      fetch("/api/company").then((r) => r.json()).catch(() => ({ company: null })),
+    ])
+      .then(([d, c]) => {
+        setQuotes(d.quotes);
+        setCompany(c.company);
+      })
       .catch((err) => console.error("Erro ao carregar orçamentos:", err))
       .finally(() => setLoading(false));
   }, []);
@@ -60,6 +67,37 @@ export default function OrcamentosPage() {
     if (!(await confirm({ title: "Eliminar orçamento", message: "Tem a certeza que deseja eliminar este orçamento?", variant: "danger" }))) return;
     await fetch(`/api/quotes/${id}`, { method: "DELETE" });
     setQuotes((prev) => prev.filter((q) => q.id !== id));
+  }
+
+  async function handleExportPDF(q: Quote) {
+    try {
+      const res = await fetch(`/api/quotes/${q.id}`);
+      const d = await res.json();
+      const full = d.quote;
+      const win = window.open("", "_blank");
+      if (!win || !full) return;
+      win.document.write(
+        buildDocumentHtml(
+          {
+            type: "ORÇAMENTO",
+            typeLabel: "do Orçamento",
+            number: full.number,
+            customer: full.customer,
+            date: full.date,
+            secondaryDateLabel: "Validade",
+            secondaryDate: full.validUntil,
+            status: full.status,
+            notes: full.notes,
+            items: full.items || [],
+            total: full.total,
+          },
+          company
+        )
+      );
+      win.document.close();
+    } catch (err) {
+      console.error("Erro ao exportar orçamento:", err);
+    }
   }
 
   return (
@@ -129,7 +167,7 @@ export default function OrcamentosPage() {
                         >
                           <Eye className="w-4 h-4 text-ib-muted" />
                         </Link>
-                        <button className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
+                        <button onClick={() => handleExportPDF(q)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
                           <FileDown className="w-4 h-4 text-ib-muted" />
                         </button>
                         <button onClick={() => removeQuote(q.id)} className="p-1.5 hover:bg-red-50 rounded-lg transition-colors">

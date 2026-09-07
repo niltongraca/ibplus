@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Search, FileDown, Eye, Trash2, FileText } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { buildDocumentHtml } from "@/lib/exportDocument";
 import { useConfirm } from "@/components/ConfirmModal";
 import Link from "next/link";
 
@@ -68,49 +69,35 @@ export default function FaturacaoPage() {
     setInvoices((prev) => prev.filter((inv) => inv.id !== id));
   }
 
-  function handleExportPDF(inv: Invoice) {
-    const win = window.open("", "_blank");
-    if (!win) return;
-    const companyName = company?.name || "IBPlus+";
-    const logoHtml = company?.logo ? `<img src="${company.logo}" alt="${companyName}" style="height:60px;object-fit:contain;border-radius:8px;background:rgba(255,255,255,0.1);padding:4px;" />` : `<span style="font-size:24px;font-weight:bold;color:#0056b3;">${companyName}</span>`;
-    const companyDetails = [
-      company?.nif ? `NIF: ${company.nif}` : "",
-      company?.email || "",
-      company?.phone || "",
-      company?.address || "",
-    ].filter(Boolean).join(" &mdash; ");
-    win.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head><meta charset="utf-8"><title>Fatura ${inv.number}</title>
-      <style>
-        body { font-family: Arial, sans-serif; margin: 40px; color: #1a2a4a; }
-        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
-        .company-details { font-size: 11px; color: #888; margin-top: 4px; }
-        .title { font-size: 28px; font-weight: bold; color: #1a2a4a; }
-        .info { display: flex; justify-content: space-between; margin-bottom: 30px; font-size: 13px; color: #666; }
-        .info strong { color: #1a2a4a; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-        th { background: #1a2a4a; color: white; padding: 10px 8px; text-align: left; font-size: 12px; text-transform: uppercase; }
-        td { font-size: 13px; padding: 8px; border-bottom: 1px solid #eee; }
-        .total { text-align: right; font-size: 18px; font-weight: bold; margin-bottom: 30px; }
-        .footer { font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 20px; }
-      </style>
-      </head>
-      <body>
-        <div class="header"><div>${logoHtml}${companyDetails ? `<div class="company-details">${companyDetails}</div>` : ""}</div><div class="title">FATURA</div></div>
-        <div class="info">
-          <div><strong>N.º:</strong> ${inv.number}<br><strong>Data:</strong> ${formatDate(inv.date)}<br><strong>Vencimento:</strong> ${inv.dueDate ? formatDate(inv.dueDate) : "—"}</div>
-          <div style="text-align:right"><strong>Cliente:</strong> ${inv.customer || "—"}</div>
-        </div>
-        <p style="text-align:center;color:#999;padding:40px 0;">Detalhes completos disponíveis na plataforma.</p>
-        <div class="total">Total: ${formatCurrency(inv.total)}</div>
-        <div class="footer">Documento gerado por ${companyName}</div>
-        <script>window.print();<\/script>
-      </body>
-      </html>
-    `);
-    win.document.close();
+  async function handleExportPDF(inv: Invoice) {
+    try {
+      const res = await fetch(`/api/invoices/${inv.id}`);
+      const d = await res.json();
+      const full = d.invoice;
+      const win = window.open("", "_blank");
+      if (!win || !full) return;
+      win.document.write(
+        buildDocumentHtml(
+          {
+            type: "FATURA",
+            typeLabel: "da Factura",
+            number: full.number,
+            customer: full.customer,
+            date: full.date,
+            secondaryDateLabel: "Vencimento",
+            secondaryDate: full.dueDate,
+            status: full.status,
+            notes: full.notes,
+            items: full.items || [],
+            total: full.total,
+          },
+          company
+        )
+      );
+      win.document.close();
+    } catch (err) {
+      console.error("Erro ao exportar fatura:", err);
+    }
   }
 
   return (
