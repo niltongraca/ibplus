@@ -48,7 +48,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
   if (body.status !== undefined) {
     const status = String(body.status);
-    if (!["draft", "pendente", "aprovado", "rejeitado", "expirado"].includes(status)) {
+    if (!["draft", "sent", "approved", "rejected", "converted"].includes(status)) {
       return NextResponse.json({ error: "Estado inválido." }, { status: 400 });
     }
     data.status = status;
@@ -71,7 +71,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
 
   // Auto-generate invoice on approval (avoid duplicates)
-  if (data.status === "aprovado" && quote.status !== "aprovado") {
+  if (data.status === "approved" && quote.status !== "approved") {
     const invoiceNotes = `Gerado a partir do orçamento ${quote.number}`;
     const existing = await prisma.invoice.findFirst({
       where: { companyId: user.companyId, notes: invoiceNotes },

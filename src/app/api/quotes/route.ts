@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const customer = body.customer ? String(body.customer).trim() : null;
     const notes = body.notes ? String(body.notes).trim() : null;
-    const status = typeof body.status === "string" && ["draft", "pendente", "aprovado", "rejeitado", "expirado"].includes(body.status) ? body.status : "pendente";
+    const status = typeof body.status === "string" && ["draft", "sent", "approved", "rejected", "converted"].includes(body.status) ? body.status : "draft";
 
     let validUntil: Date | null = null;
     if (body.validUntil) {
