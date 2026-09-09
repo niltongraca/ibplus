@@ -29,20 +29,28 @@ export async function removeTransactionsByRef(companyId: string, refType: string
   await prisma.transaction.deleteMany({ where: { companyId, refType, refId } });
 }
 
+/** Registers or syncs a single income transaction reflecting the paid amount of an invoice. */
 export async function recordInvoicePayment(companyId: string, invoiceId: string, number: string, amount: number): Promise<void> {
   const existing = await prisma.transaction.findFirst({
     where: { companyId, refType: "invoice", refId: invoiceId },
   });
-  if (existing) return;
-
-  await recordTransaction(companyId, {
-    type: "income",
-    description: `Pagamento da fatura ${number}`,
-    amount,
-    refType: "invoice",
-    refId: invoiceId,
-  });
-  await logAction("create", "payment", invoiceId, `Pagamento da fatura ${number} (${amount}) contabilizado`);
+  if (existing) {
+    if (existing.amount !== amount) {
+      await prisma.transaction.update({ where: { id: existing.id }, data: { amount } });
+      await logAction("update", "payment", invoiceId, `Pagamento da fatura ${number} atualizado para ${amount} Kz`);
+    } else {
+      return;
+    }
+  } else {
+    await recordTransaction(companyId, {
+      type: "income",
+      description: `Pagamento da fatura ${number}`,
+      amount,
+      refType: "invoice",
+      refId: invoiceId,
+    });
+    await logAction("create", "payment", invoiceId, `Pagamento da fatura ${number} (${amount} Kz) contabilizado`);
+  }
   await createNotification(companyId, "finance", `Fatura ${number} paga`, `Foi recebido ${amount} Kz e contabilizado nos fundos.`, "/finance/contas-receber");
 }
 

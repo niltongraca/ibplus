@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const customer = body.customer ? String(body.customer).trim() : null;
     const notes = body.notes ? String(body.notes).trim() : null;
-    const status = typeof body.status === "string" && ["draft", "sent", "paid", "overdue", "cancelled"].includes(body.status) ? body.status : "draft";
+    const status = typeof body.status === "string" && ["paid", "partially_paid", "pending"].includes(body.status) ? body.status : "pending";
 
     let dueDate: Date | null = null;
     if (body.dueDate) {
@@ -45,7 +45,17 @@ export async function POST(request: Request) {
       return { description, quantity, unitPrice, total: quantity * unitPrice };
     });
 
-    const total = normalizedItems.reduce((sum, i) => sum + i.total, 0);
+    const subtotal = normalizedItems.reduce((sum, i) => sum + i.total, 0);
+    const discountType = body.discountType === "percentage" ? "percentage" : "fixed";
+    const discountValue = Number(body.discountValue) || 0;
+    const discount = discountType === "percentage" ? subtotal * Math.min(100, discountValue) / 100 : Math.min(subtotal, discountValue);
+    const total = Math.max(0, subtotal - discount);
+    const installments = Math.max(1, Math.floor(Number(body.installments)) || 1);
+    const currency = body.currency ? String(body.currency).trim() : "AOA";
+    const paymentMethod = body.paymentMethod ? String(body.paymentMethod).trim() : null;
+    const bankDetails = body.bankDetails ? String(body.bankDetails).trim() : null;
+
+    const paidAmount = status === "paid" ? total : Number(body.paidAmount) || 0;
 
     await findOrCreateCustomer(user.companyId, customer || "");
     await ensureItemsInCatalog(user.companyId, normalizedItems);
@@ -60,7 +70,19 @@ export async function POST(request: Request) {
         companyId: user.companyId,
         number,
         customer,
+        customerEmail: body.customerEmail ? String(body.customerEmail).trim() : null,
+        customerPhone: body.customerPhone ? String(body.customerPhone).trim() : null,
+        customerNif: body.customerNif ? String(body.customerNif).trim() : null,
+        subtotal,
+        discountType,
+        discountValue,
+        discount,
+        installments,
+        currency,
+        paymentMethod,
+        bankDetails,
         total,
+        paidAmount,
         status,
         dueDate,
         notes,
@@ -69,8 +91,9 @@ export async function POST(request: Request) {
       include: { items: true },
     });
 
-    if (status === "paid") {
-      await recordInvoicePayment(user.companyId, invoice.id, number, total);
+    const payable = Math.min(paidAmount, total);
+    if (payable > 0) {
+      await recordInvoicePayment(user.companyId, invoice.id, number, payable);
     }
 
     return NextResponse.json({ invoice }, { status: 201 });

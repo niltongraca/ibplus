@@ -44,7 +44,7 @@ export async function GET() {
       prisma.sale.aggregate({ where: { companyId: user.companyId, date: { gte: today } }, _sum: { total: true } }),
       prisma.customer.count({ where: { companyId: user.companyId } }),
       prisma.product.count({ where: { companyId: user.companyId } }),
-      prisma.invoice.aggregate({ where: { companyId: user.companyId, status: { in: ["draft", "sent"] } }, _count: true, _sum: { total: true } }),
+      prisma.invoice.aggregate({ where: { companyId: user.companyId, status: { in: ["pending", "partially_paid"] } }, _count: true, _sum: { total: true } }),
       prisma.product.count({ where: { companyId: user.companyId, stock: { lte: 5 } } }),
       prisma.sale.findMany({
         where: { companyId: user.companyId },
@@ -84,7 +84,7 @@ export async function GET() {
       prisma.sale.count({ where: { companyId: user.companyId } }),
       prisma.expense.aggregate({ where: { companyId: user.companyId }, _sum: { amount: true } }),
       prisma.expense.aggregate({ where: { companyId: user.companyId, date: { gte: thisMonth } }, _sum: { amount: true } }),
-      prisma.quote.aggregate({ where: { companyId: user.companyId, status: { in: ["draft", "sent"] } }, _count: true, _sum: { total: true } }),
+      prisma.quote.aggregate({ where: { companyId: user.companyId, status: "pending" }, _count: true, _sum: { total: true } }),
       prisma.employee.count({ where: { companyId: user.companyId, active: true } }),
       prisma.vacation.count({ where: { employee: { companyId: user.companyId }, status: "pending" } }),
       prisma.opportunity.aggregate({ where: { companyId: user.companyId }, _count: true }),

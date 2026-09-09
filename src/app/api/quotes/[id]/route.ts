@@ -36,6 +36,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const data: Record<string, any> = {};
 
   if (body.customer !== undefined) data.customer = body.customer ? String(body.customer).trim() : null;
+  if (body.customerEmail !== undefined) data.customerEmail = body.customerEmail ? String(body.customerEmail).trim() : null;
+  if (body.customerPhone !== undefined) data.customerPhone = body.customerPhone ? String(body.customerPhone).trim() : null;
+  if (body.customerNif !== undefined) data.customerNif = body.customerNif ? String(body.customerNif).trim() : null;
   if (body.notes !== undefined) data.notes = body.notes ? String(body.notes).trim() : null;
   if (body.validUntil !== undefined) {
     if (body.validUntil) {
@@ -46,15 +49,19 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       data.validUntil = null;
     }
   }
+  if (body.installments !== undefined) data.installments = Math.max(1, Math.floor(Number(body.installments)) || 1);
+  if (body.currency !== undefined) data.currency = body.currency ? String(body.currency).trim() : "AOA";
+  if (body.paymentMethod !== undefined) data.paymentMethod = body.paymentMethod ? String(body.paymentMethod).trim() : null;
+  if (body.bankDetails !== undefined) data.bankDetails = body.bankDetails ? String(body.bankDetails).trim() : null;
   if (body.status !== undefined) {
     const status = String(body.status);
-    if (!["draft", "sent", "approved", "rejected", "converted"].includes(status)) {
+    if (!["pending", "approved"].includes(status)) {
       return NextResponse.json({ error: "Estado inválido." }, { status: 400 });
     }
     data.status = status;
   }
 
-  // Handle items replacement + total recalculation
+  // Handle items replacement + totals recalculation
   if (Array.isArray(body.items)) {
     if (!body.items.length) return NextResponse.json({ error: "O orçamento precisa de pelo menos um item." }, { status: 400 });
     const normalizedItems = body.items.map((i) => {
@@ -66,8 +73,26 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       if (!Number.isFinite(unitPrice) || unitPrice < 0) throw new Error("O preço unitário não pode ser negativo.");
       return { description, quantity, unitPrice, total: quantity * unitPrice };
     });
-    data.total = normalizedItems.reduce((sum, i) => sum + i.total, 0);
+    const subtotal = normalizedItems.reduce((sum, i) => sum + i.total, 0);
+    data.subtotal = subtotal;
     data.items = { deleteMany: {}, create: normalizedItems };
+
+    const discountType = body.discountType !== undefined ? (body.discountType === "percentage" ? "percentage" : "fixed") : quote.discountType;
+    const discountValue = body.discountValue !== undefined ? Number(body.discountValue) : quote.discountValue;
+    data.discountType = discountType;
+    data.discountValue = discountValue;
+    data.discount = discountType === "percentage" ? subtotal * Math.min(100, discountValue) / 100 : Math.min(subtotal, discountValue);
+    data.total = Math.max(0, subtotal - (data.discount as number));
+  } else {
+    if (body.discountType !== undefined || body.discountValue !== undefined) {
+      const discountType = body.discountType !== undefined ? (body.discountType === "percentage" ? "percentage" : "fixed") : quote.discountType;
+      const discountValue = body.discountValue !== undefined ? Number(body.discountValue) : quote.discountValue;
+      const subtotal = data.subtotal !== undefined ? (data.subtotal as number) : quote.subtotal;
+      data.discountType = discountType;
+      data.discountValue = discountValue;
+      data.discount = discountType === "percentage" ? subtotal * Math.min(100, discountValue) / 100 : Math.min(subtotal, discountValue);
+      data.total = Math.max(0, (data.subtotal !== undefined ? (data.subtotal as number) : quote.subtotal) - (data.discount as number));
+    }
   }
 
   // Auto-generate invoice on approval (avoid duplicates)
@@ -82,15 +107,34 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
       const number = `FAT-${dateStr}-${String(count + 1).padStart(4, "0")}`;
 
+      const finalItems = data.items && data.items.create ? (data.items.create as any[]) : quote.items;
+      const finalSubtotal = (data.subtotal as number) ?? quote.subtotal;
+      const finalTotal = (data.total as number) ?? quote.total;
+      const finalDiscount = (data.discount as number) ?? quote.discount;
+      const finalDiscountType = (data.discountType as string) ?? quote.discountType;
+      const finalDiscountValue = (data.discountValue as number) ?? quote.discountValue;
+
       await prisma.invoice.create({
         data: {
           companyId: user.companyId,
           number,
-          customer: quote.customer,
-          total: data.total !== undefined ? data.total : quote.total,
+          customer: data.customer ?? quote.customer,
+          customerEmail: data.customerEmail ?? quote.customerEmail,
+          customerPhone: data.customerPhone ?? quote.customerPhone,
+          customerNif: data.customerNif ?? quote.customerNif,
+          subtotal: finalSubtotal,
+          discountType: finalDiscountType,
+          discountValue: finalDiscountValue,
+          discount: finalDiscount,
+          installments: (data.installments as number) ?? quote.installments,
+          currency: (data.currency as string) ?? quote.currency,
+          paymentMethod: (data.paymentMethod as string) ?? quote.paymentMethod,
+          bankDetails: (data.bankDetails as string) ?? quote.bankDetails,
+          total: finalTotal,
+          status: "pending",
           notes: invoiceNotes,
           items: {
-            create: (Array.isArray(body.items) && data.total !== undefined ? (data.items.create as any[]) : quote.items).map((i) => ({
+            create: finalItems.map((i) => ({
               description: i.description,
               quantity: i.quantity,
               unitPrice: i.unitPrice,

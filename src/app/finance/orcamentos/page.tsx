@@ -43,21 +43,23 @@ export default function OrcamentosPage() {
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
+      pending: "bg-amber-100 text-amber-700",
+      approved: "bg-green-100 text-green-700",
       draft: "bg-gray-100 text-gray-600",
       sent: "bg-blue-100 text-blue-700",
-      approved: "bg-green-100 text-green-700",
       rejected: "bg-red-100 text-red-700",
       converted: "bg-ib-accent/10 text-ib-accent",
     };
     const labels: Record<string, string> = {
+      pending: "Espera",
+      approved: "Aprovado",
       draft: "Rascunho",
       sent: "Enviado",
-      approved: "Aprovado",
       rejected: "Rejeitado",
       converted: "Convertido",
     };
     return (
-      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${styles[status] || styles.draft}`}>
+      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${styles[status] || styles.pending}`}>
         {labels[status] || status}
       </span>
     );
@@ -83,12 +85,23 @@ export default function OrcamentosPage() {
             typeLabel: "do Orçamento",
             number: full.number,
             customer: full.customer,
+            customerEmail: full.customerEmail,
+            customerPhone: full.customerPhone,
+            customerNif: full.customerNif,
             date: full.date,
             secondaryDateLabel: "Validade",
             secondaryDate: full.validUntil,
             status: full.status,
             notes: full.notes,
             items: full.items || [],
+            subtotal: full.subtotal,
+            discountType: full.discountType,
+            discountValue: full.discountValue,
+            discount: full.discount,
+            installments: full.installments,
+            currency: full.currency,
+            paymentMethod: full.paymentMethod,
+            bankDetails: full.bankDetails,
             total: full.total,
           },
           company

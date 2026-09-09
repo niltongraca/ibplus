@@ -43,21 +43,25 @@ export default function FaturacaoPage() {
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
+      pending: "bg-amber-100 text-amber-700",
+      partially_paid: "bg-indigo-100 text-indigo-700",
+      paid: "bg-green-100 text-green-700",
       draft: "bg-gray-100 text-gray-600",
       sent: "bg-blue-100 text-blue-700",
-      paid: "bg-green-100 text-green-700",
       overdue: "bg-red-100 text-red-700",
       cancelled: "bg-gray-100 text-gray-400",
     };
     const labels: Record<string, string> = {
+      pending: "Espera",
+      partially_paid: "Parcialmente Pago",
+      paid: "Pago",
       draft: "Rascunho",
       sent: "Enviada",
-      paid: "Paga",
       overdue: "Vencida",
       cancelled: "Cancelada",
     };
     return (
-      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${styles[status] || styles.draft}`}>
+      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${styles[status] || styles.pending}`}>
         {labels[status] || status}
       </span>
     );
@@ -83,12 +87,24 @@ export default function FaturacaoPage() {
             typeLabel: "da Factura",
             number: full.number,
             customer: full.customer,
+            customerEmail: full.customerEmail,
+            customerPhone: full.customerPhone,
+            customerNif: full.customerNif,
             date: full.date,
             secondaryDateLabel: "Vencimento",
             secondaryDate: full.dueDate,
             status: full.status,
             notes: full.notes,
             items: full.items || [],
+            subtotal: full.subtotal,
+            discountType: full.discountType,
+            discountValue: full.discountValue,
+            discount: full.discount,
+            installments: full.installments,
+            currency: full.currency,
+            paymentMethod: full.paymentMethod,
+            bankDetails: full.bankDetails,
+            paidAmount: full.paidAmount,
             total: full.total,
           },
           company

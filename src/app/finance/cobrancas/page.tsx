@@ -15,12 +15,12 @@ interface Invoice {
   status: string;
 }
 
-type FilterTab = "all" | "sent" | "overdue";
+type FilterTab = "all" | "pending" | "partially_paid";
 
 const tabs: { key: FilterTab; label: string }[] = [
   { key: "all", label: "Todas" },
-  { key: "sent", label: "Por Cobrar" },
-  { key: "overdue", label: "Vencidas" },
+  { key: "pending", label: "Espera" },
+  { key: "partially_paid", label: "Parciais" },
 ];
 
 export default function CobrancasPage() {
@@ -42,8 +42,11 @@ export default function CobrancasPage() {
   );
 
   const filtered = searched.filter((inv) => {
-    if (activeTab === "all") return inv.status === "sent" || inv.status === "overdue";
-    return inv.status === activeTab;
+    const openStatuses = ["pending", "partially_paid", "sent", "overdue"];
+    if (!openStatuses.includes(inv.status)) return false;
+    if (activeTab === "all") return true;
+    if (activeTab === "pending") return inv.status === "pending" || inv.status === "sent";
+    return inv.status === "partially_paid";
   });
 
   async function markAsPaid(inv: Invoice) {
@@ -62,11 +65,15 @@ export default function CobrancasPage() {
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
+      pending: "bg-amber-100 text-amber-700",
+      partially_paid: "bg-indigo-100 text-indigo-700",
       sent: "bg-blue-100 text-blue-700",
       overdue: "bg-red-100 text-red-700",
       paid: "bg-green-100 text-green-700",
     };
     const labels: Record<string, string> = {
+      pending: "Espera",
+      partially_paid: "Parcial",
       sent: "Por Cobrar",
       overdue: "Vencida",
       paid: "Paga",
@@ -117,7 +124,7 @@ export default function CobrancasPage() {
       header: "",
       className: "text-right",
       render: (inv: Invoice) =>
-        inv.status === "sent" || inv.status === "overdue" ? (
+        inv.status === "pending" || inv.status === "partially_paid" || inv.status === "sent" || inv.status === "overdue" ? (
           <button
             onClick={() => markAsPaid(inv)}
             className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium bg-green-50 text-green-700 border border-green-200 rounded-lg hover:bg-green-100"
@@ -139,7 +146,7 @@ export default function CobrancasPage() {
           <p className="font-semibold">{formatCurrency(inv.total)}</p>
           <div className="mt-1">{getStatusBadge(inv.status)}</div>
         </div>
-        {(inv.status === "sent" || inv.status === "overdue") && (
+        {(inv.status === "pending" || inv.status === "partially_paid" || inv.status === "sent" || inv.status === "overdue") && (
           <button onClick={() => markAsPaid(inv)} className="p-2 bg-green-50 text-green-700 border border-green-200 rounded-lg">
             <CheckCircle className="w-4 h-4" />
           </button>

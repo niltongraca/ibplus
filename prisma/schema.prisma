@@ -363,19 +363,31 @@ model StockMovement {
 }
 
 model Invoice {
-  id        String       @id @default(cuid())
-  companyId String
-  company   Company      @relation(fields: [companyId], references: [id])
-  number    String
-  customer  String?
-  date      DateTime     @default(now())
-  dueDate   DateTime?
-  total     Float
-  status    String       @default("draft")
-  notes     String?
-  items     InvoiceItem[]
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  id          String       @id @default(cuid())
+  companyId   String
+  company     Company      @relation(fields: [companyId], references: [id])
+  number      String
+  customer    String?
+  customerEmail String?
+  customerPhone String?
+  customerNif String?
+  date        DateTime     @default(now())
+  dueDate     DateTime?
+  subtotal    Float        @default(0)
+  discountType String      @default("fixed")
+  discountValue Float      @default(0)
+  discount    Float        @default(0)
+  installments Int         @default(1)
+  currency    String       @default("AOA")
+  paymentMethod String?
+  bankDetails String?
+  total       Float
+  paidAmount  Float        @default(0)
+  status      String       @default("pending")
+  notes       String?
+  items       InvoiceItem[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   @@unique([companyId, number])
   @@index([companyId])
@@ -399,10 +411,21 @@ model Quote {
   company   Company     @relation(fields: [companyId], references: [id])
   number    String
   customer  String?
+  customerEmail String?
+  customerPhone String?
+  customerNif String?
   date      DateTime    @default(now())
   validUntil DateTime?
+  subtotal  Float       @default(0)
+  discountType String   @default("fixed")
+  discountValue Float   @default(0)
+  discount  Float       @default(0)
+  installments Int      @default(1)
+  currency  String      @default("AOA")
+  paymentMethod String?
+  bankDetails String?
   total     Float
-  status    String      @default("draft")
+  status    String      @default("pending")
   notes     String?
   items     QuoteItem[]
   createdAt DateTime    @default(now())

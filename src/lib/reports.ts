@@ -59,7 +59,7 @@ export function getPeriodInfo(period: ReportPeriod, now: Date): PeriodInfo {
 export async function generateReportForCompany(companyId: string, period: ReportPeriod, now: Date = new Date()) {
   const info = getPeriodInfo(period, now);
 
-  const [salesAgg, salesCount, expenseAgg, paidAgg] = await Promise.all([
+  const [salesAgg, salesCount, expenseAgg, incomeTxAgg] = await Promise.all([
     prisma.sale.aggregate({
       where: { companyId, date: { gte: info.start, lt: info.end } },
       _sum: { total: true },
@@ -71,10 +71,10 @@ export async function generateReportForCompany(companyId: string, period: Report
       where: { companyId, date: { gte: info.start, lt: info.end } },
       _sum: { amount: true },
     }),
-    prisma.invoice.aggregate({
-      where: { companyId, status: "paid", date: { gte: info.start, lt: info.end } },
+    prisma.transaction.aggregate({
+      where: { companyId, type: "income", date: { gte: info.start, lt: info.end } },
       _count: true,
-      _sum: { total: true },
+      _sum: { amount: true },
     }),
   ]);
 
@@ -94,8 +94,8 @@ export async function generateReportForCompany(companyId: string, period: Report
 
   const totalRevenue = salesAgg._sum.total || 0;
   const totalExpenses = expenseAgg._sum.amount || 0;
-  const invoicesPaid = paidAgg._count;
-  const invoicesPaidTotal = paidAgg._sum.total || 0;
+  const invoicesPaid = incomeTxAgg._count;
+  const invoicesPaidTotal = incomeTxAgg._sum.amount || 0;
   const netResult = totalRevenue + invoicesPaidTotal - totalExpenses;
 
   const data = {

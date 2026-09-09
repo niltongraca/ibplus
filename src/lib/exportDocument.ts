@@ -19,12 +19,24 @@ export interface ExportDocumentData {
   typeLabel: string;
   number: string;
   customer: string | null;
+  customerEmail?: string | null;
+  customerPhone?: string | null;
+  customerNif?: string | null;
   date: string;
   secondaryDateLabel: string;
   secondaryDate: string | null;
   status: string;
   notes?: string | null;
   items: ExportLineItem[];
+  subtotal?: number;
+  discountType?: string;
+  discountValue?: number;
+  discount?: number;
+  installments?: number;
+  currency?: string;
+  paymentMethod?: string | null;
+  bankDetails?: string | null;
+  paidAmount?: number;
   total: number;
 }
 
@@ -44,6 +56,17 @@ const statusMap: Record<string, StatusStyle> = {
   rejected: { label: "Rejeitado", bg: "#fef2f2", color: "#b91c1c", border: "#fecaca" },
   cancelled: { label: "Cancelado", bg: "#f3f4f6", color: "#9ca3af", border: "#e5e7eb" },
   converted: { label: "Convertido", bg: "#eff6ff", color: "#1d4ed8", border: "#bfdbfe" },
+  pending: { label: "Espera", bg: "#fffbeb", color: "#b45309", border: "#fde68a" },
+  partially_paid: { label: "Parcialmente Pago", bg: "#eef2ff", color: "#4338ca", border: "#c7d2fe" },
+};
+
+const currencySymbols: Record<string, string> = {
+  AOA: "Kz",
+  USD: "$",
+  EUR: "€",
+  BRL: "R$",
+  ZAR: "R",
+  CNY: "¥",
 };
 
 function esc(value: string): string {
@@ -55,11 +78,11 @@ function esc(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
-function money(value: number): string {
+function money(value: number, currency: string = "AOA"): string {
   return value.toLocaleString("pt-AO", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }) + " Kz";
+  }) + " " + (currencySymbols[currency] || currency);
 }
 
 function fmtDate(value: string | null): string {
@@ -72,6 +95,12 @@ function fmtDate(value: string | null): string {
 export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompanyInfo | null): string {
   const companyName = company?.name || "IBPlus+";
   const status: StatusStyle = statusMap[data.status] || { label: data.status, bg: "#f3f4f6", color: "#6b7280", border: "#e5e7eb" };
+  const currency = data.currency || "AOA";
+  const subtotal = data.subtotal ?? data.total;
+  const discount = data.discount ?? 0;
+  const installments = data.installments ?? 1;
+  const paidAmount = data.paidAmount ?? 0;
+  const remaining = Math.max(0, data.total - paidAmount);
 
   const logoHtml = company?.logo
     ? `<img src="${esc(company.logo)}" alt="${esc(companyName)}" class="logo" />`
@@ -89,12 +118,33 @@ export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompa
       <tr class="${idx % 2 ? "alt" : ""}">
         <td class="desc">${esc(item.description)}</td>
         <td class="num">${item.quantity}</td>
-        <td class="num">${money(item.unitPrice)}</td>
-        <td class="num strong">${money(item.total)}</td>
+        <td class="num">${money(item.unitPrice, currency)}</td>
+        <td class="num strong">${money(item.total, currency)}</td>
       </tr>`).join("");
 
   const emptyRows = data.items.length === 0
     ? `<tr><td colspan="4" class="empty">Sem itens registados.</td></tr>`
+    : "";
+
+  const customerExtra = [
+    data.customerPhone ? `<p>${esc(data.customerPhone)}</p>` : "",
+    data.customerEmail ? `<p>${esc(data.customerEmail)}</p>` : "",
+    data.customerNif ? `<p><b>NIF:</b> ${esc(data.customerNif)}</p>` : "",
+  ].join("");
+
+  const summaryRows = `
+    <div class="sum-row"><span>Subtotal</span><span>${money(subtotal, currency)}</span></div>
+    ${discount > 0 ? `<div class="sum-row discount"><span>Desconto${data.discountType === "percentage" && data.discountValue ? ` (${data.discountValue}%)` : ""}</span><span>- ${money(discount, currency)}</span></div>` : ""}
+    ${installments > 1 ? `<div class="sum-row"><span>Prestações</span><span>${installments} × ${money(data.total / installments, currency)}</span></div>` : ""}
+    ${data.type === "FATURA" && paidAmount > 0 ? `<div class="sum-row paid"><span>Pago</span><span>${money(paidAmount, currency)}</span></div>` : ""}
+    ${data.type === "FATURA" && paidAmount > 0 ? `<div class="sum-row debt"><span>Em dívida</span><span>${money(remaining, currency)}</span></div>` : ""}`;
+
+  const bankHtml = data.bankDetails
+    ? `
+      <div class="bank">
+        <h4>Coordenadas bancárias</h4>
+        <p>${esc(data.bankDetails)}</p>
+      </div>`
     : "";
 
   const notesHtml = data.notes
@@ -164,6 +214,18 @@ export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompa
     border-radius: 12px; padding: 16px 20px; color: #fff; text-align: right; }
   .total-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: #9db3cf; margin-bottom: 4px; }
   .total-value { font-size: 24px; font-weight: 800; letter-spacing: -.3px; }
+  .summary { display: flex; flex-direction: column; align-items: flex-end; margin-bottom: 20px; }
+  .sum-row { display: flex; justify-content: space-between; gap: 28px; font-size: 13px; color: #475569; padding: 3px 0; }
+  .sum-row span:last-child { color: #0f172a; font-weight: 600; }
+  .sum-row.discount span:last-child { color: #dc2626; }
+  .sum-row.paid span:last-child { color: #059669; }
+  .sum-row.debt span:last-child { color: #b91c1c; }
+  .sum-row.total { border-top: 1px solid #eef1f6; margin-top: 4px; padding-top: 10px; font-size: 15px; }
+  .sum-row.total span:last-child { font-weight: 800; font-size: 19px; }
+  .bank { border: 1px solid #dbeafe; background: #eff6ff; border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; }
+  .bank h4 { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: #64748b; margin-bottom: 4px; }
+  .bank p { font-size: 13px; color: #334155; white-space: pre-wrap; }
+  .capitalize { text-transform: capitalize; }
   .notes { border-top: 1px solid #eef1f6; padding-top: 16px; margin-bottom: 20px; }
   .notes h4 { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: #94a3b8; margin-bottom: 6px; }
   .notes p { font-size: 13px; color: #475569; white-space: pre-wrap; }
@@ -213,10 +275,12 @@ export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompa
           <h4>Datas</h4>
           <p><b>Emissão:</b> ${fmtDate(data.date)}</p>
           <p><b>${esc(data.secondaryDateLabel)}:</b> ${fmtDate(data.secondaryDate)}</p>
+          ${data.paymentMethod ? `<p class="capitalize"><b>Pagamento:</b> ${esc(data.paymentMethod)}</p>` : ""}
         </div>
         <div class="card">
           <h4>Cliente</h4>
           <p class="customer">${esc(data.customer || "—")}</p>
+          ${customerExtra}
         </div>
       </div>
       <table>
@@ -230,12 +294,11 @@ export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompa
         </thead>
         <tbody>${itemsRows}${emptyRows}</tbody>
       </table>
-      <div class="total-wrap">
-        <div class="total-card">
-          <div class="total-label">Total ${esc(data.typeLabel)}</div>
-          <div class="total-value">${money(data.total)}</div>
-        </div>
-      </div>
+      ${summaryRows && `<div class="summary">
+        ${summaryRows}
+        <div class="sum-row total"><span>Total</span><span>${money(data.total, currency)}</span></div>
+      </div>`}
+      ${bankHtml}
       ${notesHtml}
       <div class="footer">
         <span>Documento gerado por ${esc(companyName)}</span>

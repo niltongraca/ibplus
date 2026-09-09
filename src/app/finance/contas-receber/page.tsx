@@ -12,6 +12,7 @@ interface Invoice {
   date: string;
   dueDate: string | null;
   total: number;
+  paidAmount?: number;
   status: string;
 }
 
@@ -43,7 +44,7 @@ export default function ContasReceberPage() {
 
   const filtered = searched.filter((inv) => {
     if (activeTab === "all") return inv.status !== "cancelled";
-    if (activeTab === "unpaid") return inv.status === "draft" || inv.status === "sent" || inv.status === "overdue";
+    if (activeTab === "unpaid") return inv.status === "pending" || inv.status === "partially_paid" || inv.status === "draft" || inv.status === "sent" || inv.status === "overdue";
     return inv.status === "paid";
   });
 
@@ -63,12 +64,16 @@ export default function ContasReceberPage() {
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
+      pending: "bg-amber-100 text-amber-700",
+      partially_paid: "bg-indigo-100 text-indigo-700",
       draft: "bg-gray-100 text-gray-600",
       sent: "bg-blue-100 text-blue-700",
       paid: "bg-green-100 text-green-700",
       overdue: "bg-red-100 text-red-700",
     };
     const labels: Record<string, string> = {
+      pending: "Espera",
+      partially_paid: "Parcial",
       draft: "Rascunho",
       sent: "Por Receber",
       paid: "Recebida",
@@ -151,7 +156,7 @@ export default function ContasReceberPage() {
     </div>
   );
 
-  const unpaidTotal = filtered.filter(i => i.status !== "paid" && i.status !== "cancelled").reduce((sum, i) => sum + i.total, 0);
+  const unpaidTotal = filtered.filter(i => i.status !== "paid" && i.status !== "cancelled").reduce((sum, i) => sum + Math.max(0, i.total - (i.paidAmount || 0)), 0);
   const paidTotal = filtered.filter(i => i.status === "paid").reduce((sum, i) => sum + i.total, 0);
 
   return (
