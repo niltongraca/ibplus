@@ -93,7 +93,6 @@ function fmtDate(value: string | null): string {
 }
 
 export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompanyInfo | null): string {
-  const companyName = company?.name || "IBPlus+";
   const status: StatusStyle = statusMap[data.status] || { label: data.status, bg: "#f3f4f6", color: "#6b7280", border: "#e5e7eb" };
   const currency = data.currency || "AOA";
   const subtotal = data.subtotal ?? data.total;
@@ -102,11 +101,10 @@ export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompa
   const paidAmount = data.paidAmount ?? 0;
   const remaining = Math.max(0, data.total - paidAmount);
 
-  const logoHtml = company?.logo
-    ? `<img src="${esc(company.logo)}" alt="${esc(companyName)}" class="logo" />`
-    : `<div class="logo-fallback">${esc(companyName.charAt(0).toUpperCase())}</div>`;
+  const logoHtml = `<div class="logo-fallback">IB</div>`;
 
   const companyLine = [
+    company?.name ? `Emitido por ${esc(company.name)}` : "",
     company?.nif ? `NIF: ${esc(company.nif)}` : "",
     company?.email ? esc(company.email) : "",
     company?.phone ? esc(company.phone) : "",
@@ -184,6 +182,7 @@ export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompa
     justify-content: center; font-size: 26px; font-weight: 800; color: #fff;
     background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.15); }
   .company-name { font-size: 19px; font-weight: 800; color: #fff; letter-spacing: -.2px; }
+  .company-name .sup { color: #93c5fd; font-size: 14px; font-weight: 800; }
   .company-line { font-size: 11px; color: #9db3cf; margin-top: 4px; }
   .address { font-size: 11px; color: #7d93b5; margin-top: 2px; }
   .doc-title { text-align: right; }
@@ -258,7 +257,7 @@ export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompa
       <div class="brand">
         ${logoHtml}
         <div>
-          <div class="company-name">${esc(companyName)}</div>
+          <div class="company-name">IBPlus<sup class="sup">+</sup></div>
           ${companyLine ? `<div class="company-line">${companyLine}</div>` : ""}
           ${addressLine}
         </div>
@@ -301,7 +300,7 @@ export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompa
       ${bankHtml}
       ${notesHtml}
       <div class="footer">
-        <span>Documento gerado por ${esc(companyName)}</span>
+        <span>Documento gerado por IBPlus+${company?.name ? ` por conta de ${esc(company.name)}` : ""}</span>
         <span>${esc(data.type)} ${esc(data.number)}</span>
       </div>
     </div>

@@ -89,12 +89,17 @@ export function InvoiceTemplate({ data, type, typeLabel, company }: InvoiceTempl
       <div className="bg-gradient-to-r from-[#0a1628] via-[#0f1f3d] to-[#1a2a4a] px-8 py-6 print:px-6 print:py-4">
         <div className="flex justify-between items-start">
           <div className="flex items-start gap-4">
-            {company?.logo && (
-              <img src={company.logo} alt={company.name} className="w-16 h-16 object-contain rounded-lg bg-white/10 p-1" />
-            )}
             <div>
-              <h2 className="text-xl font-bold text-white tracking-tight">{company?.name || "IBPlus+"}</h2>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
+              <div className="flex items-center gap-2">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 border border-white/15 font-bold text-white">IB</span>
+                <h2 className="text-xl font-bold text-white tracking-tight">
+                  IBPlus<sup className="text-blue-300 font-bold">+</sup>
+                </h2>
+              </div>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+                {company?.name && (
+                  <p className="text-xs text-blue-300/80">Emitido por {company.name}</p>
+                )}
                 {company?.nif && (
                   <p className="text-xs text-blue-300/70">NIF: {company.nif}</p>
                 )}
@@ -107,9 +112,6 @@ export function InvoiceTemplate({ data, type, typeLabel, company }: InvoiceTempl
               </div>
               {company?.address && (
                 <p className="text-xs text-blue-300/50 mt-0.5">{company.address}</p>
-              )}
-              {!company && (
-                <p className="text-xs text-blue-300/70 mt-0.5">Plataforma de Gestão Empresarial</p>
               )}
             </div>
           </div>
@@ -241,7 +243,7 @@ export function InvoiceTemplate({ data, type, typeLabel, company }: InvoiceTempl
         )}
 
         <div className="border-t border-gray-100 pt-4 mt-6 flex justify-between items-center text-xs text-gray-400">
-          <span>Documento gerado por {company?.name || "IBPlus+"}</span>
+          <span>Documento gerado por IBPlus+{company?.name ? ` por conta de ${company.name}` : ""}</span>
           <span>{type} {data.number}</span>
         </div>
       </div>
