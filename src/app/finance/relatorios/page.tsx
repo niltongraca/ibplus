@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { BarChart3, Download, TrendingUp, DollarSign, ShoppingCart, CreditCard, PieChart as PieIcon } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { BarChart3, Download, TrendingUp, DollarSign, ShoppingCart, CreditCard, PieChart as PieIcon, RefreshCw, FileSpreadsheet } from "lucide-react";
+import { formatCurrency, formatDate } from "@/lib/utils";
+import { jsonToCsv, downloadCsv } from "@/lib/csv";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Legend } from "recharts";
 
 const COLORS = ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
@@ -14,6 +15,9 @@ interface ReportData {
   totalPurchases: number;
   pendingInvoices: number;
   pendingInvoicesTotal: number;
+  totalIncome: number;
+  totalExpense: number;
+  balance: number;
   recentSales: { id: string; total: number; date: string; customer: { name: string } | null }[];
   monthlySales?: { month: string; total: number; count: number }[];
   categorySales?: { name: string; value: number }[];
@@ -21,18 +25,86 @@ interface ReportData {
   recentExpenses?: { id: string; description: string; amount: number; date: string; category: string }[];
 }
 
+interface GeneratedReport {
+  id: string;
+  period: string;
+  periodKey: string;
+  label: string;
+  totalRevenue: number;
+  totalExpenses: number;
+  netResult: number;
+  totalSales: number;
+  invoicesPaid: number;
+  invoicesPaidTotal: number;
+  createdAt: string;
+  data?: { recentSales?: { id: string; date: string; total: number; customer: string | null }[]; recentExpenses?: { id: string; description: string; amount: number; date: string; category: string }[] } | null;
+}
+
 export default function RelatoriosPage() {
   const [data, setData] = useState<ReportData | null>(null);
+  const [reports, setReports] = useState<GeneratedReport[]>([]);
   const [period, setPeriod] = useState("month");
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+
+  function loadReports() {
+    fetch("/api/reports")
+      .then((r) => r.json())
+      .then((d) => setReports(d.reports || []))
+      .catch((err) => console.error("Erro ao carregar relatórios gerados:", err));
+  }
 
   useEffect(() => {
-    fetch("/api/dashboard")
-      .then((r) => r.json())
-      .then((d) => setData(d))
+    Promise.all([fetch("/api/dashboard").then((r) => r.json()), fetch("/api/reports").then((r) => r.json())])
+      .then(([d, rep]) => {
+        setData(d);
+        setReports(rep.reports || []);
+      })
       .catch((err) => console.error("Erro ao carregar relatórios financeiros:", err))
       .finally(() => setLoading(false));
   }, []);
+
+  async function generateReport(kind: string) {
+    setGenerating(true);
+    try {
+      const res = await fetch("/api/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ period: kind }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error);
+      loadReports();
+    } catch (err: any) {
+      alert(err.message || "Erro ao gerar relatório.");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  function exportReportCsv(r: GeneratedReport) {
+    const sales = r.data?.recentSales || [];
+    const expenses = r.data?.recentExpenses || [];
+    const csv = jsonToCsv(
+      [
+        { label: "Relatório", value: `${r.period} ${r.label}` },
+        { label: "Total Vendas", value: formatCurrency(r.totalRevenue) },
+        { label: "N.º Vendas", value: String(r.totalSales) },
+        { label: "Faturas Pagas", value: String(r.invoicesPaid) },
+        { label: "Valor Faturas Pagas", value: formatCurrency(r.invoicesPaidTotal) },
+        { label: "Despesas", value: formatCurrency(r.totalExpenses) },
+        { label: "Resultado Líquido", value: formatCurrency(r.netResult) },
+      ],
+      { label: "Indicador", value: "Valor" }
+    ) + "\r\n\r\n" + jsonToCsv(
+      sales.map((s) => ({ type: "Venda", description: s.customer || "—", date: formatDate(s.date), amount: formatCurrency(s.total) })),
+      { type: "Tipo", description: "Descrição", date: "Data", amount: "Valor" }
+    ) + "\r\n\r\n" + jsonToCsv(
+      expenses.map((e) => ({ type: "Despesa", description: e.description, date: formatDate(e.date), amount: formatCurrency(e.amount), category: e.category })),
+      { type: "Tipo", description: "Descrição", date: "Data", amount: "Valor", category: "Categoria" }
+    );
+    downloadCsv(csv, `relatorio-${r.period.toLowerCase()}-${r.periodKey}`);
+  }
 
   const netProfit = data ? data.totalRevenue - data.totalExpenses : 0;
   const profitMargin = data && data.totalRevenue > 0 ? ((netProfit / data.totalRevenue) * 100) : 0;
@@ -175,6 +247,67 @@ export default function RelatoriosPage() {
         )}
       </div>
 
+      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <div>
+            <h2 className="font-semibold text-gray-900">Relatórios Automáticos</h2>
+            <p className="text-sm text-gray-500">Gerados mensalmente, no fim de cada trimestre e no fim do ano.</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => generateReport("monthly")} disabled={generating} className="flex items-center gap-1.5 px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+              <RefreshCw className="w-4 h-4" /> Gerar Mensal
+            </button>
+            <button onClick={() => generateReport("quarterly")} disabled={generating} className="flex items-center gap-1.5 px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50">
+              <RefreshCw className="w-4 h-4" /> Gerar Trimestral
+            </button>
+            <button onClick={() => generateReport("annual")} disabled={generating} className="flex items-center gap-1.5 px-3 py-2 text-sm bg-gray-800 text-white rounded-lg hover:bg-gray-900 disabled:opacity-50">
+              <RefreshCw className="w-4 h-4" /> Gerar Anual
+            </button>
+          </div>
+        </div>
+
+        {reports.length === 0 ? (
+          <p className="text-sm text-gray-400 py-4">Nenhum relatório gerado ainda. Os relatórios são criados automaticamente ou via botões acima.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[640px]">
+              <thead>
+                <tr className="border-b border-gray-100 text-gray-500 text-xs uppercase tracking-wider">
+                  <th className="text-left p-3 font-medium">Período</th>
+                  <th className="text-left p-3 font-medium">Mês / Período</th>
+                  <th className="text-right p-3 font-medium">Vendas</th>
+                  <th className="text-right p-3 font-medium">Faturas Pagas</th>
+                  <th className="text-right p-3 font-medium">Despesas</th>
+                  <th className="text-right p-3 font-medium">Resultado</th>
+                  <th className="text-right p-3 font-medium"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {reports.map((r) => (
+                  <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50/50">
+                    <td className="p-3">
+                      <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${
+                        r.period === "MENSAL" ? "bg-blue-50 text-blue-700" : r.period === "TRIMESTRAL" ? "bg-indigo-50 text-indigo-700" : "bg-gray-100 text-gray-700"
+                      }`}>{r.period}</span>
+                    </td>
+                    <td className="p-3 font-medium text-gray-900">{r.label}</td>
+                    <td className="p-3 text-right text-gray-700">{r.totalSales} ({formatCurrency(r.totalRevenue)})</td>
+                    <td className="p-3 text-right text-green-600">{r.invoicesPaid} ({formatCurrency(r.invoicesPaidTotal)})</td>
+                    <td className="p-3 text-right text-red-500">{formatCurrency(r.totalExpenses)}</td>
+                    <td className={`p-3 text-right font-semibold ${r.netResult >= 0 ? "text-green-600" : "text-red-500"}`}>{formatCurrency(r.netResult)}</td>
+                    <td className="p-3 text-right">
+                      <button onClick={() => exportReportCsv(r)} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-50">
+                        <FileSpreadsheet className="w-3.5 h-3.5" /> CSV
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
       <div className="grid lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="font-semibold text-gray-900 mb-4">Exportar Relatórios</h2>
@@ -189,11 +322,16 @@ export default function RelatoriosPage() {
           <h2 className="font-semibold text-gray-900 mb-4">Resumo</h2>
           {data && (
             <div className="space-y-3">
-              <SummaryRow label="Receita Total" value={formatCurrency(data.totalRevenue)} color="green" />
+              <SummaryRow label="Receita Total (Vendas)" value={formatCurrency(data.totalRevenue)} color="green" />
               <SummaryRow label="Total de Despesas" value={formatCurrency(data.totalExpenses)} color="red" />
               <SummaryRow label="Total de Compras" value={formatCurrency(data.totalPurchases)} color="gray" />
               <div className="border-t border-gray-100 pt-3">
+                <SummaryRow label="Fundos / Ganhos Contabilizados (faturas pagas)" value={formatCurrency(data.totalIncome || 0)} color="green" bold />
+                <p className="text-[11px] text-gray-400 mt-1">Valor das faturas marcadas como pagas, movimentado nos fundos da empresa.</p>
+              </div>
+              <div className="border-t border-gray-100 pt-3">
                 <SummaryRow label="Saldo Líquido" value={formatCurrency(netProfit)} color={netProfit >= 0 ? "green" : "red"} bold />
+                <SummaryRow label="Saldo Contábil (entradas - pagamentos)" value={formatCurrency(data.balance || 0)} color={data.balance >= 0 ? "green" : "red"} bold />
               </div>
             </div>
           )}

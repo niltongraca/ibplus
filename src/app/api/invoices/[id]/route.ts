@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { recordInvoicePayment, revertInvoicePayment, removeTransactionsByRef } from "@/lib/finance";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -46,7 +47,18 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
   }
 
+  const wasPaid = existing.status === "paid";
+  const nextStatus = data.status ?? existing.status;
+  const isPaid = nextStatus === "paid";
+
   await prisma.invoice.update({ where: { id }, data });
+
+  if (isPaid && !wasPaid) {
+    await recordInvoicePayment(user.companyId, id, existing.number, existing.total);
+  } else if (wasPaid && !isPaid) {
+    await revertInvoicePayment(user.companyId, id, existing.number);
+  }
+
   return NextResponse.json({ success: true });
 }
 
@@ -55,8 +67,15 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const { id } = await params;
+  const existing = await prisma.invoice.findFirst({ where: { id, companyId: user.companyId } });
+  if (!existing) return NextResponse.json({ error: "Fatura não encontrada." }, { status: 404 });
+
   const result = await prisma.invoice.deleteMany({ where: { id, companyId: user.companyId } });
 
   if (!result.count) return NextResponse.json({ error: "Fatura não encontrada." }, { status: 404 });
+
+  if (existing.status === "paid") {
+    await removeTransactionsByRef(user.companyId, "invoice", id);
+  }
   return NextResponse.json({ success: true });
 }

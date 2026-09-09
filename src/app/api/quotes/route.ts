@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { findOrCreateCustomer, ensureItemsInCatalog } from "@/lib/catalog";
 
 export async function GET() {
   try {
@@ -49,6 +50,9 @@ export async function POST(request: Request) {
     });
 
     const total = normalizedItems.reduce((sum, i) => sum + i.total, 0);
+
+    await findOrCreateCustomer(user.companyId, customer || "");
+    await ensureItemsInCatalog(user.companyId, normalizedItems);
 
     const count = await prisma.quote.count({ where: { companyId: user.companyId } });
     const now = new Date();

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { findOrCreateCustomer, ensureItemsInCatalog } from "@/lib/catalog";
+import { recordInvoicePayment } from "@/lib/finance";
 
 export async function GET() {
   const user = await getAuthUser();
@@ -45,6 +47,9 @@ export async function POST(request: Request) {
 
     const total = normalizedItems.reduce((sum, i) => sum + i.total, 0);
 
+    await findOrCreateCustomer(user.companyId, customer || "");
+    await ensureItemsInCatalog(user.companyId, normalizedItems);
+
     const count = await prisma.invoice.count({ where: { companyId: user.companyId } });
     const now = new Date();
     const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
@@ -63,6 +68,10 @@ export async function POST(request: Request) {
       },
       include: { items: true },
     });
+
+    if (status === "paid") {
+      await recordInvoicePayment(user.companyId, invoice.id, number, total);
+    }
 
     return NextResponse.json({ invoice }, { status: 201 });
   } catch (err: any) {

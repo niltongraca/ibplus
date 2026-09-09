@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { DataTable } from "@/components/ui/DataTable";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { Search, FileText } from "lucide-react";
+import { Search, FileText, CheckCircle } from "lucide-react";
 
 interface Invoice {
   id: string;
@@ -45,6 +45,20 @@ export default function CobrancasPage() {
     if (activeTab === "all") return inv.status === "sent" || inv.status === "overdue";
     return inv.status === activeTab;
   });
+
+  async function markAsPaid(inv: Invoice) {
+    const res = await fetch(`/api/invoices/${inv.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "paid" }),
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      alert(d.error || "Erro ao registar o pagamento.");
+      return;
+    }
+    setInvoices((prev) => prev.map((i) => (i.id === inv.id ? { ...i, status: "paid" } : i)));
+  }
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
@@ -98,17 +112,38 @@ export default function CobrancasPage() {
       className: "text-center",
       render: (inv: Invoice) => getStatusBadge(inv.status),
     },
+    {
+      key: "actions",
+      header: "",
+      className: "text-right",
+      render: (inv: Invoice) =>
+        inv.status === "sent" || inv.status === "overdue" ? (
+          <button
+            onClick={() => markAsPaid(inv)}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium bg-green-50 text-green-700 border border-green-200 rounded-lg hover:bg-green-100"
+          >
+            <CheckCircle className="w-3.5 h-3.5" /> Receber
+          </button>
+        ) : null,
+    },
   ];
 
   const mobileCard = (inv: Invoice) => (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between w-full">
       <div>
         <p className="font-medium text-ib-primary">{inv.number}</p>
         <p className="text-sm text-ib-muted">{inv.customer || "—"}</p>
       </div>
-      <div className="text-right">
-        <p className="font-semibold">{formatCurrency(inv.total)}</p>
-        <div className="mt-1">{getStatusBadge(inv.status)}</div>
+      <div className="flex items-center gap-3">
+        <div className="text-right">
+          <p className="font-semibold">{formatCurrency(inv.total)}</p>
+          <div className="mt-1">{getStatusBadge(inv.status)}</div>
+        </div>
+        {(inv.status === "sent" || inv.status === "overdue") && (
+          <button onClick={() => markAsPaid(inv)} className="p-2 bg-green-50 text-green-700 border border-green-200 rounded-lg">
+            <CheckCircle className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </div>
   );

@@ -17,7 +17,7 @@ export async function GET() {
         totalExpenses: 0, monthExpenses: 0, pendingQuotes: 0, pendingQuotesTotal: 0,
         activeEmployees: 0, vacationPending: 0, averageSaleValue: 0,
         conversionRate: 0, totalOpportunities: 0, wonOpportunities: 0,
-        recentExpenses: [], topProducts: [],
+        recentExpenses: [], topProducts: [], totalIncome: 0, totalExpense: 0, balance: 0,
       });
     }
 
@@ -38,7 +38,7 @@ export async function GET() {
       totalExpensesAgg, monthExpensesAgg, pendingQuotesAgg,
       activeEmployeesCount, vacationPendingCount,
       totalOppsAgg, wonOppsAgg, recentExpenses,
-      topProductsData,
+      topProductsData, incomeAgg, expenseAgg,
     ] = await Promise.all([
       prisma.sale.aggregate({ where: { companyId: user.companyId }, _sum: { total: true } }),
       prisma.sale.aggregate({ where: { companyId: user.companyId, date: { gte: today } }, _sum: { total: true } }),
@@ -100,6 +100,8 @@ export async function GET() {
         orderBy: { total: "desc" },
         take: 5,
       }),
+      prisma.transaction.aggregate({ where: { companyId: user.companyId, type: "income" }, _sum: { amount: true } }),
+      prisma.transaction.aggregate({ where: { companyId: user.companyId, type: "expense" }, _sum: { amount: true } }),
     ]);
 
     const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
@@ -171,6 +173,9 @@ export async function GET() {
       wonOpportunities: wonOppCount,
       recentExpenses,
       topProducts,
+      totalIncome: incomeAgg._sum.amount || 0,
+      totalExpense: expenseAgg._sum.amount || 0,
+      balance: (incomeAgg._sum.amount || 0) - (expenseAgg._sum.amount || 0),
     });
   } catch {
     return NextResponse.json({ error: "Erro ao carregar dashboard." }, { status: 500 });

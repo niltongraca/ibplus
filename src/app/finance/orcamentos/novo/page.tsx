@@ -2,14 +2,27 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, ArrowLeft, Save, Wrench } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
+import { CatalogPicker } from "@/components/finance/CatalogPicker";
 
 interface LineItem {
   description: string;
   quantity: number;
   unitPrice: number;
+}
+
+interface Customer {
+  id: string;
+  name: string;
+}
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  stock?: number | null;
 }
 
 interface Service {
@@ -20,6 +33,8 @@ interface Service {
 
 export default function NovoOrcamentoPage() {
   const router = useRouter();
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [customer, setCustomer] = useState("");
   const [validUntil, setValidUntil] = useState("");
@@ -29,7 +44,17 @@ export default function NovoOrcamentoPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("/api/services").then(r => r.json()).then(d => setServices(d.services || [])).catch((err) => console.error("Erro ao carregar serviços:", err));
+    Promise.all([
+      fetch("/api/customers?limit=1000").then((r) => r.json()),
+      fetch("/api/products?limit=1000").then((r) => r.json()),
+      fetch("/api/services?limit=1000").then((r) => r.json()),
+    ])
+      .then(([c, p, s]) => {
+        setCustomers(c.customers || []);
+        setProducts(p.products || []);
+        setServices(s.services || []);
+      })
+      .catch((err) => console.error("Erro ao carregar dados:", err));
   }, []);
 
   const addItem = () => setItems([...items, { description: "", quantity: 1, unitPrice: 0 }]);
@@ -45,8 +70,8 @@ export default function NovoOrcamentoPage() {
     setItems(updated);
   };
 
-  const addService = (service: Service) => {
-    setItems([...items, { description: service.name, quantity: 1, unitPrice: service.price }]);
+  const addFromCatalog = (entry: { name: string; price: number }) => {
+    setItems([...items, { description: entry.name, quantity: 1, unitPrice: entry.price }]);
   };
 
   const total = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
@@ -106,9 +131,15 @@ export default function NovoOrcamentoPage() {
                 type="text"
                 value={customer}
                 onChange={(e) => setCustomer(e.target.value)}
-                placeholder="Nome do cliente"
+                list="clientes-list"
+                placeholder="Selecione ou digite o nome do cliente"
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40"
               />
+              <datalist id="clientes-list">
+                {customers.map((c) => (
+                  <option key={c.id} value={c.name} />
+                ))}
+              </datalist>
             </div>
             <div>
               <label className="block text-sm font-medium text-ib-primary mb-1">Validade</label>
@@ -125,21 +156,8 @@ export default function NovoOrcamentoPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-ib-primary">Itens</h2>
-            <div className="flex items-center gap-2">
-              {services.length > 0 && (
-                <div className="relative group">
-                  <button type="button" className="flex items-center gap-1.5 text-sm text-ib-accent hover:text-blue-700 font-medium">
-                    <Wrench className="w-4 h-4" /> Serviços
-                  </button>
-                  <div className="absolute right-0 top-full mt-1 w-64 bg-white border border-gray-200 rounded-xl shadow-lg py-2 hidden group-hover:block z-10">
-                    {services.map((s) => (
-                      <button key={s.id} type="button" onClick={() => addService(s)} className="block w-full text-left px-4 py-2 text-sm text-ib-muted hover:text-ib-primary hover:bg-gray-50">
-                        {s.name} — {formatCurrency(s.price)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+            <div className="flex items-center gap-3">
+              <CatalogPicker products={products} services={services} onSelect={addFromCatalog} />
               <button type="button" onClick={addItem} className="flex items-center gap-1.5 text-sm text-ib-accent hover:text-blue-700 font-medium">
                 <Plus className="w-4 h-4" /> Adicionar Item
               </button>

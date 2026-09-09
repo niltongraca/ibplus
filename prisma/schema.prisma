@@ -173,6 +173,8 @@ model Company {
   quotes              Quote[]
   notifications       Notification[]
   auditLogs           AuditLog[]
+  transactions        Transaction[]
+  reports             Report[]
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 }
@@ -570,6 +572,42 @@ model AuditLog {
   details   String?
   createdAt DateTime @default(now())
 
+  @@index([companyId])
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  type        String
+  description String
+  amount      Float
+  refType     String?
+  refId       String?
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([companyId])
+  @@index([refType, refId])
+}
+
+model Report {
+  id           String   @id @default(cuid())
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id])
+  period       String
+  periodKey    String
+  label        String
+  data         Json?
+  totalRevenue Float    @default(0)
+  totalExpenses Float   @default(0)
+  netResult    Float    @default(0)
+  totalSales   Int      @default(0)
+  invoicesPaid Int      @default(0)
+  invoicesPaidTotal Float @default(0)
+  createdAt    DateTime @default(now())
+
+  @@unique([companyId, period, periodKey])
   @@index([companyId])
 }
 
