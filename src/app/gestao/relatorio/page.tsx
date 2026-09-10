@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { TrendingUp, TrendingDown, DollarSign, Download, Printer, ShoppingCart, ReceiptText, FileDown, Wallet, BarChart3 } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, Download, Printer, ShoppingCart, ReceiptText, FileDown, Wallet, BarChart3, Users, Package, ChevronDown, ChevronUp } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { jsonToCsv, downloadCsv } from "@/lib/csv";
 import { ChartsWidget } from "@/dashboard/widgets/ChartsWidget";
@@ -30,14 +30,45 @@ interface ReportPageData {
   balance: number;
 }
 
+interface ItemStat {
+  name: string;
+  kind: string;
+  times: number;
+  quantity: number;
+  revenue: number;
+  customerCount: number;
+  customers: string[];
+}
+
+interface CustomerStat {
+  label: string;
+  spent: number;
+  orders: number;
+  itemCount: number;
+  items: { name: string; quantity: number; revenue: number }[];
+}
+
 export default function RelatorioPage() {
   const [data, setData] = useState<ReportPageData | null>(null);
+  const [analytics, setAnalytics] = useState<{ items: ItemStat[]; customers: CustomerStat[] } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+
+  const toggleItem = (name: string) => {
+    setExpandedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
 
   useEffect(() => {
-    fetch("/api/dashboard")
-      .then((r) => r.json())
-      .then(setData)
+    Promise.all([fetch("/api/dashboard").then((r) => r.json()), fetch("/api/reports/analytics").then((r) => r.json())])
+      .then(([d, a]) => {
+        setData(d);
+        setAnalytics({ items: a.items || [], customers: a.customers || [] });
+      })
       .catch((err) => console.error("Erro ao carregar relatório:", err))
       .finally(() => setLoading(false));
   }, []);
@@ -80,6 +111,16 @@ export default function RelatorioPage() {
       jsonToCsv(
         (d.recentExpenses || []).map((e) => ({ description: e.description, category: e.category, date: formatDate(e.date), amount: e.amount })),
         { description: "Descrição", category: "Categoria", date: "Data", amount: "Valor" }
+      ) +
+      "\r\n\r\n" +
+      jsonToCsv(
+        (analytics?.items || []).map((i) => ({ name: i.name, kind: i.kind, times: i.times, quantity: i.quantity, revenue: i.revenue, customers: i.customerCount, customerList: i.customers.join("; ") })),
+        { name: "Produto/Serviço", kind: "Tipo", times: "N.º Vezes", quantity: "Quantidade", revenue: "Receita (Kz)", customers: "N.º Clientes", customerList: "Clientes" }
+      ) +
+      "\r\n\r\n" +
+      jsonToCsv(
+        (analytics?.customers || []).map((c) => ({ label: c.label, spent: c.spent, orders: c.orders, items: c.itemCount, details: c.items.map((i) => `${i.name} (x${i.quantity})`).join("; ") })),
+        { label: "Cliente", spent: "Total Gasto", orders: "N.º Compras", items: "Itens Distintos", details: "Produtos/Serviços" }
       );
     downloadCsv(csv, `relatorio-${new Date().toISOString().slice(0, 10)}`);
   }
@@ -157,6 +198,125 @@ export default function RelatorioPage() {
                   <span className="text-sm font-semibold text-red-500">{formatCurrency(e.amount)}</span>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6 mb-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-5 print:break-inside-avoid">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+              <Package className="w-4 h-4 text-blue-600" />
+              Serviços / Produtos Mais Solicitados
+            </h3>
+          </div>
+          {!analytics || analytics.items.length === 0 ? (
+            <p className="text-sm text-ib-muted py-8 text-center">Sem dados de vendas ou faturas.</p>
+          ) : (
+            <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+              {analytics.items.map((item, idx) => {
+                const isOpen = expandedItems.has(item.name);
+                return (
+                  <div key={idx} className="rounded-lg border border-gray-100 overflow-hidden">
+                    <div className="flex items-center gap-3">
+                      <span className="w-8 h-8 shrink-0 flex items-center justify-center rounded-lg font-semibold text-sm text-gray-600 bg-gray-100">
+                        {idx + 1}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-gray-800 truncate">{item.name}</p>
+                          <span className={`shrink-0 text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded-full font-semibold ${
+                            item.kind === "serviço" ? "bg-purple-50 text-purple-700"
+                            : item.kind === "produto" ? "bg-blue-50 text-blue-700"
+                            : "bg-gray-100 text-gray-600"
+                          }`}>
+                            {item.kind}
+                          </span>
+                        </div>
+                        <p className="text-xs text-ib-muted">
+                          {item.times} {item.times === 1 ? "solicitação" : "solicitações"} • {item.customerCount} {item.customerCount === 1 ? "cliente" : "clientes"}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-sm font-bold text-green-600">{formatCurrency(item.revenue)}</p>
+                        <button onClick={() => toggleItem(item.name)} className="mt-1 inline-flex items-center gap-0.5 text-[11px] text-ib-accent hover:underline">
+                          {isOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                          {isOpen ? "Fechar" : "Quem pediu"}
+                        </button>
+                      </div>
+                    </div>
+                    {isOpen && (
+                      <div className="px-4 pt-3 pb-3 border-t border-gray-50 bg-gray-50/40">
+                        <p className="text-[11px] text-ib-muted mb-2">Quem solicitou ({item.customerCount}):</p>
+                        {item.customers.length === 0 ? (
+                          <p className="text-xs text-ib-muted">Sem clientes registados.</p>
+                        ) : (
+                          <div className="flex flex-wrap gap-1.5">
+                            {item.customers.map((c, ci) => (
+                              <span key={ci} className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-white border border-gray-200 text-gray-700">
+                                <Users className="w-3 h-3 text-ib-muted" /> {c}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-5 print:break-inside-avoid">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+              <Users className="w-4 h-4 text-purple-600" />
+              Gasto por Cliente
+            </h3>
+          </div>
+          {!analytics || analytics.customers.length === 0 ? (
+            <p className="text-sm text-ib-muted py-8 text-center">Sem dados de vendas ou faturas.</p>
+          ) : (
+            <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+              {analytics.customers.map((c, ci) => {
+                const isOpen = expandedItems.has(c.label);
+                return (
+                  <div key={ci} className="rounded-lg border border-gray-100 overflow-hidden">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-800 truncate">{c.label}</p>
+                        <p className="text-xs text-ib-muted">{c.orders} {c.orders === 1 ? "compra" : "compras"} • {c.itemCount} {c.itemCount === 1 ? "serviço/produto" : "serviços/produtos"}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-sm font-bold text-green-600">{formatCurrency(c.spent)}</p>
+                        <button onClick={() => toggleItem(c.label)} className="mt-1 inline-flex items-center gap-0.5 text-[11px] text-ib-accent hover:underline">
+                          {isOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                          {isOpen ? "Fechar" : "O que pediu"}
+                        </button>
+                      </div>
+                    </div>
+                    {isOpen && (
+                      <div className="px-4 pt-3 pb-3 border-t border-gray-50 bg-gray-50/40">
+                        <p className="text-[11px] text-ib-muted mb-2">Serviços / produtos (para {formatCurrency(c.spent)}):</p>
+                        {c.items.length === 0 ? (
+                          <p className="text-xs text-ib-muted">Sem itens registados.</p>
+                        ) : (
+                          <ul className="space-y-1">
+                            {c.items.map((it, ii) => (
+                              <li key={ii} className="flex items-center justify-between text-xs">
+                                <span className="text-gray-700">{it.name} <span className="text-ib-muted">x{it.quantity}</span></span>
+                                <span className="font-semibold text-gray-800">{formatCurrency(it.revenue)}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
