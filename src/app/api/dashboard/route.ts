@@ -13,7 +13,7 @@ export async function GET() {
         pendingInvoices: 0, pendingInvoicesTotal: 0, productsLowStock: 0,
         recentSales: [], recentClients: [], totalEmployees: 0, totalServices: 0,
         lowStockProducts: [], totalDonations: 0, donationTotal: 0, totalStudents: 0,
-        activeCampaigns: 0, totalSales: 0, monthlySales: [], categorySales: [],
+        activeCampaigns: 0, totalSales: 0, monthlySales: [], monthlyFunds: [], categorySales: [],
         totalExpenses: 0, monthExpenses: 0, pendingQuotes: 0, pendingQuotesTotal: 0,
         activeEmployees: 0, vacationPending: 0, averageSaleValue: 0,
         conversionRate: 0, totalOpportunities: 0, wonOpportunities: 0,
@@ -34,7 +34,7 @@ export async function GET() {
       pendingInvoicesAgg, productsLow, recentSales,
       recentClients, totalEmployees, totalServices,
       lowStock, totalDonationsAgg, activeCampaigns,
-      totalStudents, sales6Months, salesWithItems, totalSalesCount,
+      totalStudents, sales6Months, transactions6Months, salesWithItems, totalSalesCount,
       totalExpensesAgg, monthExpensesAgg, pendingQuotesAgg,
       activeEmployeesCount, vacationPendingCount,
       totalOppsAgg, wonOppsAgg, recentExpenses,
@@ -77,6 +77,11 @@ export async function GET() {
         select: { total: true, date: true },
         orderBy: { date: "asc" },
       }),
+      prisma.transaction.findMany({
+        where: { companyId: user.companyId, date: { gte: sixMonthsAgo } },
+        select: { type: true, amount: true, date: true },
+        orderBy: { date: "asc" },
+      }),
       prisma.saleItem.findMany({
         where: { sale: { companyId: user.companyId, date: { gte: sixMonthsAgo } } },
         include: { product: { include: { category: { select: { name: true } } } } },
@@ -113,9 +118,32 @@ export async function GET() {
       existing.count++;
       monthlyMap.set(key, existing);
     }
-    const monthlySales = Array.from(monthlyMap.entries()).map(([key, val]) => {
-      const [y, m] = key.split("-");
-      return { month: `${monthNames[parseInt(m) - 1]}/${y?.slice(2)}`, total: val.total, count: val.count };
+
+    const fundMap = new Map<string, { income: number; expense: number }>();
+    for (const t of transactions6Months) {
+      const key = `${t.date.getFullYear()}-${String(t.date.getMonth() + 1).padStart(2, "0")}`;
+      const existing = fundMap.get(key) || { income: 0, expense: 0 };
+      if (t.type === "income") existing.income += t.amount;
+      else existing.expense += t.amount;
+      fundMap.set(key, existing);
+    }
+
+    const now = new Date();
+    const months: { key: string; month: string }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      months.push({ key, month: `${monthNames[d.getMonth()]}/${String(d.getFullYear()).slice(2)}` });
+    }
+
+    const monthlySales = months.map(({ key, month }) => {
+      const val = monthlyMap.get(key) || { total: 0, count: 0 };
+      return { month, total: val.total, count: val.count };
+    });
+
+    const monthlyFunds = months.map(({ key, month }) => {
+      const val = fundMap.get(key) || { income: 0, expense: 0 };
+      return { month, income: val.income, expense: val.expense, balance: val.income - val.expense };
     });
 
     const categoryMap = new Map<string, number>();
@@ -160,6 +188,7 @@ export async function GET() {
       activeCampaigns,
       totalSales: totalSalesCount,
       monthlySales,
+      monthlyFunds,
       categorySales,
       totalExpenses: totalExpensesAgg._sum.amount || 0,
       monthExpenses: monthExpensesAgg._sum.amount || 0,

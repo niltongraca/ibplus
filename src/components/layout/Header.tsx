@@ -9,6 +9,7 @@ import NotificationBell from "@/components/NotificationBell";
 
 const pageNames: Record<string, string> = {
   "gestao/dashboard": "Dashboard",
+  "gestao/relatorio": "Relatório",
   "gestao/clientes": "Clientes",
   "gestao/produtos": "Produtos",
   "gestao/servicos": "Serviços",

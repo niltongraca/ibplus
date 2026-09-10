@@ -39,6 +39,7 @@ const CONFIG = "Configurações";
 
 const dashboardItem: SidebarItem = { label: "Dashboard", icon: LayoutDashboard, href: "/gestao/dashboard" };
 const perfilItem: SidebarItem = { label: "Perfil", icon: Settings, href: "/gestao/perfil" };
+const relatorioItem: SidebarItem = { label: "Relatório", icon: BarChart3, href: "/gestao/relatorio" };
 
 const SIDEBAR_CONFIG: Record<string, SidebarGroup[]> = {
   EMPREENDEDOR: [
@@ -46,6 +47,7 @@ const SIDEBAR_CONFIG: Record<string, SidebarGroup[]> = {
       name: GESTAO,
       items: [
         dashboardItem,
+        relatorioItem,
         { label: "Clientes", icon: Users, href: "/gestao/clientes" },
         { label: "Serviços", icon: FileText, href: "/gestao/servicos" },
         { label: "Vendas", icon: DollarSign, href: "/gestao/vendas" },
@@ -65,6 +67,7 @@ const SIDEBAR_CONFIG: Record<string, SidebarGroup[]> = {
       name: GESTAO,
       items: [
         dashboardItem,
+        relatorioItem,
         { label: "Clientes", icon: Users, href: "/gestao/clientes" },
         { label: "Produtos", icon: Package, href: "/gestao/produtos" },
         { label: "Serviços", icon: FileText, href: "/gestao/servicos" },
@@ -116,6 +119,7 @@ const SIDEBAR_CONFIG: Record<string, SidebarGroup[]> = {
       name: GESTAO,
       items: [
         dashboardItem,
+        relatorioItem,
         { label: "Beneficiários", icon: Users, href: "/gestao/clientes" },
         { label: "Doações", icon: Gift, href: "/gestao/vendas" },
       ],
@@ -140,6 +144,7 @@ const SIDEBAR_CONFIG: Record<string, SidebarGroup[]> = {
       name: GESTAO,
       items: [
         dashboardItem,
+        relatorioItem,
         { label: "Associados", icon: Users, href: "/gestao/clientes" },
       ],
     },
@@ -157,6 +162,7 @@ const SIDEBAR_CONFIG: Record<string, SidebarGroup[]> = {
       name: GESTAO,
       items: [
         dashboardItem,
+        relatorioItem,
         { label: "Alunos", icon: GraduationCap, href: "/educacao/alunos" },
       ],
     },
@@ -174,6 +180,7 @@ const SIDEBAR_CONFIG: Record<string, SidebarGroup[]> = {
       name: GESTAO,
       items: [
         dashboardItem,
+        relatorioItem,
         { label: "Cooperados", icon: Users, href: "/gestao/clientes" },
         { label: "Produtos", icon: Package, href: "/gestao/produtos" },
         { label: "Stock", icon: Warehouse, href: "/gestao/stock" },

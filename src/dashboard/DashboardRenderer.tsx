@@ -37,6 +37,7 @@ export interface DashboardData {
   activeCampaigns: number;
   totalSales: number;
   monthlySales?: { month: string; total: number; count: number }[];
+  monthlyFunds?: { month: string; income: number; expense: number; balance: number }[];
   categorySales?: { name: string; value: number }[];
   totalExpenses: number;
   monthExpenses: number;
