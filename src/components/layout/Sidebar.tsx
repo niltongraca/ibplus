@@ -85,9 +85,6 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         <aside className="glass-sidebar hidden md:flex fixed left-0 top-0 z-40 h-screen w-60 lg:w-64 xl:w-[280px] flex-col">
         <div className="flex items-center justify-between px-4 lg:px-6 py-5 border-b border-[var(--border-color)] shrink-0">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-ib-accent font-bold text-lg text-white">
-              IB
-            </div>
             <span className="font-semibold text-lg tracking-tight" style={{ color: "var(--text-primary)" }}>
               IBPlus<sup className="text-ib-accent font-bold">+</sup>
             </span>
@@ -110,9 +107,6 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           >
             <div className="flex items-center justify-between px-4 py-5 border-b border-[var(--border-color)] shrink-0">
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-ib-accent font-bold text-lg text-white">
-                  IB
-                </div>
                 <span className="font-semibold text-lg tracking-tight" style={{ color: "var(--text-primary)" }}>
                   IBPlus<sup className="text-ib-accent font-bold">+</sup>
                 </span>
