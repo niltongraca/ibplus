@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus, Search, ShoppingCart, Trash2 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 import { useToast } from "@/components/Toast";
 import { useConfirm } from "@/components/ConfirmModal";
 import Pagination from "@/components/Pagination";
+import { useList } from "@/hooks/useList";
 import Link from "next/link";
 
 interface Purchase {
@@ -18,20 +19,12 @@ interface Purchase {
 }
 
 export default function ComprasPage() {
-  const [purchases, setPurchases] = useState<Purchase[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: purchases, setData: setPurchases, loading, page, setPage, totalPages } = useList<Purchase>(
+    "/api/purchases",
+    "purchases",
+    { limit: 20 }
+  );
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-
-  useEffect(() => {
-    setLoading(true);
-    fetch(`/api/purchases?page=${page}&limit=20`)
-      .then((r) => r.json())
-      .then((d) => { setPurchases(d.purchases || []); setTotalPages(d.totalPages || 1); })
-      .catch((err) => console.error("Erro ao carregar compras:", err))
-      .finally(() => setLoading(false));
-  }, [page]);
 
   const filtered = purchases.filter((p) =>
     (p.supplier || "").toLowerCase().includes(search.toLowerCase())

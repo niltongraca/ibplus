@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Sun, Search, Plus, Calendar, CheckCircle, XCircle, Clock, MoreHorizontal } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
+import { useList } from "@/hooks/useList";
 
 interface Employee {
   id: string;
@@ -32,9 +33,8 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function FeriasPage() {
-  const [vacations, setVacations] = useState<Vacation[]>([]);
+  const { data: vacations, setData: setVacations, loading } = useList<Vacation>("/api/vacations", "vacations");
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [formError, setFormError] = useState("");
@@ -42,13 +42,10 @@ export default function FeriasPage() {
   const [form, setForm] = useState({ employeeId: "", startDate: "", endDate: "", notes: "" });
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/vacations").then((r) => r.json()),
-      fetch("/api/employees").then((r) => r.json()),
-    ]).then(([vData, eData]) => {
-      setVacations(vData.vacations || []);
-      setEmployees(eData.employees || []);
-    }).catch((err) => console.error("Erro ao carregar férias:", err)).finally(() => setLoading(false));
+    fetch("/api/employees")
+      .then((r) => r.json())
+      .then((eData) => setEmployees(eData.employees || []))
+      .catch((err) => console.error("Erro ao carregar férias:", err));
   }, []);
 
   const filtered = vacations.filter((v) =>

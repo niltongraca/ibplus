@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FileText, Search, Plus, Calendar, Download, MoreHorizontal } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
+import { useList } from "@/hooks/useList";
 
 interface QuoteItem {
   id: string;
@@ -38,20 +39,11 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function PropostasPage() {
-  const [quotes, setQuotes] = useState<Quote[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: quotes, setData: setQuotes, loading } = useList<Quote>("/api/quotes", "quotes");
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ customer: "", validUntil: "", notes: "", itemDesc: "", itemQty: "1", itemPrice: "" });
   const [items, setItems] = useState<{ description: string; quantity: number; unitPrice: number }[]>([]);
-
-  useEffect(() => {
-    fetch("/api/quotes")
-      .then((r) => r.json())
-      .then((d) => setQuotes(d.quotes))
-      .catch((err) => console.error("Erro ao carregar propostas:", err))
-      .finally(() => setLoading(false));
-  }, []);
 
   const filtered = quotes.filter((q) =>
     (q.customer || q.number).toLowerCase().includes(search.toLowerCase())

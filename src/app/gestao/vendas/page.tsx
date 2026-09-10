@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus, Search, DollarSign, Download, XCircle } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 import { ClearInput } from "@/components/ui/ClearInput";
 import { jsonToCsv, downloadCsv } from "@/lib/csv";
 import Pagination from "@/components/Pagination";
+import { useList } from "@/hooks/useList";
 import Link from "next/link";
 
 interface Sale {
@@ -19,23 +20,14 @@ interface Sale {
 }
 
 export default function VendasPage() {
-  const [sales, setSales] = useState<Sale[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: sales, setData: setSales, loading, page, setPage, totalPages } = useList<Sale>(
+    "/api/sales",
+    "sales",
+    { limit: 20 }
+  );
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    setLoading(true);
-    fetch(`/api/sales?page=${page}&limit=20`)
-      .then((r) => r.json())
-      .then((d) => { setSales(d.sales || []); setTotalPages(d.totalPages || 1); setTotal(d.total || 0); })
-      .catch((err) => console.error("Erro ao carregar vendas:", err))
-      .finally(() => setLoading(false));
-  }, [page]);
 
   async function cancelSale(id: string) {
     if (!window.confirm("Tens a certeza que queres cancelar esta venda? O stock será reposto.")) return;

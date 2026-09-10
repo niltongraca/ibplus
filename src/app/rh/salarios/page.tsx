@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { DollarSign, Users, TrendingUp } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
+import { useList } from "@/hooks/useList";
 
 interface Employee {
   id: string;
@@ -13,16 +13,7 @@ interface Employee {
 }
 
 export default function SalariosPage() {
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/employees")
-      .then((r) => r.json())
-      .then((d) => setEmployees(d.employees))
-      .catch((err) => console.error("Erro ao carregar salários:", err))
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: employees, loading } = useList<Employee>("/api/employees", "employees");
 
   const totalSalaries = employees.reduce((sum, e) => sum + e.salary, 0);
   const avgSalary = employees.length > 0 ? totalSalaries / employees.length : 0;

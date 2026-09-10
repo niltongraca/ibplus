@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { CreditCard, Search } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
+import { useList } from "@/hooks/useList";
 
 interface Invoice {
   id: string;
@@ -15,17 +16,8 @@ interface Invoice {
 }
 
 export default function PagamentosStorePage() {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: invoices, loading } = useList<Invoice>("/api/invoices", "invoices");
   const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    fetch("/api/invoices")
-      .then((r) => r.json())
-      .then((d) => setInvoices(d.invoices))
-      .catch((err) => console.error("Erro ao carregar pagamentos:", err))
-      .finally(() => setLoading(false));
-  }, []);
 
   const filtered = invoices.filter((inv) =>
     (inv.number + " " + (inv.customer || "")).toLowerCase().includes(search.toLowerCase())

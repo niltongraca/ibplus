@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus, Search, Edit3, Trash2, Users } from "lucide-react";
 import { DataTable } from "@/components/ui/DataTable";
 import { ClearInput } from "@/components/ui/ClearInput";
@@ -9,6 +9,7 @@ import { useConfirm } from "@/components/ConfirmModal";
 import { CardSkeleton } from "@/components/Skeleton";
 import EmptyState from "@/components/EmptyState";
 import Pagination from "@/components/Pagination";
+import { useList } from "@/hooks/useList";
 import Link from "next/link";
 
 interface Customer {
@@ -23,20 +24,12 @@ interface Customer {
 export default function ClientesPage() {
   const { toast } = useToast();
   const { confirm } = useConfirm();
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: customers, setData: setCustomers, loading, page, setPage, totalPages } = useList<Customer>(
+    "/api/customers",
+    "customers",
+    { limit: 20 }
+  );
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-
-  useEffect(() => {
-    setLoading(true);
-    fetch(`/api/customers?page=${page}&limit=20`)
-      .then((r) => r.json())
-      .then((d) => { setCustomers(d.customers || d.data || []); setTotalPages(d.totalPages || 1); })
-      .catch((err) => console.error("Erro ao carregar clientes:", err))
-      .finally(() => setLoading(false));
-  }, [page]);
 
   async function handleDelete(id: string) {
     if (!(await confirm({ title: "Eliminar cliente", message: "Tem a certeza que deseja eliminar este cliente?", variant: "danger" }))) return;

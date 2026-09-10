@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Clock, Search, Plus, CheckCircle, XCircle, AlertTriangle, MoreHorizontal } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
+import { useList } from "@/hooks/useList";
 
 interface Employee {
   id: string;
@@ -34,9 +35,8 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function PresencasPage() {
-  const [attendances, setAttendances] = useState<Attendance[]>([]);
+  const { data: attendances, setData: setAttendances, loading } = useList<Attendance>("/api/attendance", "attendances");
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [formError, setFormError] = useState("");
@@ -44,13 +44,10 @@ export default function PresencasPage() {
   const [form, setForm] = useState({ employeeId: "", date: "", checkIn: "", checkOut: "", status: "present", notes: "" });
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/attendance").then((r) => r.json()),
-      fetch("/api/employees").then((r) => r.json()),
-    ]).then(([aData, eData]) => {
-      setAttendances(aData.attendances || []);
-      setEmployees(eData.employees || []);
-    }).catch((err) => console.error("Erro ao carregar presenças:", err)).finally(() => setLoading(false));
+    fetch("/api/employees")
+      .then((r) => r.json())
+      .then((eData) => setEmployees(eData.employees || []))
+      .catch((err) => console.error("Erro ao carregar presenças:", err));
   }, []);
 
   const filtered = attendances.filter((a) =>

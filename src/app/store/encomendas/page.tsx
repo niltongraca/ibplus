@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Package, Search } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
+import { useList } from "@/hooks/useList";
 
 interface Sale {
   id: string;
@@ -14,17 +15,8 @@ interface Sale {
 }
 
 export default function EncomendasPage() {
-  const [sales, setSales] = useState<Sale[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: sales, loading } = useList<Sale>("/api/sales", "sales");
   const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    fetch("/api/sales")
-      .then((r) => r.json())
-      .then((d) => setSales(d.sales))
-      .catch((err) => console.error("Erro ao carregar encomendas:", err))
-      .finally(() => setLoading(false));
-  }, []);
 
   const filtered = sales.filter((s) =>
     (s.customer?.name || "").toLowerCase().includes(search.toLowerCase())

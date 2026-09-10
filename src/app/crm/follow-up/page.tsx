@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { MessageSquare, Search, Plus, Phone, Mail, UserCheck, Calendar, MoreHorizontal } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
+import { useList } from "@/hooks/useList";
 
 interface Customer {
   id: string;
@@ -14,20 +15,11 @@ interface Customer {
 }
 
 export default function FollowUpPage() {
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: customers, loading } = useList<Customer>("/api/customers", "customers");
   const [search, setSearch] = useState("");
   const [followUps, setFollowUps] = useState<Record<string, { date: string; note: string }[]>>({});
   const [showForm, setShowForm] = useState<string | null>(null);
   const [formNote, setFormNote] = useState("");
-
-  useEffect(() => {
-    fetch("/api/customers")
-      .then((r) => r.json())
-      .then((d) => setCustomers(d.customers || []))
-      .catch((err) => console.error("Erro ao carregar follow-up:", err))
-      .finally(() => setLoading(false));
-  }, []);
 
   const filtered = customers.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase())

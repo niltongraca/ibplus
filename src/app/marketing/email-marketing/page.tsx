@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Mail, Search, Plus, Calendar, Send, MoreHorizontal } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
+import { useList } from "@/hooks/useList";
 
 interface Campaign {
   id: string;
@@ -28,19 +29,11 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function EmailMarketingPage() {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: allCampaigns, setData: setCampaigns, loading } = useList<Campaign>("/api/campaigns", "campaigns");
+  const campaigns = allCampaigns.filter((c) => c.type === "email");
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", status: "draft", startDate: "", notes: "" });
-
-  useEffect(() => {
-    fetch("/api/campaigns")
-      .then((r) => r.json())
-      .then((d) => setCampaigns((d.campaigns || []).filter((c: Campaign) => c.type === "email")))
-      .catch((err) => console.error("Erro ao carregar email marketing:", err))
-      .finally(() => setLoading(false));
-  }, []);
 
   const filtered = campaigns.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase())

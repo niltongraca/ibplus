@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { DataTable } from "@/components/ui/DataTable";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Search, FileText } from "lucide-react";
 import { AnimatedTabs } from "@/components/ui/transitions/AnimatedTabs";
+import { useList } from "@/hooks/useList";
 
 interface Expense {
   id: string;
@@ -24,18 +25,9 @@ const tabs: { key: FilterTab; label: string }[] = [
 ];
 
 export default function ContasPagarPage() {
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: expenses, setData: setExpenses, loading } = useList<Expense>("/api/expenses", "expenses");
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
-
-  useEffect(() => {
-    fetch("/api/expenses")
-      .then((r) => r.json())
-      .then((d) => setExpenses(d.expenses))
-      .catch((err) => console.error("Erro ao carregar contas a pagar:", err))
-      .finally(() => setLoading(false));
-  }, []);
 
   const searched = expenses.filter((exp) =>
     exp.description.toLowerCase().includes(search.toLowerCase())

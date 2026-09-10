@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { DataTable } from "@/components/ui/DataTable";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Search, FileText, CheckCircle } from "lucide-react";
+import { useList } from "@/hooks/useList";
 
 interface Invoice {
   id: string;
@@ -24,18 +25,9 @@ const tabs: { key: FilterTab; label: string }[] = [
 ];
 
 export default function CobrancasPage() {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: invoices, setData: setInvoices, loading } = useList<Invoice>("/api/invoices", "invoices");
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
-
-  useEffect(() => {
-    fetch("/api/invoices")
-      .then((r) => r.json())
-      .then((d) => setInvoices(d.invoices))
-      .catch((err) => console.error("Erro ao carregar cobranças:", err))
-      .finally(() => setLoading(false));
-  }, []);
 
   const searched = invoices.filter((inv) =>
     (inv.number + " " + (inv.customer || "")).toLowerCase().includes(search.toLowerCase())
