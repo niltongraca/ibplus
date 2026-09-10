@@ -38,7 +38,7 @@ export default function FunilVendasPage() {
       .finally(() => setLoading(false));
     fetch("/api/customers")
       .then((r) => r.json())
-      .then((d) => setCustomers((d.customers || []).map((c: any) => ({ id: c.id, name: c.name }))))
+      .then((d) => setCustomers((d.customers || []).map((c: { id: string; name: string }) => ({ id: c.id, name: c.name }))))
       .catch(() => {});
   }, []);
 

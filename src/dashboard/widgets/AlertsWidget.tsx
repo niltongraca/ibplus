@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertTriangle, Clock, FileText, PackageX } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
 import type { DashboardData } from "../DashboardRenderer";
@@ -8,7 +9,7 @@ import type { DashboardData } from "../DashboardRenderer";
 export function AlertsWidget({ data }: { data: DashboardData | null }) {
   if (!data) return null;
 
-  const alerts: { icon: any; label: string; value: string; href: string; box: string; iconColor: string }[] = [];
+  const alerts: { icon: LucideIcon; label: string; value: string; href: string; box: string; iconColor: string }[] = [];
 
   if (data.lowStockProducts.length > 0) {
     alerts.push({

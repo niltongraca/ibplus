@@ -12,6 +12,20 @@ interface CashFlowItem {
   date: string;
 }
 
+interface Sale {
+  id: string;
+  date: string;
+  total: number;
+  customer: { name: string } | null;
+}
+
+interface Expense {
+  id: string;
+  date: string;
+  amount: number;
+  description: string;
+}
+
 export default function FluxoCaixaPage() {
   const [revenue, setRevenue] = useState(0);
   const [expenses, setExpenses] = useState(0);
@@ -23,16 +37,16 @@ export default function FluxoCaixaPage() {
       fetch("/api/sales").then((r) => r.json()),
       fetch("/api/expenses").then((r) => r.json()),
     ]).then(([salesData, expensesData]) => {
-      const sales = salesData.sales || [];
-      const exps = expensesData.expenses || [];
-      const totalRevenue = sales.reduce((s: number, sale: any) => s + sale.total, 0);
-      const totalExpenses = exps.reduce((s: number, exp: any) => s + exp.amount, 0);
+      const sales = (salesData.sales || []) as Sale[];
+      const exps = (expensesData.expenses || []) as Expense[];
+      const totalRevenue = sales.reduce((s: number, sale: Sale) => s + sale.total, 0);
+      const totalExpenses = exps.reduce((s: number, exp: Expense) => s + exp.amount, 0);
       setRevenue(totalRevenue);
       setExpenses(totalExpenses);
 
       const mapped: CashFlowItem[] = [
-        ...sales.map((s: any) => ({ id: s.id, type: "receita" as const, description: `Venda - ${s.customer?.name || "Cliente"}`, amount: s.total, date: s.date })),
-        ...exps.map((e: any) => ({ id: e.id, type: "despesa" as const, description: e.description, amount: e.amount, date: e.date })),
+        ...sales.map((s: Sale) => ({ id: s.id, type: "receita" as const, description: `Venda - ${s.customer?.name || "Cliente"}`, amount: s.total, date: s.date })),
+        ...exps.map((e: Expense) => ({ id: e.id, type: "despesa" as const, description: e.description, amount: e.amount, date: e.date })),
       ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
       setItems(mapped);

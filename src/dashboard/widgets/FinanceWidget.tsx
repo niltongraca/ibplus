@@ -1,6 +1,7 @@
 "use client";
 
 import { TrendingUp, TrendingDown, Wallet, FileText } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
 
@@ -48,7 +49,7 @@ export function FinanceWidget({ data }: { data: FinanceData | null }) {
 }
 
 function FinanceRow({ icon: Icon, label, value, color, bold }: {
-  icon: any; label: string; value: string; color: string; bold?: boolean;
+  icon: LucideIcon; label: string; value: string; color: string; bold?: boolean;
 }) {
   const colors: Record<string, string> = {
     green: "text-green-600",

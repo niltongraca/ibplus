@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Activity, Search, Info, AlertTriangle, Shield, UserCheck, Settings, Package, DollarSign, Users } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 interface AuditLog {
   id: string;
@@ -14,13 +15,13 @@ interface AuditLog {
   createdAt: string;
 }
 
-const actionIcons: Record<string, any> = {
+const actionIcons: Record<string, LucideIcon> = {
   create: UserCheck,
   update: Settings,
   delete: AlertTriangle,
 };
 
-const entityIcons: Record<string, any> = {
+const entityIcons: Record<string, LucideIcon> = {
   product: Package,
   customer: Users,
   sale: DollarSign,

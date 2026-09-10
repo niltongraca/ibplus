@@ -3,17 +3,24 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import ProductForm from "@/components/ProductForm";
+import { apiFetch } from "@/lib/api";
+
+interface ServiceData {
+  name: string;
+  description: string | null;
+  price: number;
+  duration: string | null;
+}
 
 export default function EditarServicoPage() {
   const params = useParams();
   const id = (params?.id as string) || "";
   const router = useRouter();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<ServiceData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/services/${id}`)
-      .then((r) => r.json())
+    apiFetch<{ service: ServiceData }>(`/api/services/${id}`)
       .then((d) => setData(d.service))
       .catch(() => router.push("/gestao/servicos"))
       .finally(() => setLoading(false));

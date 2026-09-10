@@ -6,6 +6,7 @@ import { ArrowLeft, Save, Package, Wrench } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/components/Toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { apiFetch } from "@/lib/api";
 
 interface Category {
   id: string;
@@ -45,9 +46,9 @@ export default function ProductForm({ mode, type, id, initialData }: ProductForm
     name: initialData?.name || "",
     description: initialData?.description || "",
     price: initialData?.price ? String(initialData.price) : "",
-    cost: initialData && "cost" in (initialData || {}) ? String((initialData as any).cost || "") : "",
-    stock: initialData && "stock" in (initialData || {}) ? String((initialData as any).stock || "0") : "",
-    minStock: initialData && "minStock" in (initialData || {}) ? String((initialData as any).minStock || "0") : "",
+    cost: initialData && "cost" in initialData ? String(initialData.cost || "") : "",
+    stock: initialData && "stock" in initialData ? String(initialData.stock || "0") : "",
+    minStock: initialData && "minStock" in initialData ? String(initialData.minStock || "0") : "",
     unit: initialData?.unit || "un",
     categoryId: initialData?.categoryId || "",
     duration: initialData?.duration || "",
@@ -55,8 +56,7 @@ export default function ProductForm({ mode, type, id, initialData }: ProductForm
 
   useEffect(() => {
     if (type === "product") {
-      fetch("/api/categories")
-        .then((r) => r.json())
+      apiFetch<{ categories?: Category[] }>("/api/categories")
         .then((d) => setCategories(d.categories || []))
         .catch(() => {});
     }
@@ -81,7 +81,7 @@ export default function ProductForm({ mode, type, id, initialData }: ProductForm
 
     setSaving(true);
 
-    const body: Record<string, any> = {
+    const body: Record<string, string | number | null> = {
       name: form.name,
       description: form.description || null,
       price: priceNum,
@@ -104,23 +104,17 @@ export default function ProductForm({ mode, type, id, initialData }: ProductForm
 
       const method = mode === "create" ? "POST" : "PUT";
 
-      const res = await fetch(endpoint, {
+      await apiFetch(endpoint, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
 
-      const data = await res.json().catch(() => null);
-
-      if (res.ok) {
-        const msg = type === "product" ? "Produto" : "Serviço";
-        toast(`${msg} ${mode === "create" ? "criado" : "actualizado"} com sucesso!`);
-        router.push(type === "product" ? "/gestao/produtos" : "/gestao/servicos");
-      } else {
-        setError(data?.error || "Erro ao guardar.");
-      }
-    } catch {
-      setError("Erro de ligação. Tenta novamente.");
+      const msg = type === "product" ? "Produto" : "Serviço";
+      toast(`${msg} ${mode === "create" ? "criado" : "actualizado"} com sucesso!`);
+      router.push(type === "product" ? "/gestao/produtos" : "/gestao/servicos");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro de ligação. Tenta novamente.");
     } finally {
       setSaving(false);
     }

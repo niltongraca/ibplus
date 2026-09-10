@@ -56,8 +56,8 @@ export default function FidelizacaoPage() {
       <div className="grid sm:grid-cols-3 gap-4 mb-8">
         {[
           { label: "Total Clientes", value: customers.length, icon: Users, color: "bg-blue-50 text-blue-600" },
-          { label: "Receita Total", value: formatCurrency(sales.reduce((s: number, sa: any) => s + sa.total, 0)), icon: TrendingUp, color: "bg-green-50 text-green-600" },
-          { label: "Ticket Médio", value: customers.length > 0 ? formatCurrency(sales.reduce((s: number, sa: any) => s + sa.total, 0) / Math.max(customers.length, 1)) : "0 Kz", icon: Award, color: "bg-purple-50 text-purple-600" },
+          { label: "Receita Total", value: formatCurrency(sales.reduce((s: number, sa: Sale) => s + sa.total, 0)), icon: TrendingUp, color: "bg-green-50 text-green-600" },
+          { label: "Ticket Médio", value: customers.length > 0 ? formatCurrency(sales.reduce((s: number, sa: Sale) => s + sa.total, 0) / Math.max(customers.length, 1)) : "0 Kz", icon: Award, color: "bg-purple-50 text-purple-600" },
         ].map((s) => {
           const Icon = s.icon;
           return (

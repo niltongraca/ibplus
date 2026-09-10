@@ -4,9 +4,15 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Package, Save } from "lucide-react";
 
+interface Product {
+  id: string;
+  name: string;
+  stock: number;
+}
+
 export default function MovimentoStockPage() {
   const router = useRouter();
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [productId, setProductId] = useState("");
   const [tipo, setTipo] = useState("entrada");
   const [quantidade, setQuantidade] = useState("");
@@ -47,8 +53,8 @@ export default function MovimentoStockPage() {
       const data = await r.json().catch(() => null);
       if (!r.ok) throw new Error(data?.error || "Erro ao registar movimento");
       router.push("/gestao/stock");
-    } catch (err: any) {
-      setError(err.message || "Erro ao registar movimento");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao registar movimento");
     }
   };
 
@@ -70,7 +76,7 @@ export default function MovimentoStockPage() {
           <label className="block text-sm font-medium text-ib-primary mb-1">Produto</label>
           <select value={productId} onChange={(e) => setProductId(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40">
             <option value="">Seleccionar produto</option>
-            {products.map((p: any) => (
+            {products.map((p) => (
               <option key={p.id} value={p.id}>{p.name} (Stock: {p.stock})</option>
             ))}
           </select>

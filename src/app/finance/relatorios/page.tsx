@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { BarChart3, Download, TrendingUp, DollarSign, ShoppingCart, CreditCard, PieChart as PieIcon, RefreshCw, FileSpreadsheet } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { jsonToCsv, downloadCsv } from "@/lib/csv";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Legend } from "recharts";
@@ -75,8 +76,8 @@ export default function RelatoriosPage() {
       const d = await res.json();
       if (!res.ok) throw new Error(d.error);
       loadReports();
-    } catch (err: any) {
-      alert(err.message || "Erro ao gerar relatório.");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Erro ao gerar relatório.");
     } finally {
       setGenerating(false);
     }
@@ -208,7 +209,7 @@ export default function RelatoriosPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="#9ca3af" />
               <YAxis tick={{ fontSize: 11 }} stroke="#9ca3af" />
-              <Tooltip formatter={(value: any) => [`${Number(value).toLocaleString()} Kz`, "Total"]} />
+              <Tooltip formatter={(value) => [`${Number(value).toLocaleString()} Kz`, "Total"]} />
               <Line type="monotone" dataKey="total" stroke="#2563eb" strokeWidth={2.5} dot={{ fill: "#2563eb", r: 4 }} name="Vendas" />
             </LineChart>
           </ResponsiveContainer>
@@ -224,7 +225,7 @@ export default function RelatoriosPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="#9ca3af" />
                 <YAxis tick={{ fontSize: 11 }} stroke="#9ca3af" />
-                <Tooltip formatter={(value: any) => [`${Number(value).toLocaleString()} Kz`, "Total"]} />
+                <Tooltip formatter={(value) => [`${Number(value).toLocaleString()} Kz`, "Total"]} />
                 <Bar dataKey="total" fill="#2563eb" radius={[4, 4, 0, 0]} name="Total (Kz)" />
               </BarChart>
             </ResponsiveContainer>
@@ -236,10 +237,10 @@ export default function RelatoriosPage() {
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie data={data.categorySales} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={85} innerRadius={40}
-                  label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                  label={({ name, percent }: { name?: string; percent?: number }) => `${name ?? ""} ${((percent ?? 0) * 100).toFixed(0)}%`}>
                   {data.categorySales.map((_, i) => (<Cell key={i} fill={COLORS[i % COLORS.length]} />))}
                 </Pie>
-                <Tooltip formatter={(value: any) => [`${Number(value).toLocaleString()} Kz`, "Total"]} />
+                <Tooltip formatter={(value) => [`${Number(value).toLocaleString()} Kz`, "Total"]} />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
@@ -341,7 +342,7 @@ export default function RelatoriosPage() {
   );
 }
 
-function SummaryCard({ icon: Icon, label, value, color }: { icon: any; label: string; value: string; color: string }) {
+function SummaryCard({ icon: Icon, label, value, color }: { icon: LucideIcon; label: string; value: string; color: string }) {
   const colors: Record<string, string> = {
     green: "bg-green-50 text-green-600",
     blue: "bg-blue-50 text-blue-600",
@@ -369,7 +370,7 @@ function SummaryRow({ label, value, color, bold }: { label: string; value: strin
   );
 }
 
-function ExportButton({ icon: Icon, label, color, onClick }: { icon: any; label: string; color: string; onClick: () => void }) {
+function ExportButton({ icon: Icon, label, color, onClick }: { icon: LucideIcon; label: string; color: string; onClick: () => void }) {
   const colors: Record<string, string> = { green: "text-green-600", blue: "text-blue-600", purple: "text-purple-600" };
   return (
     <button onClick={onClick} className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 border border-gray-100 transition-colors">

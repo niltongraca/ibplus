@@ -3,17 +3,28 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import ProductForm from "@/components/ProductForm";
+import { apiFetch } from "@/lib/api";
+
+interface ProductData {
+  name: string;
+  description: string | null;
+  price: number;
+  cost: number;
+  stock: number;
+  minStock: number;
+  unit: string;
+  categoryId: string | null;
+}
 
 export default function EditarProdutoPage() {
   const params = useParams();
   const id = (params?.id as string) || "";
   const router = useRouter();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<ProductData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/products/${id}`)
-      .then((r) => r.json())
+    apiFetch<{ product: ProductData }>(`/api/products/${id}`)
       .then((d) => setData(d.product))
       .catch(() => router.push("/gestao/produtos"))
       .finally(() => setLoading(false));

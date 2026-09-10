@@ -6,6 +6,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { SuccessCheck } from "@/components/ui/SuccessCheck";
 import { Eye, EyeOff, UserPlus, ArrowLeft, ArrowRight, User, Building2, Users, MapPin, Briefcase, Sparkles, Heart, GraduationCap, Handshake, Link2 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
+type FormData = Record<string, string>;
+type UpdateField = (key: string, value: string) => void;
 
 const ACCOUNT_TYPES = [
   { value: "EMPREENDEDOR", label: "Empreendedor", desc: "Ideal para quem trabalha por conta própria.", icon: User },
@@ -16,7 +20,7 @@ const ACCOUNT_TYPES = [
   { value: "COOPERATIVA", label: "Cooperativa", desc: "Cooperativas de produção, crédito ou serviços.", icon: Users },
 ] as const;
 
-const STEP_LABELS: Record<string, { title: string; icon: any }[]> = {
+const STEP_LABELS: Record<string, { title: string; icon: LucideIcon }[]> = {
   EMPREENDEDOR: [
     { title: "Dados Pessoais", icon: User },
     { title: "Perfil", icon: Sparkles },
@@ -108,9 +112,9 @@ function CadastroPage() {
       setError("As senhas não coincidem."); return;
     }
     setLoading(true);
-    const payload: Record<string, any> = { ...form, accountType };
+    const payload: Record<string, string> = { ...form, ...(accountType ? { accountType } : {}) };
     if (inviteToken) payload.invite = inviteToken;
-    const result = await register(payload as any);
+    const result = await register(payload);
     setLoading(false);
     if (result.success) {
       setSuccess(true);
@@ -341,7 +345,12 @@ function CadastroPage() {
   );
 }
 
-function Input({ label, field, form, updateField, placeholder, type, required }: any) {
+interface FormProps {
+  form: FormData;
+  updateField: UpdateField;
+}
+
+function Input({ label, field, form, updateField, placeholder, type, required }: FormProps & { label: string; field: string; placeholder?: string; type?: string; required?: boolean }) {
   return (
     <div>
       <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>
@@ -354,7 +363,7 @@ function Input({ label, field, form, updateField, placeholder, type, required }:
   );
 }
 
-function EmpreendedorForm({ form, updateField }: any) {
+function EmpreendedorForm({ form, updateField }: FormProps) {
   return (
     <>
       <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Perfil do Empreendedor</h2>
@@ -379,7 +388,7 @@ function EmpreendedorForm({ form, updateField }: any) {
   );
 }
 
-function EmpresaForm({ form, updateField }: any) {
+function EmpresaForm({ form, updateField }: FormProps) {
   return (
     <>
       <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Dados da Empresa</h2>
@@ -400,7 +409,7 @@ function EmpresaForm({ form, updateField }: any) {
   );
 }
 
-function ONGForm({ form, updateField }: any) {
+function ONGForm({ form, updateField }: FormProps) {
   return (
     <>
       <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Dados da ONG</h2>
@@ -422,7 +431,7 @@ function ONGForm({ form, updateField }: any) {
   );
 }
 
-function AssociacaoForm({ form, updateField }: any) {
+function AssociacaoForm({ form, updateField }: FormProps) {
   return (
     <>
       <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Dados da Associação</h2>
@@ -436,7 +445,7 @@ function AssociacaoForm({ form, updateField }: any) {
   );
 }
 
-function EducacaoForm({ form, updateField }: any) {
+function EducacaoForm({ form, updateField }: FormProps) {
   return (
     <>
       <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Dados da Instituição</h2>
@@ -468,7 +477,7 @@ function EducacaoForm({ form, updateField }: any) {
   );
 }
 
-function CooperativaForm({ form, updateField }: any) {
+function CooperativaForm({ form, updateField }: FormProps) {
   return (
     <>
       <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Dados da Cooperativa</h2>
@@ -483,7 +492,7 @@ function CooperativaForm({ form, updateField }: any) {
   );
 }
 
-function LocationForm({ form, updateField }: any) {
+function LocationForm({ form, updateField }: FormProps) {
   return (
     <div className="space-y-5">
       <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Localização</h2>
@@ -504,7 +513,7 @@ function LocationForm({ form, updateField }: any) {
   );
 }
 
-function IdentityForm({ form, updateField, accountType }: any) {
+function IdentityForm({ form, updateField, accountType }: FormProps & { accountType: string }) {
   return (
     <div className="space-y-5">
       <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Identidade</h2>
@@ -523,7 +532,7 @@ function IdentityForm({ form, updateField, accountType }: any) {
   );
 }
 
-function ActividadeForm({ form, updateField }: any) {
+function ActividadeForm({ form, updateField }: FormProps) {
   return (
     <div className="space-y-5 mt-5">
       <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Actividade</h2>

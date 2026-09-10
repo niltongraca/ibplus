@@ -63,7 +63,7 @@ export default function PresencasPage() {
 
     setSaving(true);
     try {
-      const payload: any = { employeeId: form.employeeId, date: form.date, status: form.status, notes: form.notes };
+      const payload: Record<string, string> = { employeeId: form.employeeId, date: form.date, status: form.status, notes: form.notes };
       if (form.checkIn) payload.checkIn = `${form.date}T${form.checkIn}:00`;
       if (form.checkOut) payload.checkOut = `${form.date}T${form.checkOut}:00`;
       const res = await fetch("/api/attendance", {

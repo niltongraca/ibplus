@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { TrendingUp, TrendingDown, DollarSign, Download, Printer, ShoppingCart, ReceiptText, FileDown, Wallet, BarChart3, Users, Package, ChevronDown, ChevronUp } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { jsonToCsv, downloadCsv } from "@/lib/csv";
 import { ChartsWidget } from "@/dashboard/widgets/ChartsWidget";
@@ -356,7 +357,7 @@ export default function RelatorioPage() {
   );
 }
 
-function SummaryCard({ icon: Icon, label, value, color, sub }: { icon: any; label: string; value: string; color: string; sub?: string }) {
+function SummaryCard({ icon: Icon, label, value, color, sub }: { icon: LucideIcon; label: string; value: string; color: string; sub?: string }) {
   const colors: Record<string, string> = {
     green: "bg-green-50 text-green-600",
     blue: "bg-blue-50 text-blue-600",

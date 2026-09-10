@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Link2, Copy, Check, Users, X, Mail } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { apiFetch } from "@/lib/api";
 
 interface Invite {
   id: string;
@@ -23,8 +24,7 @@ export function InviteManager() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/company/invite")
-      .then((r) => r.json())
+    apiFetch<{ invites?: Invite[] }>("/api/company/invite")
       .then((d) => setInvites(d.invites || []))
       .catch(() => {});
   }, []);
@@ -43,21 +43,21 @@ export function InviteManager() {
   async function createInvite() {
     setLoading(true);
     try {
-      const res = await fetch("/api/company/invite", {
+      const data = await apiFetch<{ invite?: Invite }>("/api/company/invite", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email || undefined }),
       });
-      const data = await res.json();
-      if (data.invite) {
-        setInvites((prev) => [data.invite, ...prev]);
+      const invite = data.invite;
+      if (invite) {
+        setInvites((prev) => [invite, ...prev]);
         setEmail("");
         toast("Link de convite criado!", "success");
       } else {
-        toast(data.error || "Erro ao criar convite.", "error");
+        toast("Erro ao criar convite.", "error");
       }
-    } catch {
-      toast("Erro ao criar convite.", "error");
+    } catch (err: unknown) {
+      toast(err instanceof Error ? err.message : "Erro ao criar convite.", "error");
     } finally {
       setLoading(false);
     }

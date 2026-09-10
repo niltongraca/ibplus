@@ -44,7 +44,55 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   };
 }
 
-function getProfileInfo(user: any) {
+interface ProfileRecord {
+  descricao: string | null;
+  redesSociais: string | null;
+  telefone: string | null;
+  endereco: string | null;
+}
+
+interface CompanyProfileRecord {
+  descricao: string | null;
+  endereco: string | null;
+  website: string | null;
+  facebook: string | null;
+  instagram: string | null;
+  linkedin: string | null;
+}
+
+interface NgoProfileRecord {
+  missao: string;
+  website: string | null;
+  facebook: string | null;
+  instagram: string | null;
+}
+
+interface EducationProfileRecord {
+  website: string | null;
+  facebook: string | null;
+  instagram: string | null;
+}
+
+interface StaffUser {
+  name: string | null;
+  profile: ProfileRecord | null;
+  companyProfile: CompanyProfileRecord | null;
+  ngoProfile: NgoProfileRecord | null;
+  educationProfile: EducationProfileRecord | null;
+}
+
+interface ProfileInfo {
+  descricao?: string | null;
+  redesSociais?: string | null;
+  telefone?: string | null;
+  endereco?: string | null;
+  website?: string | null;
+  facebook?: string | null;
+  instagram?: string | null;
+  linkedin?: string | null;
+}
+
+function getProfileInfo(user: StaffUser): ProfileInfo {
   if (user.profile) {
     return {
       descricao: user.profile.descricao,

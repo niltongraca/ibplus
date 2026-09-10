@@ -1,6 +1,7 @@
 "use client";
 
 import { DollarSign, TrendingDown, TrendingUp, ShoppingCart } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import type { DashboardData } from "../DashboardRenderer";
 
@@ -70,7 +71,7 @@ const badgeTone: Record<string, string> = {
 function InfoCard({
   icon: Icon, label, value, sub, color, badge, badgeTone: tone,
 }: {
-  icon: any; label: string; value: string; sub?: string; color: string; badge?: string; badgeTone?: string;
+  icon: LucideIcon; label: string; value: string; sub?: string; color: string; badge?: string; badgeTone?: string;
 }) {
   const c = colorMap[color] || colorMap.blue;
   return (

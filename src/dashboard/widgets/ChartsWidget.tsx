@@ -16,12 +16,26 @@ const tooltipStyle = {
   fontSize: 12,
 };
 
-function KzTooltip({ active, payload, label, suffix = " Kz" }: any) {
+interface TooltipRow {
+  color?: string;
+  fill?: string;
+  name?: string | number;
+  value?: number | string;
+}
+
+interface KzTooltipProps {
+  active?: boolean;
+  payload?: TooltipRow[];
+  label?: string | number;
+  suffix?: string;
+}
+
+function KzTooltip({ active, payload, label, suffix = " Kz" }: KzTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-md text-xs">
       {label && <p className="font-semibold text-gray-700 mb-1">{label}</p>}
-      {payload.map((p: any, i: number) => (
+      {payload.map((p, i) => (
         <p key={i} className="text-gray-600">
           <span style={{ color: p.color || p.fill || "#2563eb" }}>●</span>{" "}
           {p.name}: <b>{Number(p.value).toLocaleString()}{suffix}</b>
@@ -31,10 +45,20 @@ function KzTooltip({ active, payload, label, suffix = " Kz" }: any) {
   );
 }
 
-export function ChartsWidget({ data }: { data: { monthlySales?: any[]; monthlyFunds?: any[]; categorySales?: any[] } | null }) {
+interface ChartPoint {
+  month?: string;
+  total?: number;
+  count?: number;
+  income?: number;
+  expense?: number;
+  name?: string;
+  value?: number;
+}
+
+export function ChartsWidget({ data }: { data: { monthlySales?: ChartPoint[]; monthlyFunds?: ChartPoint[]; categorySales?: ChartPoint[] } | null }) {
   if (!data) return null;
   const { monthlySales, monthlyFunds, categorySales } = data;
-  const hasFunds = monthlyFunds && monthlyFunds.length > 0 && (monthlyFunds as any[]).some((m) => m.income > 0 || m.expense > 0);
+  const hasFunds = monthlyFunds && monthlyFunds.length > 0 && monthlyFunds.some((m) => (m.income || 0) > 0 || (m.expense || 0) > 0);
   const hasCategory = categorySales && categorySales.length > 0;
 
   return (
@@ -122,7 +146,7 @@ export function ChartsWidget({ data }: { data: { monthlySales?: any[]; monthlyFu
                 paddingAngle={2}
                 stroke="none"
               >
-                {categorySales.map((_: any, i: number) => (
+                {categorySales.map((_, i) => (
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
                 ))}
               </Pie>
@@ -131,7 +155,7 @@ export function ChartsWidget({ data }: { data: { monthlySales?: any[]; monthlyFu
                 iconType="circle"
                 iconSize={8}
                 wrapperStyle={{ fontSize: 11, color: "#64748b" }}
-                formatter={(value: any) => <span className="text-[11px] text-gray-500">{value}</span>}
+                formatter={(value) => <span className="text-[11px] text-gray-500">{value}</span>}
               />
             </PieChart>
           </ResponsiveContainer>

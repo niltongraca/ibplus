@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useConfirm } from "@/components/ConfirmModal";
 import { Plus, Pencil, Trash2, ExternalLink, Youtube, Book, FileText } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import { AdminLayout } from "@/components/admin/AdminLayout";
@@ -29,7 +30,7 @@ const typeLabels: Record<string, string> = {
   ARTICLE: "Artigo",
 };
 
-const typeIcons: Record<string, any> = {
+const typeIcons: Record<string, LucideIcon> = {
   VIDEO: Youtube,
   POST: FileText,
   BOOK: Book,

@@ -39,14 +39,14 @@ export default function NovoConteudoPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       router.push("/admin/conteudos");
-    } catch (err: any) {
-      setError(err.message || "Erro ao criar conteúdo.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao criar conteúdo.");
     } finally {
       setSaving(false);
     }
   }
 
-  const update = (field: string, value: any) => setForm((f) => ({ ...f, [field]: value }));
+  const update = (field: keyof typeof form, value: string | boolean) => setForm((f) => ({ ...f, [field]: value }));
 
   return (
     <AdminLayout>

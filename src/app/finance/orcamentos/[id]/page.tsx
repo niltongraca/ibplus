@@ -76,8 +76,8 @@ export default function OrcamentoDetailPage() {
       if (!res.ok) throw new Error(data.error);
       setQuote((prev) => prev ? { ...prev, status } : null);
       if (status === "approved") setInvoiceCreated(true);
-    } catch (err: any) {
-      alert(err.message || "Erro ao atualizar o estado.");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Erro ao atualizar o estado.");
     } finally {
       setSaving(false);
     }

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Bell, CheckCheck, Info, AlertTriangle, ShoppingCart, Users, Package, TrendingUp } from "lucide-react";
 import { NotificationBadge } from "@/components/ui/transitions/NotificationBadge";
+import { apiFetch } from "@/lib/api";
 
 interface Notification {
   id: string;
@@ -42,8 +43,7 @@ export default function NotificationBell() {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch("/api/notifications")
-      .then((r) => r.json())
+    apiFetch<{ notifications?: Notification[]; unreadCount?: number }>("/api/notifications")
       .then((d) => {
         setNotifications(d.notifications || []);
         setUnreadCount(d.unreadCount || 0);
@@ -60,7 +60,7 @@ export default function NotificationBell() {
   }, [open]);
 
   async function markAllRead() {
-    await fetch("/api/notifications", {
+    await apiFetch("/api/notifications", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ readAll: true }),
@@ -70,7 +70,7 @@ export default function NotificationBell() {
   }
 
   async function markRead(id: string) {
-    await fetch("/api/notifications", {
+    await apiFetch("/api/notifications", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),

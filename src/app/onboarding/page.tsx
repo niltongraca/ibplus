@@ -9,11 +9,12 @@ import {
   ArrowRight, ArrowLeft, Building2, Share2, User, Heart,
   GraduationCap, Handshake, Users, Target, Globe
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 interface OnboardingStep {
   key: string;
   label: string;
-  icon: any;
+  icon: LucideIcon;
   desc: string;
 }
 

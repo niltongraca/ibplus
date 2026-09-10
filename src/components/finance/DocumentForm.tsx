@@ -6,6 +6,7 @@ import { Plus, Trash2, ArrowLeft, Save, Building2, ClipboardList, ListOrdered } 
 import Link from "next/link";
 import { formatCurrency, SUPPORTED_CURRENCIES } from "@/lib/utils";
 import { CatalogPicker } from "@/components/finance/CatalogPicker";
+import { apiFetch } from "@/lib/api";
 
 interface LineItem {
   description: string;
@@ -40,6 +41,25 @@ interface Company {
   phone?: string | null;
   nif?: string | null;
   address?: string | null;
+}
+
+interface EditableDocument {
+  customer: string;
+  customerPhone: string | null;
+  customerEmail: string | null;
+  customerNif: string | null;
+  notes: string | null;
+  discountType: string | null;
+  discountValue: number;
+  installments: number;
+  currency: string | null;
+  paymentMethod: string | null;
+  bankDetails: string | null;
+  dueDate: string | null;
+  validUntil: string | null;
+  status: string | null;
+  paidAmount: number;
+  items: LineItem[];
 }
 
 const PAYMENT_METHODS = ["dinheiro", "transferência", "depósito", "cartão", "multicaixa", "payback"] as const;
@@ -84,10 +104,10 @@ export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; 
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/company").then((r) => r.json()),
-      fetch("/api/customers?limit=1000").then((r) => r.json()),
-      fetch("/api/products?limit=1000").then((r) => r.json()),
-      fetch("/api/services?limit=1000").then((r) => r.json()),
+      apiFetch<{ company?: Company }>("/api/company"),
+      apiFetch<{ customers?: Customer[] }>("/api/customers?limit=1000"),
+      apiFetch<{ products?: Product[] }>("/api/products?limit=1000"),
+      apiFetch<{ services?: Service[] }>("/api/services?limit=1000"),
     ])
       .then(([co, c, p, s]) => {
         setCompany(co.company || null);
@@ -100,8 +120,7 @@ export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; 
 
   useEffect(() => {
     if (!id) return;
-    fetch(isInvoice ? `/api/invoices/${id}` : `/api/quotes/${id}`)
-      .then((r) => r.json())
+    apiFetch<{ invoice?: EditableDocument; quote?: EditableDocument }>(isInvoice ? `/api/invoices/${id}` : `/api/quotes/${id}`)
       .then((d) => {
         const doc = isInvoice ? d.invoice : d.quote;
         if (!doc) throw new Error("Documento não encontrado.");
@@ -118,15 +137,13 @@ export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; 
         setBankDetails(doc.bankDetails || "");
         const raw = isInvoice ? doc.dueDate : doc.validUntil;
         setDueDate(raw ? new Date(raw).toISOString().slice(0, 10) : "");
-        setItems(
-          (doc.items || []).map((i: any) => ({ description: i.description, quantity: i.quantity, unitPrice: i.unitPrice }))
-        );
+        setItems(doc.items.map((i) => ({ description: i.description, quantity: i.quantity, unitPrice: i.unitPrice })));
         if (isInvoice) {
           setExistingStatus(doc.status || "pending");
           setExistingPaidAmount(doc.paidAmount || 0);
         }
       })
-      .catch((err) => router.push(backUrl))
+      .catch(() => router.push(backUrl))
       .finally(() => setLoading(false));
   }, [id, isInvoice, router, backUrl]);
 
@@ -137,7 +154,7 @@ export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; 
   };
   const updateItem = (i: number, field: keyof LineItem, value: string | number) => {
     const updated = [...items];
-    (updated[i] as any)[field] = value;
+    updated[i] = { ...updated[i], [field]: value };
     setItems(updated);
   };
 
@@ -189,17 +206,15 @@ export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; 
         total,
         ...(isInvoice && isEdit ? { status: existingStatus, paidAmount: existingPaidAmount } : {}),
       };
-      const res = await fetch(isInvoice ? `/api/invoices${id ? `/${id}` : ""}` : `/api/quotes${id ? `/${id}` : ""}`, {
+      await apiFetch(isInvoice ? `/api/invoices${id ? `/${id}` : ""}` : `/api/quotes${id ? `/${id}` : ""}`, {
         method: isEdit ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
       router.push(isEdit ? (isInvoice ? `/finance/faturacao/${id}` : `/finance/orcamentos/${id}`) : backUrl);
-    } catch (err: any) {
-      setError(err.message || "Erro ao guardar documento.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao guardar documento.");
     } finally {
       setSaving(false);
     }
@@ -359,7 +374,7 @@ export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; 
                 </div>
 
                 <div className="flex gap-2">
-                  <select value={discountType} onChange={(e) => setDiscountType(e.target.value as any)} className="px-2 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40">
+                  <select value={discountType} onChange={(e) => setDiscountType(e.target.value as "fixed" | "percentage")} className="px-2 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40">
                     <option value="fixed">Desconto fixo</option>
                     <option value="percentage">Desconto %</option>
                   </select>

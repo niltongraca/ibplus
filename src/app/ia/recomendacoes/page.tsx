@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Sparkles, ShoppingCart, Users, TrendingUp, AlertTriangle, Package, Lightbulb } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 interface DashboardData {
@@ -31,7 +32,7 @@ export default function RecomendacoesPage() {
   if (loading) return <div className="p-12 text-center text-ib-muted">A carregar...</div>;
   if (!data) return null;
 
-  const recommendations: { title: string; detail: string; icon: any; color: string; bg: string }[] = [];
+  const recommendations: { title: string; detail: string; icon: LucideIcon; color: string; bg: string }[] = [];
   if (data.productsLowStock > 0) {
     recommendations.push({
       title: "Reabastecer stock",

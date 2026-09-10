@@ -89,8 +89,8 @@ export default function FaturaDetailPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setInvoice((prev) => prev ? { ...prev, status: targetStatus, paidAmount: targetStatus === "paid" ? prev.total : (targetStatus === "partially_paid" ? payable : 0) } : null);
-    } catch (err: any) {
-      alert(err.message || "Erro ao atualizar o estado.");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Erro ao atualizar o estado.");
     } finally {
       setSaving(false);
     }

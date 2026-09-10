@@ -1,6 +1,7 @@
 "use client";
 
 import { DollarSign, ShoppingCart, Users, Package, Briefcase, FileText } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 interface StatsData {
@@ -32,7 +33,7 @@ export function StatsWidget({ data }: { data: StatsData | null }) {
   );
 }
 
-function StatCard({ icon: Icon, label, value, color, sub }: { icon: any; label: string; value: string; color: string; sub?: string }) {
+function StatCard({ icon: Icon, label, value, color, sub }: { icon: LucideIcon; label: string; value: string; color: string; sub?: string }) {
   const colors: Record<string, string> = {
     green: "bg-green-50 text-green-600",
     blue: "bg-blue-50 text-blue-600",

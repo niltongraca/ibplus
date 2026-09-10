@@ -2,6 +2,7 @@
 
 import { Upload, X, Loader2 } from "lucide-react";
 import { useState, useRef } from "react";
+import { apiFetch } from "@/lib/api";
 
 interface FileUploadProps {
   value: string;
@@ -21,8 +22,7 @@ export function FileUpload({ value, onChange, accept = "image/*", label = "Uploa
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      const data = await res.json();
+      const data = await apiFetch<{ url?: string }>("/api/upload", { method: "POST", body: formData });
       if (data.url) onChange(data.url);
     } catch {
       // silent
