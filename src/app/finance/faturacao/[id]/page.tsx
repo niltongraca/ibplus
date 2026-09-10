@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, FileDown, Printer, Trash2, Save, RotateCcw, CheckCircle, Wallet } from "lucide-react";
+import { ArrowLeft, FileDown, Printer, Trash2, Save, RotateCcw, CheckCircle, Wallet, Pencil } from "lucide-react";
 import Link from "next/link";
 import { useConfirm } from "@/components/ConfirmModal";
 import { InvoiceTemplate } from "@/components/invoice/InvoiceTemplate";
@@ -156,6 +156,9 @@ export default function FaturaDetailPage() {
           </div>
         </div>
         <div className="hidden lg:flex items-center gap-2">
+          <Link href={`/finance/faturacao/${id}/editar`} className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg text-sm text-ib-muted hover:bg-gray-50">
+            <Pencil className="w-4 h-4" /> Editar
+          </Link>
           <button onClick={handleExportPDF} className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg text-sm text-ib-muted hover:bg-gray-50">
             <FileDown className="w-4 h-4" /> Exportar
           </button>
@@ -214,6 +217,11 @@ export default function FaturaDetailPage() {
             <span className="text-ib-muted">Moeda: {invoice.currency}</span>
           </div>
         )}
+        <div className="mt-4 pt-4 border-t border-gray-100 lg:hidden">
+          <Link href={`/finance/faturacao/${id}/editar`} className="flex items-center justify-center gap-1.5 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-ib-muted hover:bg-gray-50">
+            <Pencil className="w-4 h-4" /> Editar fatura
+          </Link>
+        </div>
       </div>
 
       <InvoiceTemplate

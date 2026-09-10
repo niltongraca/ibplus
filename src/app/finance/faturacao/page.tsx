@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Search, FileDown, Eye, Trash2, FileText } from "lucide-react";
+import { Plus, Search, FileDown, Eye, Trash2, FileText, Pencil } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { buildDocumentHtml } from "@/lib/exportDocument";
 import { useConfirm } from "@/components/ConfirmModal";
@@ -179,6 +179,9 @@ export default function FaturacaoPage() {
                       <div className="flex items-center justify-end gap-1">
                         <Link href={`/finance/faturacao/${inv.id}`} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
                           <Eye className="w-4 h-4 text-ib-muted" />
+                        </Link>
+                        <Link href={`/finance/faturacao/${inv.id}/editar`} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
+                          <Pencil className="w-4 h-4 text-ib-muted" />
                         </Link>
                         <button onClick={() => handleExportPDF(inv)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
                           <FileDown className="w-4 h-4 text-ib-muted" />

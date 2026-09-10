@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, FileDown, Printer, Trash2, CheckCircle, RotateCcw, FileText } from "lucide-react";
+import { ArrowLeft, FileDown, Printer, Trash2, CheckCircle, RotateCcw, FileText, Pencil } from "lucide-react";
 import Link from "next/link";
 import { useConfirm } from "@/components/ConfirmModal";
 import { InvoiceTemplate } from "@/components/invoice/InvoiceTemplate";
@@ -140,6 +140,9 @@ export default function OrcamentoDetailPage() {
           </div>
         </div>
         <div className="hidden lg:flex items-center gap-2">
+          <Link href={`/finance/orcamentos/${id}/editar`} className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg text-sm text-ib-muted hover:bg-gray-50">
+            <Pencil className="w-4 h-4" /> Editar
+          </Link>
           <button onClick={handleExportPDF} className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg text-sm text-ib-muted hover:bg-gray-50">
             <FileDown className="w-4 h-4" /> Exportar
           </button>
@@ -191,6 +194,10 @@ export default function OrcamentoDetailPage() {
           </div>
         </div>
       )}
+
+      <Link href={`/finance/orcamentos/${id}/editar`} className="lg:hidden flex items-center justify-center gap-1.5 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-ib-muted hover:bg-gray-50 mb-6 print-hidden">
+        <Pencil className="w-4 h-4" /> Editar orçamento
+      </Link>
 
       <InvoiceTemplate
         data={{

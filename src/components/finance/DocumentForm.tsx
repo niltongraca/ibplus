@@ -50,13 +50,15 @@ const sections = [
   { num: 3, title: "Outros", icon: ListOrdered, desc: "Moeda, forma de pagamento e coordenadas bancárias" },
 ];
 
-export default function DocumentForm({ mode }: { mode: "invoice" | "quote" }) {
+export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; id?: string }) {
   const isInvoice = mode === "invoice";
+  const isEdit = Boolean(id);
   const router = useRouter();
   const [company, setCompany] = useState<Company | null>(null);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(isEdit);
 
   const [customer, setCustomer] = useState("");
   const [phone, setPhone] = useState("");
@@ -75,6 +77,8 @@ export default function DocumentForm({ mode }: { mode: "invoice" | "quote" }) {
   const [items, setItems] = useState<LineItem[]>([{ description: "", quantity: 1, unitPrice: 0 }]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [existingStatus, setExistingStatus] = useState("");
+  const [existingPaidAmount, setExistingPaidAmount] = useState(0);
 
   const backUrl = isInvoice ? "/finance/faturacao" : "/finance/orcamentos";
 
@@ -93,6 +97,38 @@ export default function DocumentForm({ mode }: { mode: "invoice" | "quote" }) {
       })
       .catch((err) => console.error("Erro ao carregar dados:", err));
   }, []);
+
+  useEffect(() => {
+    if (!id) return;
+    fetch(isInvoice ? `/api/invoices/${id}` : `/api/quotes/${id}`)
+      .then((r) => r.json())
+      .then((d) => {
+        const doc = isInvoice ? d.invoice : d.quote;
+        if (!doc) throw new Error("Documento não encontrado.");
+        setCustomer(doc.customer || "");
+        setPhone(doc.customerPhone || "");
+        setEmail(doc.customerEmail || "");
+        setNif(doc.customerNif || "");
+        setNotes(doc.notes || "");
+        setDiscountType(doc.discountType === "percentage" ? "percentage" : "fixed");
+        setDiscountValue(doc.discountValue || 0);
+        setInstallments(doc.installments || 1);
+        setCurrency(doc.currency || "AOA");
+        setPaymentMethod(doc.paymentMethod || "");
+        setBankDetails(doc.bankDetails || "");
+        const raw = isInvoice ? doc.dueDate : doc.validUntil;
+        setDueDate(raw ? new Date(raw).toISOString().slice(0, 10) : "");
+        setItems(
+          (doc.items || []).map((i: any) => ({ description: i.description, quantity: i.quantity, unitPrice: i.unitPrice }))
+        );
+        if (isInvoice) {
+          setExistingStatus(doc.status || "pending");
+          setExistingPaidAmount(doc.paidAmount || 0);
+        }
+      })
+      .catch((err) => router.push(backUrl))
+      .finally(() => setLoading(false));
+  }, [id, isInvoice, router, backUrl]);
 
   const addItem = () => setItems([...items, { description: "", quantity: 1, unitPrice: 0 }]);
   const removeItem = (i: number) => {
@@ -134,39 +170,58 @@ export default function DocumentForm({ mode }: { mode: "invoice" | "quote" }) {
     setError("");
 
     try {
-      const res = await fetch(isInvoice ? "/api/invoices" : "/api/quotes", {
-        method: "POST",
+      const payload = {
+        customer,
+        customerPhone: phone || null,
+        customerEmail: email || null,
+        customerNif: nif || null,
+        dueDate: dueDate || null,
+        notes,
+        items,
+        subtotal,
+        discountType,
+        discountValue,
+        discount,
+        installments,
+        currency,
+        paymentMethod,
+        bankDetails,
+        total,
+        ...(isInvoice && isEdit ? { status: existingStatus, paidAmount: existingPaidAmount } : {}),
+      };
+      const res = await fetch(isInvoice ? `/api/invoices${id ? `/${id}` : ""}` : `/api/quotes${id ? `/${id}` : ""}`, {
+        method: isEdit ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customer,
-          customerPhone: phone || null,
-          customerEmail: email || null,
-          customerNif: nif || null,
-          dueDate: dueDate || null,
-          notes,
-          items,
-          subtotal,
-          discountType,
-          discountValue,
-          discount,
-          installments,
-          currency,
-          paymentMethod,
-          bankDetails,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      router.push(backUrl);
+      router.push(isEdit ? (isInvoice ? `/finance/faturacao/${id}` : `/finance/orcamentos/${id}`) : backUrl);
     } catch (err: any) {
-      setError(err.message || "Erro ao criar documento.");
+      setError(err.message || "Erro ao guardar documento.");
     } finally {
       setSaving(false);
     }
   }
 
   const inputCls = "w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40";
+
+  if (loading) {
+    return (
+      <div>
+        <div className="flex items-center gap-4 mb-6">
+          <Link href={backUrl} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <ArrowLeft className="w-5 h-5 text-ib-muted" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-ib-primary">{isInvoice ? "Editar Fatura" : "Editar Orçamento"}</h1>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-ib-muted">A carregar...</div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -175,8 +230,12 @@ export default function DocumentForm({ mode }: { mode: "invoice" | "quote" }) {
           <ArrowLeft className="w-5 h-5 text-ib-muted" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">{isInvoice ? "Nova Fatura" : "Novo Orçamento"}</h1>
-          <p className="text-ib-muted text-sm">{isInvoice ? "Criar fatura para enviar ao cliente" : "Criar orçamento para enviar ao cliente"}</p>
+          <h1 className="text-2xl font-bold text-ib-primary">
+            {isEdit ? (isInvoice ? "Editar Fatura" : "Editar Orçamento") : isInvoice ? "Nova Fatura" : "Novo Orçamento"}
+          </h1>
+          <p className="text-ib-muted text-sm">
+            {isEdit ? "Atualize os dados do documento" : isInvoice ? "Criar fatura para enviar ao cliente" : "Criar orçamento para enviar ao cliente"}
+          </p>
         </div>
       </div>
 
@@ -381,7 +440,7 @@ export default function DocumentForm({ mode }: { mode: "invoice" | "quote" }) {
         <div className="flex justify-end gap-3">
           <Link href={backUrl} className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-ib-muted hover:bg-gray-50 transition-colors">Cancelar</Link>
           <button type="submit" disabled={saving} className="flex items-center gap-2 bg-ib-accent hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50">
-            <Save className="w-4 h-4" /> {saving ? "A salvar..." : isInvoice ? "Salvar Fatura" : "Salvar Orçamento"}
+            <Save className="w-4 h-4" /> {saving ? "A guardar..." : isEdit ? "Guardar Alterações" : isInvoice ? "Salvar Fatura" : "Salvar Orçamento"}
           </button>
         </div>
       </form>
