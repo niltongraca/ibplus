@@ -59,8 +59,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   // Full/partial items replacement + recompute totals
   if (Array.isArray(body.items)) {
-    if (!body.items.length) return NextResponse.json({ error: "A fatura precisa de pelo menos um item." }, { status: 400 });
-    const normalizedItems = body.items.map((i) => {
+    const rawItems: Array<{ description?: unknown; quantity?: unknown; unitPrice?: unknown }> = body.items;
+    if (!rawItems.length) return NextResponse.json({ error: "A fatura precisa de pelo menos um item." }, { status: 400 });
+    const normalizedItems = rawItems.map((i) => {
       const description = i.description ? String(i.description).trim() : "";
       const quantity = Number(i.quantity);
       const unitPrice = Number(i.unitPrice);

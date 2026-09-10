@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       if (isNaN(dueDate.getTime())) return NextResponse.json({ error: "A data de vencimento não é válida." }, { status: 400 });
     }
 
-    const items = Array.isArray(body.items) ? body.items : [];
+    const items: Array<{ description?: unknown; quantity?: unknown; unitPrice?: unknown }> = Array.isArray(body.items) ? body.items : [];
     if (!items.length) return NextResponse.json({ error: "A fatura precisa de pelo menos um item." }, { status: 400 });
 
     const normalizedItems = items.map((i) => {
