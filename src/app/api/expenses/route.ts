@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { recordExpensePayment } from "@/lib/finance";
 
 export async function GET(request: Request) {
   const user = await getAuthUser();
@@ -53,6 +54,9 @@ export async function POST(request: Request) {
         notes: body.notes ? String(body.notes).trim() : null,
       },
     });
+    if (expense.paid) {
+      await recordExpensePayment(user.companyId, expense.id, expense.description, expense.amount);
+    }
     return NextResponse.json({ expense }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Erro ao criar despesa." }, { status: 400 });
