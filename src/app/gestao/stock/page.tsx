@@ -5,6 +5,7 @@ import { Plus, Search, Warehouse, TrendingUp, TrendingDown, PackageSearch } from
 import { DataTable } from "@/components/ui/DataTable";
 import Pagination from "@/components/Pagination";
 import { formatDate } from "@/lib/utils";
+import { useList } from "@/hooks/useList";
 import Link from "next/link";
 
 interface Product {
@@ -27,31 +28,25 @@ interface Movement {
 }
 
 export default function StockPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: products, loading, page, setPage, totalPages, total: totalCount } = useList<Product>(
+    "/api/products",
+    "products",
+    { limit: 20 }
+  );
   const [search, setSearch] = useState("");
   const [showLow, setShowLow] = useState(false);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [movements, setMovements] = useState<Movement[]>([]);
 
   useEffect(() => {
-    setLoading(true);
     Promise.all([
       fetch("/api/products?page=1&limit=10000").then((r) => r.json()),
-      fetch(`/api/products?page=${page}&limit=20`).then((r) => r.json()),
       fetch("/api/stock/movements?limit=8").then((r) => r.json()),
-    ]).then(([all, pageData, movData]) => {
+    ]).then(([all, movData]) => {
       setAllProducts(all.products || []);
-      setProducts(pageData.products || []);
-      setTotalPages(pageData.totalPages || 1);
-      setTotalCount(pageData.total || 0);
       setMovements(movData.movements || []);
-    }).catch((err) => console.error("Erro ao carregar stock:", err))
-      .finally(() => setLoading(false));
-  }, [page]);
+    }).catch((err) => console.error("Erro ao carregar stock:", err));
+  }, []);
 
   let filtered = products.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
   if (showLow) filtered = filtered.filter((p) => p.stock <= p.minStock);

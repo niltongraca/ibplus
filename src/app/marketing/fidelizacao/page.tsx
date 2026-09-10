@@ -4,40 +4,44 @@ import { useState, useEffect } from "react";
 import { Star, Search, Users, Gift, Award, TrendingUp } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
+import { useList } from "@/hooks/useList";
 
 interface Customer {
   id: string;
   name: string;
   email: string | null;
   phone: string | null;
-  totalSales?: number;
 }
 
+interface Sale {
+  customerId: string | null;
+  total: number;
+}
+
+type CustomerWithSales = Customer & { totalSales: number };
+
 export default function FidelizacaoPage() {
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [sales, setSales] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: customers, loading } = useList<Customer>("/api/customers", "customers");
+  const [sales, setSales] = useState<Sale[]>([]);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/customers").then((r) => r.json()),
-      fetch("/api/sales").then((r) => r.json()),
-    ]).then(([cData, sData]) => {
-      const custList = cData.customers || [];
-      const salesList = sData.sales || [];
-      const salesByCustomer: Record<string, number> = {};
-      salesList.forEach((s: any) => {
-        if (s.customerId) {
-          salesByCustomer[s.customerId] = (salesByCustomer[s.customerId] || 0) + s.total;
-        }
-      });
-      setCustomers(custList.map((c: Customer) => ({ ...c, totalSales: salesByCustomer[c.id] || 0 })));
-      setSales(salesList);
-    }).catch((err) => console.error("Erro ao carregar fidelização:", err)).finally(() => setLoading(false));
+    fetch("/api/sales")
+      .then((r) => r.json())
+      .then((sData) => setSales(sData.sales || []))
+      .catch((err) => console.error("Erro ao carregar fidelização:", err));
   }, []);
 
-  const topCustomers = [...customers].sort((a, b) => (b.totalSales || 0) - (a.totalSales || 0));
+  const salesByCustomer: Record<string, number> = {};
+  sales.forEach((s) => {
+    if (s.customerId) {
+      salesByCustomer[s.customerId] = (salesByCustomer[s.customerId] || 0) + s.total;
+    }
+  });
+
+  const topCustomers = customers
+    .map((c) => ({ ...c, totalSales: salesByCustomer[c.id] || 0 }))
+    .sort((a, b) => b.totalSales - a.totalSales);
   const filtered = topCustomers.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase())
   );
@@ -90,7 +94,7 @@ export default function FidelizacaoPage() {
               </div>
             )},
             { key: "phone", header: "Telefone", hide: "tablet", render: (c: Customer) => <span className="text-ib-muted">{c.phone || "—"}</span> },
-            { key: "totalSales", header: "Total Gasto", className: "text-right", render: (c: Customer) => (
+            { key: "totalSales", header: "Total Gasto", className: "text-right", render: (c: CustomerWithSales) => (
               <span className="font-semibold text-ib-accent">{c.totalSales ? formatCurrency(c.totalSales) : "0 Kz"}</span>
             )},
           ]}
@@ -98,8 +102,8 @@ export default function FidelizacaoPage() {
           loading={loading}
           emptyIcon={<Gift className="w-12 h-12 text-gray-300 mx-auto mb-3" />}
           emptyText="Nenhum cliente encontrado."
-          keyExtractor={(c: Customer) => c.id}
-          mobileCard={(c: Customer) => (
+          keyExtractor={(c: CustomerWithSales) => c.id}
+          mobileCard={(c: CustomerWithSales) => (
             <div className="flex items-start justify-between">
               <div>
                 <p className="font-semibold text-ib-primary">{c.name}</p>

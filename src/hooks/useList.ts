@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
 
-type ListResponse = { totalPages?: number; [key: string]: unknown };
+type ListResponse = { totalPages?: number; total?: number; [key: string]: unknown };
 
 interface UseListOptions<T> {
   limit?: number;
@@ -18,6 +18,7 @@ export function useList<T>(url: string, key: string, options: UseListOptions<T> 
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const [nonce, setNonce] = useState(0);
 
   useEffect(() => {
@@ -33,6 +34,7 @@ export function useList<T>(url: string, key: string, options: UseListOptions<T> 
         setData(extractor(d));
         if (limit) {
           setTotalPages(typeof d.totalPages === "number" && d.totalPages >= 1 ? d.totalPages : 1);
+          setTotal(typeof d.total === "number" && d.total >= 0 ? d.total : 0);
         }
       })
       .catch((err) => console.error("Erro ao carregar dados:", err))
@@ -48,5 +50,5 @@ export function useList<T>(url: string, key: string, options: UseListOptions<T> 
 
   const refetch = useCallback(() => setNonce((n) => n + 1), []);
 
-  return { data, setData, loading, page, setPage, totalPages, refetch };
+  return { data, setData, loading, page, setPage, totalPages, total, refetch };
 }
