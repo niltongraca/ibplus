@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus, Search, TrendingDown, Trash2, CheckCircle, XCircle } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
+import { useList } from "@/hooks/useList";
 import { useToast } from "@/components/Toast";
 import { useConfirm } from "@/components/ConfirmModal";
 import Pagination from "@/components/Pagination";
@@ -19,21 +20,13 @@ interface Expense {
 }
 
 export default function DespesasPage() {
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-
-  useEffect(() => {
-    setLoading(true);
-    fetch(`/api/expenses?page=${page}&limit=20`)
-      .then((r) => r.json())
-      .then((d) => { setExpenses(d.expenses || []); setTotalPages(d.totalPages || 1); })
-      .catch((err) => console.error("Erro ao carregar despesas:", err))
-      .finally(() => setLoading(false));
-  }, [page]);
+  const { data: expenses, setData: setExpenses, loading, page, setPage, totalPages } = useList<Expense>(
+    "/api/expenses",
+    "expenses",
+    { limit: 20 }
+  );
 
   const filtered = expenses.filter((e) => {
     const matchSearch = e.description.toLowerCase().includes(search.toLowerCase());

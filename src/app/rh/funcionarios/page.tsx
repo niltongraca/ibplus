@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus, X, Trash2, Search, Users } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
+import { useList } from "@/hooks/useList";
 import { useToast } from "@/components/Toast";
 import { useConfirm } from "@/components/ConfirmModal";
 import Pagination from "@/components/Pagination";
@@ -18,24 +19,16 @@ interface Employee {
 }
 
 export default function FuncionariosPage() {
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({ name: "", email: "", position: "", salary: 0, phone: "", hireDate: "" });
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-
-  useEffect(() => {
-    setLoading(true);
-    fetch(`/api/employees?page=${page}&limit=20`)
-      .then((r) => r.json())
-      .then((d) => { setEmployees(d.employees || []); setTotalPages(d.totalPages || 1); })
-      .catch((err) => console.error("Erro ao carregar funcionários:", err))
-      .finally(() => setLoading(false));
-  }, [page]);
+  const { data: employees, setData: setEmployees, loading, page, setPage, totalPages } = useList<Employee>(
+    "/api/employees",
+    "employees",
+    { limit: 20 }
+  );
 
   const filtered = employees.filter((e) =>
     e.name.toLowerCase().includes(search.toLowerCase())

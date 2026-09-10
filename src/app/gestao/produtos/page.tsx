@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus, Search, Edit3, Trash2, Package } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
+import { useList } from "@/hooks/useList";
 import { ClearInput } from "@/components/ui/ClearInput";
 import { useToast } from "@/components/Toast";
 import { useConfirm } from "@/components/ConfirmModal";
@@ -27,20 +28,12 @@ interface Product {
 export default function ProdutosPage() {
   const { toast } = useToast();
   const { confirm } = useConfirm();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-
-  useEffect(() => {
-    setLoading(true);
-    fetch(`/api/products?page=${page}&limit=20`)
-      .then((r) => r.json())
-      .then((d) => { setProducts(d.products || []); setTotalPages(d.totalPages || 1); })
-      .catch((err) => console.error("Erro ao carregar produtos:", err))
-      .finally(() => setLoading(false));
-  }, [page]);
+  const { data: products, setData: setProducts, loading, page, setPage, totalPages } = useList<Product>(
+    "/api/products",
+    "products",
+    { limit: 20 }
+  );
 
   async function handleDelete(id: string) {
     if (!(await confirm({ title: "Eliminar produto", message: "Tem a certeza que deseja eliminar este produto?", variant: "danger" }))) return;

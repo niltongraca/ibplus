@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { DataTable } from "@/components/ui/DataTable";
+import { useList } from "@/hooks/useList";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Search, FileText, CheckCircle } from "lucide-react";
 
@@ -25,18 +26,9 @@ const tabs: { key: FilterTab; label: string }[] = [
 ];
 
 export default function ContasReceberPage() {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
-
-  useEffect(() => {
-    fetch("/api/invoices")
-      .then((r) => r.json())
-      .then((d) => setInvoices(d.invoices))
-      .catch((err) => console.error("Erro ao carregar contas a receber:", err))
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: invoices, setData: setInvoices, loading } = useList<Invoice>("/api/invoices", "invoices");
 
   const searched = invoices.filter((inv) =>
     (inv.number + " " + (inv.customer || "")).toLowerCase().includes(search.toLowerCase())
