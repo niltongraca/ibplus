@@ -19,6 +19,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const companyId = user.companyId;
 
   try {
     const body = await request.json();
@@ -57,17 +58,18 @@ export async function POST(request: Request) {
 
     const paidAmount = status === "paid" ? total : Number(body.paidAmount) || 0;
 
-    await findOrCreateCustomer(user.companyId, customer || "");
-    await ensureItemsInCatalog(user.companyId, normalizedItems);
+    const invoice = await prisma.$transaction(async (tx) => {
+    await findOrCreateCustomer(companyId, customer || "", tx);
+    await ensureItemsInCatalog(companyId, normalizedItems, tx);
 
-    const count = await prisma.invoice.count({ where: { companyId: user.companyId } });
+    const count = await tx.invoice.count({ where: { companyId } });
     const now = new Date();
     const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
     const number = `FAT-${dateStr}-${String(count + 1).padStart(4, "0")}`;
 
-    const invoice = await prisma.invoice.create({
+    const created = await tx.invoice.create({
       data: {
-        companyId: user.companyId,
+        companyId,
         number,
         customer,
         customerEmail: body.customerEmail ? String(body.customerEmail).trim() : null,
@@ -93,8 +95,11 @@ export async function POST(request: Request) {
 
     const payable = Math.min(paidAmount, total);
     if (payable > 0) {
-      await recordInvoicePayment(user.companyId, invoice.id, number, payable);
+      await recordInvoicePayment(companyId, created.id, number, payable, tx);
     }
+
+    return created;
+  });
 
     return NextResponse.json({ invoice }, { status: 201 });
   } catch (err: any) {

@@ -4,6 +4,10 @@ import { getAuthUser } from "@/lib/auth";
 
 export async function GET() {
   try {
+    const user = await getAuthUser();
+    if (!user || user.role !== "admin") {
+      return NextResponse.json({ error: "Não autorizado." }, { status: 403 });
+    }
     const content = await prisma.content.findMany({ orderBy: { createdAt: "desc" } });
     return NextResponse.json({ content });
   } catch {

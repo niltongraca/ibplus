@@ -48,7 +48,7 @@ const __STYLES = `
 }
 `;
 
-export interface AccordionItemData {
+interface AccordionItemData {
   value: string;
   title: ReactNode;
   content: ReactNode;

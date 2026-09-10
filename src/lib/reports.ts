@@ -16,7 +16,7 @@ function pad(v: number): string {
   return String(v).padStart(2, "0");
 }
 
-export function getPeriodInfo(period: ReportPeriod, now: Date): PeriodInfo {
+function getPeriodInfo(period: ReportPeriod, now: Date): PeriodInfo {
   if (period === "monthly") {
     const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const end = new Date(now.getFullYear(), now.getMonth(), 1);

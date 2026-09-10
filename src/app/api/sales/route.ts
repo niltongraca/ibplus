@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { parsePagination } from "@/lib/utils";
 import { createNotification } from "@/lib/notifications";
 import { logAction } from "@/lib/audit";
 
@@ -9,9 +10,7 @@ export async function GET(request: Request) {
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const url = new URL(request.url);
-  const page = parseInt(url.searchParams.get("page") || "1");
-  const limit = parseInt(url.searchParams.get("limit") || "20");
-  const skip = (page - 1) * limit;
+  const { page, limit, skip } = parsePagination(url.searchParams);
 
   const [sales, total] = await Promise.all([
     prisma.sale.findMany({

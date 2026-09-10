@@ -20,10 +20,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const companyId = user.companyId;
 
   const { id } = await params;
   const quote = await prisma.quote.findFirst({
-    where: { id, companyId: user.companyId },
+    where: { id, companyId },
     include: { items: true },
   });
   if (!quote) return NextResponse.json({ error: "Orçamento não encontrado." }, { status: 404 });
@@ -96,57 +97,60 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
 
   // Auto-generate invoice on approval (avoid duplicates)
-  if (data.status === "approved" && quote.status !== "approved") {
-    const invoiceNotes = `Gerado a partir do orçamento ${quote.number}`;
-    const existing = await prisma.invoice.findFirst({
-      where: { companyId: user.companyId, notes: invoiceNotes },
-    });
-    if (!existing) {
-      const count = await prisma.invoice.count({ where: { companyId: user.companyId } });
-      const now = new Date();
-      const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
-      const number = `FAT-${dateStr}-${String(count + 1).padStart(4, "0")}`;
-
-      const finalItems = data.items && data.items.create ? (data.items.create as any[]) : quote.items;
-      const finalSubtotal = (data.subtotal as number) ?? quote.subtotal;
-      const finalTotal = (data.total as number) ?? quote.total;
-      const finalDiscount = (data.discount as number) ?? quote.discount;
-      const finalDiscountType = (data.discountType as string) ?? quote.discountType;
-      const finalDiscountValue = (data.discountValue as number) ?? quote.discountValue;
-
-      await prisma.invoice.create({
-        data: {
-          companyId: user.companyId,
-          number,
-          customer: data.customer ?? quote.customer,
-          customerEmail: data.customerEmail ?? quote.customerEmail,
-          customerPhone: data.customerPhone ?? quote.customerPhone,
-          customerNif: data.customerNif ?? quote.customerNif,
-          subtotal: finalSubtotal,
-          discountType: finalDiscountType,
-          discountValue: finalDiscountValue,
-          discount: finalDiscount,
-          installments: (data.installments as number) ?? quote.installments,
-          currency: (data.currency as string) ?? quote.currency,
-          paymentMethod: (data.paymentMethod as string) ?? quote.paymentMethod,
-          bankDetails: (data.bankDetails as string) ?? quote.bankDetails,
-          total: finalTotal,
-          status: "pending",
-          notes: invoiceNotes,
-          items: {
-            create: finalItems.map((i) => ({
-              description: i.description,
-              quantity: i.quantity,
-              unitPrice: i.unitPrice,
-              total: i.total,
-            })),
-          },
-        },
+  await prisma.$transaction(async (tx) => {
+    if (data.status === "approved" && quote.status !== "approved") {
+      const invoiceNotes = `Gerado a partir do orçamento ${quote.number}`;
+      const existing = await tx.invoice.findFirst({
+        where: { companyId, notes: invoiceNotes },
       });
-    }
-  }
+      if (!existing) {
+        const count = await tx.invoice.count({ where: { companyId } });
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
+        const number = `FAT-${dateStr}-${String(count + 1).padStart(4, "0")}`;
 
-  await prisma.quote.update({ where: { id }, data });
+        const finalItems = data.items && data.items.create ? (data.items.create as any[]) : quote.items;
+        const finalSubtotal = (data.subtotal as number) ?? quote.subtotal;
+        const finalTotal = (data.total as number) ?? quote.total;
+        const finalDiscount = (data.discount as number) ?? quote.discount;
+        const finalDiscountType = (data.discountType as string) ?? quote.discountType;
+        const finalDiscountValue = (data.discountValue as number) ?? quote.discountValue;
+
+        await tx.invoice.create({
+          data: {
+            companyId,
+            number,
+            customer: data.customer ?? quote.customer,
+            customerEmail: data.customerEmail ?? quote.customerEmail,
+            customerPhone: data.customerPhone ?? quote.customerPhone,
+            customerNif: data.customerNif ?? quote.customerNif,
+            subtotal: finalSubtotal,
+            discountType: finalDiscountType,
+            discountValue: finalDiscountValue,
+            discount: finalDiscount,
+            installments: (data.installments as number) ?? quote.installments,
+            currency: (data.currency as string) ?? quote.currency,
+            paymentMethod: (data.paymentMethod as string) ?? quote.paymentMethod,
+            bankDetails: (data.bankDetails as string) ?? quote.bankDetails,
+            total: finalTotal,
+            status: "pending",
+            notes: invoiceNotes,
+            items: {
+              create: finalItems.map((i) => ({
+                description: i.description,
+                quantity: i.quantity,
+                unitPrice: i.unitPrice,
+                total: i.total,
+              })),
+            },
+          },
+        });
+      }
+    }
+
+    await tx.quote.update({ where: { id }, data });
+  });
+
   await logAction("update", "quote", id, `Orçamento atualizado`);
   return NextResponse.json({ success: true });
 }

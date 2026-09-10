@@ -98,8 +98,3 @@ export function AnimatedModal({
     </div>
   );
 }
-
-export function useAnimatedModal(open: boolean, onClose: () => void, closeOnBackdrop = true) {
-  const props = { open, onClose, closeOnBackdrop };
-  return props;
-}

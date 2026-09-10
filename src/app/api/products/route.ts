@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { parsePagination } from "@/lib/utils";
 import { logAction } from "@/lib/audit";
 
 export async function GET(request: Request) {
@@ -8,9 +9,7 @@ export async function GET(request: Request) {
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const url = new URL(request.url);
-  const page = parseInt(url.searchParams.get("page") || "1");
-  const limit = parseInt(url.searchParams.get("limit") || "20");
-  const skip = (page - 1) * limit;
+  const { page, limit, skip } = parsePagination(url.searchParams);
 
   const [products, total] = await Promise.all([
     prisma.product.findMany({
@@ -29,6 +28,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const companyId = user.companyId;
 
   try {
     const body = await request.json();
@@ -60,26 +60,30 @@ export async function POST(request: Request) {
       if (!category) return NextResponse.json({ error: "Categoria inválida." }, { status: 400 });
     }
 
-    const product = await prisma.product.create({
-      data: {
-        name: nameTrimmed,
-        description: description || null,
-        price: priceNum,
-        cost: costNum,
-        stock: stockNum,
-        minStock: minStockNum,
-        unit: unit || "un",
-        categoryId: catId,
-        companyId: user.companyId,
-      },
-      include: { category: true },
-    });
-
-    if (stockNum > 0) {
-      await prisma.stockMovement.create({
-        data: { productId: product.id, type: "IN", quantity: stockNum, notes: "Stock inicial" },
+    const product = await prisma.$transaction(async (tx) => {
+      const created = await tx.product.create({
+        data: {
+          name: nameTrimmed,
+          description: description || null,
+          price: priceNum,
+          cost: costNum,
+          stock: stockNum,
+          minStock: minStockNum,
+          unit: unit || "un",
+          categoryId: catId,
+          companyId,
+        },
+        include: { category: true },
       });
-    }
+
+      if (stockNum > 0) {
+        await tx.stockMovement.create({
+          data: { productId: created.id, type: "IN", quantity: stockNum, notes: "Stock inicial" },
+        });
+      }
+
+      return created;
+    });
 
     await logAction("create", "product", product.id, `Produto "${product.name}" criado`);
     return NextResponse.json({ product }, { status: 201 });

@@ -255,8 +255,10 @@ export async function POST(request: Request) {
 
     return response;
   } catch (err: any) {
-    const message = err?.message || "Erro interno do servidor.";
-    const status = message.includes("Link") || message.includes("convite") || message.includes("expirou") ? 400 : 500;
-    return NextResponse.json({ error: message }, { status });
+    const message = typeof err?.message === "string" ? err.message : "";
+    if (message.includes("Link") || message.includes("convite") || message.includes("expirou")) {
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
+    return NextResponse.json({ error: "Erro interno do servidor." }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { parsePagination } from "@/lib/utils";
 import { recordExpensePayment } from "@/lib/finance";
 
 export async function GET(request: Request) {
@@ -8,9 +9,7 @@ export async function GET(request: Request) {
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const url = new URL(request.url);
-  const page = parseInt(url.searchParams.get("page") || "1");
-  const limit = parseInt(url.searchParams.get("limit") || "20");
-  const skip = (page - 1) * limit;
+  const { page, limit, skip } = parsePagination(url.searchParams);
 
   const [expenses, total] = await Promise.all([
     prisma.expense.findMany({
@@ -28,6 +27,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const companyId = user.companyId;
 
   try {
     const body = await request.json();
@@ -43,20 +43,23 @@ export async function POST(request: Request) {
     const date = body.date ? new Date(body.date) : new Date();
     if (isNaN(date.getTime())) return NextResponse.json({ error: "A data não é válida." }, { status: 400 });
 
-    const expense = await prisma.expense.create({
-      data: {
-        companyId: user.companyId,
-        description,
-        amount,
-        category,
-        date,
-        paid: body.paid === true,
-        notes: body.notes ? String(body.notes).trim() : null,
-      },
+    const expense = await prisma.$transaction(async (tx) => {
+      const created = await tx.expense.create({
+        data: {
+          companyId,
+          description,
+          amount,
+          category,
+          date,
+          paid: body.paid === true,
+          notes: body.notes ? String(body.notes).trim() : null,
+        },
+      });
+      if (created.paid) {
+        await recordExpensePayment(companyId, created.id, created.description, created.amount, tx);
+      }
+      return created;
     });
-    if (expense.paid) {
-      await recordExpensePayment(user.companyId, expense.id, expense.description, expense.amount);
-    }
     return NextResponse.json({ expense }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Erro ao criar despesa." }, { status: 400 });

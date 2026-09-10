@@ -1,11 +1,11 @@
-export interface ExportLineItem {
+interface ExportLineItem {
   description: string;
   quantity: number;
   unitPrice: number;
   total: number;
 }
 
-export interface ExportCompanyInfo {
+interface ExportCompanyInfo {
   name: string;
   nif?: string | null;
   email?: string | null;
@@ -14,7 +14,7 @@ export interface ExportCompanyInfo {
   logo?: string | null;
 }
 
-export interface ExportDocumentData {
+interface ExportDocumentData {
   type: "FATURA" | "ORÇAMENTO";
   typeLabel: string;
   number: string;

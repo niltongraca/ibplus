@@ -20,9 +20,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const companyId = user.companyId;
 
   const { id } = await params;
-  const existing = await prisma.invoice.findFirst({ where: { id, companyId: user.companyId } });
+  const existing = await prisma.invoice.findFirst({ where: { id, companyId } });
   if (!existing) return NextResponse.json({ error: "Fatura não encontrada." }, { status: 404 });
 
   const body = await request.json();
@@ -98,13 +99,15 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const wasPaid = Number(existing.paidAmount) > 0 || existing.status === "paid";
   const isPaid = data.status === "paid" || (data.status === "partially_paid" && (data.paidAmount as number) > 0);
 
-  await prisma.invoice.update({ where: { id }, data });
+  await prisma.$transaction(async (tx) => {
+    await tx.invoice.update({ where: { id }, data });
 
-  if (isPaid) {
-    await recordInvoicePayment(user.companyId, id, existing.number, data.paidAmount as number);
-  } else if (wasPaid) {
-    await revertInvoicePayment(user.companyId, id, existing.number);
-  }
+    if (isPaid) {
+      await recordInvoicePayment(companyId, id, existing.number, data.paidAmount as number, tx);
+    } else if (wasPaid) {
+      await revertInvoicePayment(companyId, id, existing.number, tx);
+    }
+  });
 
   return NextResponse.json({ success: true });
 }
@@ -112,17 +115,24 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const companyId = user.companyId;
 
   const { id } = await params;
-  const existing = await prisma.invoice.findFirst({ where: { id, companyId: user.companyId } });
+  const existing = await prisma.invoice.findFirst({ where: { id, companyId } });
   if (!existing) return NextResponse.json({ error: "Fatura não encontrada." }, { status: 404 });
 
-  const result = await prisma.invoice.deleteMany({ where: { id, companyId: user.companyId } });
+  const result = await prisma.$transaction(async (tx) => {
+    const removed = await tx.invoice.deleteMany({ where: { id, companyId } });
+    if (!removed.count) throw new Error("INVOICE_NOT_FOUND");
+    if (Number(existing.paidAmount) > 0) {
+      await removeTransactionsByRef(companyId, "invoice", id, tx);
+    }
+    return removed;
+  }).catch((err) => {
+    if (err instanceof Error && err.message === "INVOICE_NOT_FOUND") return null;
+    throw err;
+  });
 
-  if (!result.count) return NextResponse.json({ error: "Fatura não encontrada." }, { status: 404 });
-
-  if (Number(existing.paidAmount) > 0) {
-    await removeTransactionsByRef(user.companyId, "invoice", id);
-  }
+  if (!result) return NextResponse.json({ error: "Fatura não encontrada." }, { status: 404 });
   return NextResponse.json({ success: true });
 }

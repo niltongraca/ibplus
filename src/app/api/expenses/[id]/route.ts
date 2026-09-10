@@ -20,10 +20,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const companyId = user.companyId;
 
   const { id } = await params;
   const data = await request.json();
-  const existing = await prisma.expense.findFirst({ where: { id, companyId: user.companyId } });
+  const existing = await prisma.expense.findFirst({ where: { id, companyId } });
   if (!existing) return NextResponse.json({ error: "Despesa não encontrada." }, { status: 404 });
 
   const update: Record<string, any> = {};
@@ -47,32 +48,46 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   if (data.paid !== undefined) update.paid = data.paid === true;
   if (data.notes !== undefined) update.notes = data.notes ? String(data.notes).trim() : null;
 
-  const result = await prisma.expense.updateMany({ where: { id, companyId: user.companyId }, data: update });
+  const updated = await prisma.$transaction(async (tx) => {
+    const result = await tx.expense.updateMany({ where: { id, companyId }, data: update });
+    if (!result.count) throw new Error("EXPENSE_NOT_FOUND");
 
-  if (!result.count) return NextResponse.json({ error: "Despesa não encontrada." }, { status: 404 });
+    const refreshed = await tx.expense.findFirst({ where: { id, companyId } });
+    if (refreshed?.paid) {
+      await recordExpensePayment(companyId, refreshed.id, refreshed.description, refreshed.amount, tx);
+    } else if (existing.paid) {
+      await revertExpensePayment(companyId, refreshed!.id, refreshed!.description, tx);
+    }
+    return refreshed!;
+  }).catch((err) => {
+    if (err instanceof Error && err.message === "EXPENSE_NOT_FOUND") return null;
+    throw err;
+  });
+
+  if (!updated) return NextResponse.json({ error: "Despesa não encontrada." }, { status: 404 });
+
   await logAction("update", "expense", id, `Despesa atualizada`);
-
-  const updated = await prisma.expense.findFirst({ where: { id, companyId: user.companyId } });
-  if (updated?.paid) {
-    await recordExpensePayment(user.companyId, updated.id, updated.description, updated.amount);
-  } else if (existing.paid) {
-    await revertExpensePayment(user.companyId, updated!.id, updated!.description);
-  }
   return NextResponse.json({ success: true });
 }
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const companyId = user.companyId;
 
   const { id } = await params;
-  const existing = await prisma.expense.findFirst({ where: { id, companyId: user.companyId } });
+  const existing = await prisma.expense.findFirst({ where: { id, companyId } });
   if (!existing) return NextResponse.json({ error: "Despesa não encontrada." }, { status: 404 });
-  if (existing.paid) await revertExpensePayment(user.companyId, id, existing.description);
 
-  const result = await prisma.expense.deleteMany({ where: { id, companyId: user.companyId } });
+  await prisma.$transaction(async (tx) => {
+    if (existing.paid) await revertExpensePayment(companyId, id, existing.description, tx);
+    const result = await tx.expense.deleteMany({ where: { id, companyId } });
+    if (!result.count) throw new Error("EXPENSE_NOT_FOUND");
+  }).catch((err) => {
+    if (err instanceof Error && err.message === "EXPENSE_NOT_FOUND") return null;
+    throw err;
+  });
 
-  if (!result.count) return NextResponse.json({ error: "Despesa não encontrada." }, { status: 404 });
   await logAction("delete", "expense", id, `Despesa eliminada`);
   return NextResponse.json({ success: true });
 }

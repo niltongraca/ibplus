@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { prisma } from "./prisma";
 import { getJwtSecret } from "./secrets";
 
-export interface JwtPayload {
+interface JwtPayload {
   userId: string;
   companyId: string | null;
   email: string;

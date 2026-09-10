@@ -1,11 +1,11 @@
-export type PlanId = "FREE" | "PREMIUM" | "BUSINESS";
+type PlanId = "FREE" | "PREMIUM" | "BUSINESS";
 
-export interface PlanFeature {
+interface PlanFeature {
   text: string;
   included: boolean;
 }
 
-export interface Plan {
+interface Plan {
   id: PlanId;
   name: string;
   price: number;
@@ -19,7 +19,7 @@ export interface Plan {
   maxInvoices?: number;
 }
 
-export const PLANS: Record<PlanId, Plan> = {
+const PLANS: Record<PlanId, Plan> = {
   FREE: {
     id: "FREE",
     name: "Grátis",
