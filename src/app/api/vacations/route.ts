@@ -50,8 +50,8 @@ export async function POST(request: Request) {
     });
     await logAction("create", "vacation", vacation.id, `Férias para "${employee.name}" solicitadas`);
     return NextResponse.json({ vacation }, { status: 201 });
-  } catch (err: any) {
-    const message = typeof err?.message === "string" ? err.message : "";
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "";
     const error = /funcionário|data|deve ser posterior/.test(message) ? message : "Erro ao criar período de férias.";
     return NextResponse.json({ error }, { status: 400 });
   }

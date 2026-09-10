@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 
 const STATUSES = ["pending", "approved", "rejected", "cancelled"];
@@ -29,7 +30,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   if (!existing) return NextResponse.json({ error: "Férias não encontradas." }, { status: 404 });
 
   const body = await request.json();
-  const data: Record<string, any> = {};
+  const data: Prisma.VacationUncheckedUpdateInput = {};
 
   if (body.startDate !== undefined) {
     const startDate = new Date(body.startDate);
@@ -47,8 +48,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
   if (body.notes !== undefined) data.notes = body.notes ? String(body.notes).trim() : null;
 
-  const start = data.startDate !== undefined ? data.startDate : existing.startDate;
-  const end = data.endDate !== undefined ? data.endDate : existing.endDate;
+  const start = data.startDate instanceof Date ? data.startDate : existing.startDate;
+  const end = data.endDate instanceof Date ? data.endDate : existing.endDate;
   if (end < start) return NextResponse.json({ error: "A data de fim deve ser posterior à de início." }, { status: 400 });
 
   const vacation = await prisma.vacation.update({ where: { id }, data });

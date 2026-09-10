@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 
@@ -28,7 +29,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   if (!existing) return NextResponse.json({ error: "Campanha não encontrada." }, { status: 404 });
 
   const body = await request.json();
-  const data: Record<string, any> = {};
+  const data: Prisma.CampaignUncheckedUpdateInput = {};
 
   if (body.name !== undefined) {
     const name = String(body.name).trim();
@@ -54,16 +55,16 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
   if (body.startDate !== undefined) {
     data.startDate = body.startDate ? new Date(body.startDate) : null;
-    if (data.startDate && isNaN(data.startDate.getTime())) return NextResponse.json({ error: "A data de início não é válida." }, { status: 400 });
+    if (data.startDate instanceof Date && isNaN(data.startDate.getTime())) return NextResponse.json({ error: "A data de início não é válida." }, { status: 400 });
   }
   if (body.endDate !== undefined) {
     data.endDate = body.endDate ? new Date(body.endDate) : null;
-    if (data.endDate && isNaN(data.endDate.getTime())) return NextResponse.json({ error: "A data de fim não é válida." }, { status: 400 });
+    if (data.endDate instanceof Date && isNaN(data.endDate.getTime())) return NextResponse.json({ error: "A data de fim não é válida." }, { status: 400 });
   }
   if (body.notes !== undefined) data.notes = body.notes ? String(body.notes).trim() : null;
 
-  const start = data.startDate !== undefined ? data.startDate : existing.startDate;
-  const end = data.endDate !== undefined ? data.endDate : existing.endDate;
+  const start = data.startDate instanceof Date ? data.startDate : existing.startDate;
+  const end = data.endDate instanceof Date ? data.endDate : existing.endDate;
   if (start && end && end < start) return NextResponse.json({ error: "A data de fim deve ser posterior à de início." }, { status: 400 });
 
   await prisma.campaign.update({ where: { id }, data });

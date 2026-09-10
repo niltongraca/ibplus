@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 
@@ -16,7 +17,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ opportunities: [] });
   }
 
-  const where: any = { companyId: user.companyId };
+  const where: Prisma.OpportunityWhereInput = { companyId: user.companyId };
   if (stage) where.stage = stage;
 
   const opportunities = await prisma.opportunity.findMany({
@@ -62,8 +63,8 @@ export async function POST(request: Request) {
     });
     await logAction("create", "opportunity", opportunity.id, `Oportunidade "${title}" criada`);
     return NextResponse.json({ opportunity }, { status: 201 });
-  } catch (err: any) {
-    const message = typeof err?.message === "string" && /Cliente não encontrado|título/.test(err.message) ? err.message : "Erro ao criar oportunidade.";
+  } catch (err: unknown) {
+    const message = err instanceof Error && /Cliente não encontrado|título/.test(err.message) ? err.message : "Erro ao criar oportunidade.";
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }
@@ -77,7 +78,7 @@ export async function PATCH(request: Request) {
     const id = typeof body.id === "string" ? body.id : "";
     if (!id) return NextResponse.json({ error: "ID em falta." }, { status: 400 });
 
-    const data: Record<string, any> = {};
+    const data: Prisma.OpportunityUncheckedUpdateInput = {};
     if (body.stage !== undefined) {
       if (!STAGES.includes(String(body.stage))) return NextResponse.json({ error: "Etapa inválida." }, { status: 400 });
       data.stage = String(body.stage);

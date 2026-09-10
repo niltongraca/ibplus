@@ -60,8 +60,8 @@ export async function POST(request: Request) {
     });
     await logAction("create", "attendance", attendance.id, `Presença registada para "${employee.name}"`);
     return NextResponse.json({ attendance }, { status: 201 });
-  } catch (err: any) {
-    const message = typeof err?.message === "string" ? err.message : "";
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "";
     const error = /funcionário|data|entrada|saída/.test(message) ? message : "Erro ao registar presença.";
     return NextResponse.json({ error }, { status: 400 });
   }

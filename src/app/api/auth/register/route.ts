@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { signToken } from "@/lib/auth";
 import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 import { sendEmail, welcomeEmail } from "@/lib/email";
@@ -152,7 +153,7 @@ export async function POST(request: Request) {
         companyId = company.id;
       }
 
-      const profileData: any = {
+      const profileData: Prisma.ProfileUncheckedCreateWithoutUserInput = {
         nome: data.nome,
         nif: data.nif,
         telefone: data.telefone,
@@ -164,21 +165,21 @@ export async function POST(request: Request) {
       };
 
       if (data.accountType !== "EMPRESA" && data.accountType !== "ONG" && data.accountType !== "EDUCACAO") {
-        profileData.nomeComercial = (data as any).nomeComercial;
-        profileData.bi = (data as any).bi;
-        profileData.dataNascimento = (data as any).dataNascimento ? new Date((data as any).dataNascimento) : null;
-        profileData.sexo = (data as any).sexo;
+        profileData.nomeComercial = data.nomeComercial;
+        profileData.bi = data.bi;
+        profileData.dataNascimento = data.dataNascimento ? new Date(data.dataNascimento) : null;
+        profileData.sexo = data.sexo;
         profileData.pais = data.pais;
-        profileData.areaActividade = (data as any).areaActividade;
-        profileData.profissao = (data as any).profissao;
-        profileData.servicosDescricao = (data as any).servicosDescricao;
-        profileData.redesSociais = (data as any).redesSociais;
+        profileData.areaActividade = data.areaActividade;
+        profileData.profissao = data.profissao;
+        profileData.servicosDescricao = data.servicosDescricao;
+        profileData.redesSociais = data.redesSociais;
       } else {
         profileData.pais = data.pais;
-        profileData.redesSociais = (data as any).redesSociais;
+        profileData.redesSociais = "redesSociais" in data ? data.redesSociais : undefined;
       }
 
-      const createData: any = {
+      const createData: Prisma.UserUncheckedCreateInput = {
         name: data.nome,
         email: data.email,
         password: hashedPassword,
@@ -254,8 +255,8 @@ export async function POST(request: Request) {
     });
 
     return response;
-  } catch (err: any) {
-    const message = typeof err?.message === "string" ? err.message : "";
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "";
     if (message.includes("Link") || message.includes("convite") || message.includes("expirou")) {
       return NextResponse.json({ error: message }, { status: 400 });
     }

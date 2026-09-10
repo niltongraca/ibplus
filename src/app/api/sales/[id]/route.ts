@@ -77,7 +77,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         }
       }
 
-      const total = normalized.reduce((sum: number, i: any) => sum + i.quantity * i.unitPrice, 0);
+      const total = normalized.reduce((sum: number, i) => sum + i.quantity * i.unitPrice, 0);
 
       const sale = await prisma.$transaction(async (tx) => {
         await tx.saleItem.deleteMany({ where: { saleId: id } });
@@ -99,7 +99,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             paymentMethod: body.paymentMethod ?? existing.paymentMethod,
             notes: body.notes ?? existing.notes,
             items: {
-              create: normalized.map((i: any) => ({
+              create: normalized.map((i) => ({
                 productId: i.productId,
                 quantity: i.quantity,
                 unitPrice: i.unitPrice,

@@ -102,8 +102,8 @@ export async function POST(request: Request) {
   });
 
     return NextResponse.json({ invoice }, { status: 201 });
-  } catch (err: any) {
-    const message = typeof err?.message === "string" ? err.message : "";
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "";
     const error = /descrição|quantidade|preço/.test(message) ? message : "Erro ao criar fatura.";
     return NextResponse.json({ error }, { status: 400 });
   }

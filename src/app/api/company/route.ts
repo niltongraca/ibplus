@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 
 export async function GET() {
@@ -20,23 +21,26 @@ export async function PUT(request: Request) {
     if (!user || !user.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
     const data = await request.json();
-    const stringFields = [
-      "name", "nif", "phone", "address", "email", "logo",
+    const updateData: Prisma.CompanyUncheckedUpdateInput = {};
+
+    if (data.name !== undefined) {
+      const name = data.name === null ? "" : String(data.name).trim();
+      if (!name) return NextResponse.json({ error: "O nome da empresa não pode ficar vazio." }, { status: 400 });
+      updateData.name = name;
+    }
+
+    const nullableFields = [
+      "nif", "phone", "address", "email", "logo",
       "whatsappNumber", "whatsappStore", "provinciaOperacao",
       "horarioFuncionamento", "descricaoLoja", "sobreNos",
-    ];
-    const updateData: any = {};
+    ] as const;
 
-    for (const key of stringFields) {
-      if (data[key] !== undefined) {
-        updateData[key] = data[key] === null ? null : String(data[key]).trim();
-      }
+    for (const key of nullableFields) {
+      if (data[key] !== undefined) updateData[key] = data[key] === null ? null : String(data[key]).trim();
     }
 
-    if (updateData.name !== undefined && !updateData.name) {
-      return NextResponse.json({ error: "O nome da empresa não pode ficar vazio." }, { status: 400 });
-    }
-    if (updateData.email !== undefined && updateData.email !== "" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(updateData.email)) {
+    const email = data.email === undefined ? undefined : data.email === null ? null : String(data.email).trim();
+    if (email !== undefined && email !== "" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email ?? "")) {
       return NextResponse.json({ error: "O email não é válido." }, { status: 400 });
     }
     if (data.corPrincipal !== undefined) {
@@ -52,8 +56,8 @@ export async function PUT(request: Request) {
     });
 
     return NextResponse.json({ success: true, company: result });
-  } catch (err: any) {
-    const message = typeof err?.message === "string" ? err.message : "";
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "";
     const error = /nome|email|cor/.test(message) ? message : "Erro ao actualizar empresa.";
     return NextResponse.json({ error }, { status: 400 });
   }

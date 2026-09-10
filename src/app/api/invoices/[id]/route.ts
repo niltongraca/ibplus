@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { recordInvoicePayment, revertInvoicePayment, removeTransactionsByRef } from "@/lib/finance";
 
@@ -27,7 +28,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   if (!existing) return NextResponse.json({ error: "Fatura não encontrada." }, { status: 404 });
 
   const body = await request.json();
-  const data: Record<string, any> = {};
+  const data: Prisma.InvoiceUpdateInput = {};
 
   if (body.customer !== undefined) data.customer = body.customer ? String(body.customer).trim() : null;
   if (body.customerEmail !== undefined) data.customerEmail = body.customerEmail ? String(body.customerEmail).trim() : null;

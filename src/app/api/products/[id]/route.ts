@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 
@@ -60,7 +61,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (!category) return NextResponse.json({ error: "Categoria inválida." }, { status: 400 });
   }
 
-  const parsed: Record<string, any> = {};
+  const parsed: Prisma.ProductUncheckedUpdateInput = {};
   if (price !== undefined) {
     const priceNum = Number(price);
     if (!Number.isFinite(priceNum) || priceNum <= 0) return NextResponse.json({ error: "O preço deve ser um número positivo." }, { status: 400 });

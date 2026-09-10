@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 
@@ -34,7 +35,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "Os itens devem ser uma lista." }, { status: 400 });
   }
 
-  const data: Record<string, any> = {};
+  const data: Prisma.QuoteUpdateInput = {};
 
   if (body.customer !== undefined) data.customer = body.customer ? String(body.customer).trim() : null;
   if (body.customerEmail !== undefined) data.customerEmail = body.customerEmail ? String(body.customerEmail).trim() : null;
@@ -109,7 +110,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
         const number = `FAT-${dateStr}-${String(count + 1).padStart(4, "0")}`;
 
-        const finalItems = data.items && data.items.create ? (data.items.create as any[]) : quote.items;
+        const finalItems = data.items && data.items.create ? (data.items.create as Prisma.QuoteItemCreateWithoutQuoteInput[]) : quote.items;
         const finalSubtotal = (data.subtotal as number) ?? quote.subtotal;
         const finalTotal = (data.total as number) ?? quote.total;
         const finalDiscount = (data.discount as number) ?? quote.discount;
@@ -120,10 +121,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
           data: {
             companyId,
             number,
-            customer: data.customer ?? quote.customer,
-            customerEmail: data.customerEmail ?? quote.customerEmail,
-            customerPhone: data.customerPhone ?? quote.customerPhone,
-            customerNif: data.customerNif ?? quote.customerNif,
+            customer: (data.customer ?? quote.customer) as string | null,
+            customerEmail: (data.customerEmail ?? quote.customerEmail) as string | null,
+            customerPhone: (data.customerPhone ?? quote.customerPhone) as string | null,
+            customerNif: (data.customerNif ?? quote.customerNif) as string | null,
             subtotal: finalSubtotal,
             discountType: finalDiscountType,
             discountValue: finalDiscountValue,

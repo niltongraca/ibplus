@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { recordExpensePayment, revertExpensePayment } from "@/lib/finance";
@@ -27,7 +28,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const existing = await prisma.expense.findFirst({ where: { id, companyId } });
   if (!existing) return NextResponse.json({ error: "Despesa não encontrada." }, { status: 404 });
 
-  const update: Record<string, any> = {};
+  const update: Prisma.ExpenseUncheckedUpdateInput = {};
 
   if (data.description !== undefined) {
     const desc = String(data.description).trim();

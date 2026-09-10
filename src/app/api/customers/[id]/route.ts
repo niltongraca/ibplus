@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 
@@ -27,7 +28,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   const body = await request.json();
 
-  const data: Record<string, any> = {};
+  const data: Prisma.CustomerUncheckedUpdateInput = {};
 
   if (body.name !== undefined) {
     const name = String(body.name).trim();

@@ -5,6 +5,8 @@ import { logAction } from "@/lib/audit";
 
 const PAYMENT_METHODS = ["cash", "card", "transfer", "multicaixa"];
 
+type CartItem = { productId: string; quantity: number };
+
 export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
@@ -15,11 +17,11 @@ export async function POST(request: Request) {
     const customerName = body.customerName ? String(body.customerName).trim() : "";
     const paymentMethod = typeof body.paymentMethod === "string" && PAYMENT_METHODS.includes(body.paymentMethod) ? body.paymentMethod : "cash";
 
-    const items = Array.isArray(body.items) ? body.items : [];
+    const items: CartItem[] = Array.isArray(body.items) ? body.items : [];
     if (!items.length) return NextResponse.json({ error: "Carrinho vazio." }, { status: 400 });
 
-    const productIds = items.map((item: any) => item.productId);
-    if (productIds.some((id: any) => typeof id !== "string" || !id)) {
+    const productIds = items.map((item) => item.productId);
+    if (productIds.some((id) => typeof id !== "string" || !id)) {
       return NextResponse.json({ error: "Produto inválido no carrinho." }, { status: 400 });
     }
 
@@ -47,7 +49,7 @@ export async function POST(request: Request) {
 
     // Total always computed from the server-side price (never trust client-sent price)
     const total = items.reduce(
-      (sum: number, item: any) => sum + productMap.get(item.productId)!.price * item.quantity,
+      (sum: number, item) => sum + productMap.get(item.productId)!.price * item.quantity,
       0
     );
 
@@ -69,7 +71,7 @@ export async function POST(request: Request) {
           customerId: customerId,
           notes: customerName && !customerId ? customerName : undefined,
           items: {
-            create: items.map((item: any) => ({
+            create: items.map((item) => ({
               productId: item.productId,
               quantity: item.quantity,
               unitPrice: productMap.get(item.productId)!.price,
@@ -100,8 +102,8 @@ export async function POST(request: Request) {
 
     await logAction("create", "sale", sale.id, `Venda na loja no valor de ${Math.round(total * 100) / 100} Kz`);
     return NextResponse.json({ sale }, { status: 201 });
-  } catch (err: any) {
-    const message = typeof err?.message === "string" ? err.message : "";
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "";
     const error = /Carrinho|Produto|Quantidade|Stock|encontrados/.test(message) ? message : "Erro ao processar checkout.";
     return NextResponse.json({ error }, { status: 400 });
   }
