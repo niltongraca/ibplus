@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
+import { toNumber } from "@/lib/money";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -11,7 +12,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const { id } = await params;
   const service = await prisma.service.findFirst({ where: { id, companyId: user.companyId } });
   if (!service) return NextResponse.json({ error: "Serviço não encontrado." }, { status: 404 });
-  return NextResponse.json({ service });
+  return NextResponse.json({ service: { ...service, price: toNumber(service.price) } });
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {

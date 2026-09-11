@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { toNumber } from "@/lib/money";
 
 export async function GET() {
   try {
@@ -94,20 +95,20 @@ export async function GET() {
       const customer = sale.customer?.name || "Cliente ocasional";
       for (const item of sale.items) {
         const name = item.product?.name || "Produto";
-        addItem(name, item.quantity, item.total, customer);
-        addCustomerItem(customer, name, item.quantity, item.total);
+        addItem(name, item.quantity, toNumber(item.total), customer);
+        addCustomerItem(customer, name, item.quantity, toNumber(item.total));
       }
-      addCustomerSpend(customer, sale.total);
+      addCustomerSpend(customer, toNumber(sale.total));
     }
 
     for (const invoice of invoices) {
       const customer = invoice.customer || "Cliente ocasional";
       for (const item of invoice.items) {
         const name = item.description || "Sem nome";
-        addItem(name, item.quantity, item.total, customer);
-        addCustomerItem(customer, name, item.quantity, item.total);
+        addItem(name, item.quantity, toNumber(item.total), customer);
+        addCustomerItem(customer, name, item.quantity, toNumber(item.total));
       }
-      addCustomerSpend(customer, invoice.total);
+      addCustomerSpend(customer, toNumber(invoice.total));
     }
 
     const itemsReport = Array.from(itemMap.values())

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
+import { toNumber } from "@/lib/money";
 
 const TYPES = ["email", "social", "sms", "whatsapp", "other"];
 const STATUSES = ["draft", "active", "paused", "completed", "cancelled"];
@@ -16,7 +17,7 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ campaigns });
+    return NextResponse.json({ campaigns: campaigns.map((c) => ({ ...c, budget: c.budget === null ? null : toNumber(c.budget) })) });
   } catch {
     return NextResponse.json({ error: "Erro ao carregar campanhas." }, { status: 500 });
   }
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
       data: { companyId: user.companyId, name, type, status, startDate, endDate, budget, notes },
     });
     await logAction("create", "campaign", campaign.id, `Campanha "${name}" criada`);
-    return NextResponse.json({ campaign }, { status: 201 });
+    return NextResponse.json({ campaign: { ...campaign, budget: campaign.budget === null ? null : toNumber(campaign.budget) } }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Erro ao criar campanha." }, { status: 400 });
   }

@@ -226,7 +226,7 @@ model Opportunity {
   customerId  String
   customer    Customer @relation(fields: [customerId], references: [id])
   title       String
-  value       Float    @default(0)
+  value       Decimal    @default(0) @db.Decimal(18, 2)
   stage       String   @default("lead")
   notes       String?
   createdAt   DateTime @default(now())
@@ -254,8 +254,8 @@ model Product {
   category    Category? @relation(fields: [categoryId], references: [id])
   name        String
   description String?
-  price       Float
-  cost        Float    @default(0)
+  price       Decimal @db.Decimal(18, 2)
+  cost        Decimal    @default(0) @db.Decimal(18, 2)
   stock       Int      @default(0)
   minStock    Int      @default(0)
   image       String?
@@ -278,7 +278,7 @@ model Sale {
   customerId String?
   customer   Customer?  @relation(fields: [customerId], references: [id])
   date       DateTime   @default(now())
-  total      Float
+  total      Decimal @db.Decimal(18, 2)
   status     String     @default("pending")
   paymentMethod String?
   notes      String?
@@ -297,8 +297,8 @@ model SaleItem {
   productId String?
   product   Product? @relation(fields: [productId], references: [id])
   quantity  Int
-  unitPrice Float
-  total     Float
+  unitPrice Decimal @db.Decimal(18, 2)
+  total     Decimal @db.Decimal(18, 2)
 
   @@index([saleId])
   @@index([productId])
@@ -310,7 +310,7 @@ model Purchase {
   company   Company       @relation(fields: [companyId], references: [id])
   supplier  String?
   date      DateTime      @default(now())
-  total     Float
+  total     Decimal @db.Decimal(18, 2)
   status    String        @default("pending")
   notes     String?
   items     PurchaseItem[]
@@ -327,8 +327,8 @@ model PurchaseItem {
   productId  String?
   product    Product? @relation(fields: [productId], references: [id])
   quantity   Int
-  unitPrice  Float
-  total      Float
+  unitPrice  Decimal @db.Decimal(18, 2)
+  total      Decimal @db.Decimal(18, 2)
 
   @@index([purchaseId])
   @@index([productId])
@@ -339,7 +339,7 @@ model Expense {
   companyId   String
   company     Company  @relation(fields: [companyId], references: [id])
   description String
-  amount      Float
+  amount      Decimal @db.Decimal(18, 2)
   category    String   @default("outros")
   date        DateTime @default(now())
   paid        Boolean  @default(false)
@@ -373,16 +373,16 @@ model Invoice {
   customerNif String?
   date        DateTime     @default(now())
   dueDate     DateTime?
-  subtotal    Float        @default(0)
+  subtotal    Decimal        @default(0) @db.Decimal(18, 2)
   discountType String      @default("fixed")
-  discountValue Float      @default(0)
-  discount    Float        @default(0)
+  discountValue Decimal      @default(0) @db.Decimal(18, 2)
+  discount    Decimal        @default(0) @db.Decimal(18, 2)
   installments Int         @default(1)
   currency    String       @default("AOA")
   paymentMethod String?
   bankDetails String?
-  total       Float
-  paidAmount  Float        @default(0)
+  total       Decimal @db.Decimal(18, 2)
+  paidAmount  Decimal        @default(0) @db.Decimal(18, 2)
   status      String       @default("pending")
   notes       String?
   items       InvoiceItem[]
@@ -399,8 +399,8 @@ model InvoiceItem {
   invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   description String
   quantity  Int
-  unitPrice Float
-  total     Float
+  unitPrice Decimal @db.Decimal(18, 2)
+  total     Decimal @db.Decimal(18, 2)
 
   @@index([invoiceId])
 }
@@ -416,15 +416,15 @@ model Quote {
   customerNif String?
   date      DateTime    @default(now())
   validUntil DateTime?
-  subtotal  Float       @default(0)
+  subtotal  Decimal       @default(0) @db.Decimal(18, 2)
   discountType String   @default("fixed")
-  discountValue Float   @default(0)
-  discount  Float       @default(0)
+  discountValue Decimal   @default(0) @db.Decimal(18, 2)
+  discount  Decimal       @default(0) @db.Decimal(18, 2)
   installments Int      @default(1)
   currency  String      @default("AOA")
   paymentMethod String?
   bankDetails String?
-  total     Float
+  total     Decimal @db.Decimal(18, 2)
   status    String      @default("pending")
   notes     String?
   items     QuoteItem[]
@@ -441,8 +441,8 @@ model QuoteItem {
   quote     Quote   @relation(fields: [quoteId], references: [id], onDelete: Cascade)
   description String
   quantity  Int
-  unitPrice Float
-  total     Float
+  unitPrice Decimal @db.Decimal(18, 2)
+  total     Decimal @db.Decimal(18, 2)
 
   @@index([quoteId])
 }
@@ -453,7 +453,7 @@ model Service {
   company     Company  @relation(fields: [companyId], references: [id])
   name        String
   description String?
-  price       Float
+  price       Decimal @db.Decimal(18, 2)
   duration    String?
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -471,7 +471,7 @@ model Campaign {
   status      String   @default("draft")
   startDate   DateTime?
   endDate     DateTime?
-  budget      Float?
+  budget      Decimal? @db.Decimal(18, 2)
   notes       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -487,7 +487,7 @@ model Employee {
   email      String?
   phone      String?
   position   String?
-  salary     Float       @default(0)
+  salary     Decimal      @default(0) @db.Decimal(18, 2)
   hireDate   DateTime?
   active     Boolean     @default(true)
   attendances Attendance[]
@@ -604,7 +604,7 @@ model Transaction {
   company     Company  @relation(fields: [companyId], references: [id])
   type        String
   description String
-  amount      Float
+  amount      Decimal @db.Decimal(18, 2)
   refType     String?
   refId       String?
   date        DateTime @default(now())
@@ -622,12 +622,12 @@ model Report {
   periodKey    String
   label        String
   data         Json?
-  totalRevenue Float    @default(0)
-  totalExpenses Float   @default(0)
-  netResult    Float    @default(0)
+  totalRevenue Decimal    @default(0) @db.Decimal(18, 2)
+  totalExpenses Decimal   @default(0) @db.Decimal(18, 2)
+  netResult    Decimal    @default(0) @db.Decimal(18, 2)
   totalSales   Int      @default(0)
   invoicesPaid Int      @default(0)
-  invoicesPaidTotal Float @default(0)
+  invoicesPaidTotal Decimal @default(0) @db.Decimal(18, 2)
   createdAt    DateTime @default(now())
 
   @@unique([companyId, period, periodKey])

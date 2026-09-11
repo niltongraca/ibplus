@@ -3,6 +3,23 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
+import { toNumber } from "@/lib/money";
+
+function serializeSale(s: { total?: unknown; items: unknown[] } & Record<string, unknown>) {
+  return {
+    ...s,
+    total: toNumber(s.total),
+    items: s.items.map((it) => {
+      const item = it as Record<string, unknown>;
+      const serialized: Record<string, unknown> = { ...item, unitPrice: toNumber(item.unitPrice), total: toNumber(item.total) };
+      const product = item.product as Record<string, unknown> | null | undefined;
+      if (product && typeof product === "object") {
+        serialized.product = { ...product, price: toNumber(product.price), cost: toNumber(product.cost) };
+      }
+      return serialized;
+    }),
+  };
+}
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -15,7 +32,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   });
 
   if (!sale) return NextResponse.json({ error: "Venda não encontrada." }, { status: 404 });
-  return NextResponse.json({ sale });
+  return NextResponse.json({ sale: serializeSale(sale as never) });
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -73,7 +90,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         }
       }
 
-      const total = normalized.reduce((sum: number, i) => sum + i.quantity * productMap.get(i.productId)!.price, 0);
+      const total = normalized.reduce((sum: number, i) => sum + i.quantity * toNumber(productMap.get(i.productId)!.price), 0);
 
       const sale = await prisma.$transaction(async (tx) => {
         await tx.saleItem.deleteMany({ where: { saleId: id } });
@@ -103,7 +120,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             customerId: body.customerId !== undefined ? body.customerId || null : existing.customerId,
             items: {
               create: normalized.map((i) => {
-                const unitPrice = productMap.get(i.productId)!.price;
+                const unitPrice = toNumber(productMap.get(i.productId)!.price);
                 return {
                   productId: i.productId,
                   quantity: i.quantity,
@@ -117,8 +134,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         });
       });
 
-      await logAction("update", "sale", id, `Venda atualizada - ${sale.total.toLocaleString()} Kz`);
-      return NextResponse.json({ sale });
+      await logAction("update", "sale", id, `Venda atualizada - ${toNumber(sale.total).toLocaleString()} Kz`);
+      return NextResponse.json({ sale: serializeSale(sale as never) });
     }
 
     const updateData: Prisma.SaleUpdateInput = {};
@@ -137,7 +154,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       include: { customer: { select: { name: true } }, items: { include: { product: { select: { name: true } } } } },
     });
     await logAction("update", "sale", id, `Venda atualizada`);
-    return NextResponse.json({ sale });
+    return NextResponse.json({ sale: serializeSale(sale as never) });
   } catch (err) {
     if (err instanceof Error && err.message === "INVALID_ITEM") {
       return NextResponse.json({ error: "Cada item deve ter uma quantidade inteira positiva." }, { status: 400 });

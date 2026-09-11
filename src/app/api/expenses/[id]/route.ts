@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { recordExpensePayment, revertExpensePayment } from "@/lib/finance";
+import { toNumber } from "@/lib/money";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -15,7 +16,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   });
 
   if (!expense) return NextResponse.json({ error: "Despesa não encontrada." }, { status: 404 });
-  return NextResponse.json({ expense });
+  return NextResponse.json({ expense: { ...expense, amount: toNumber(expense.amount) } });
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -55,7 +56,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const refreshed = await tx.expense.findFirst({ where: { id, companyId } });
     if (refreshed?.paid) {
-      await recordExpensePayment(companyId, refreshed.id, refreshed.description, refreshed.amount, tx);
+      await recordExpensePayment(companyId, refreshed.id, refreshed.description, toNumber(refreshed.amount), tx);
     } else if (existing.paid) {
       await revertExpensePayment(companyId, refreshed!.id, refreshed!.description, tx);
     }

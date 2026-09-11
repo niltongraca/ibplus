@@ -3,6 +3,11 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { parsePagination } from "@/lib/utils";
 import { logAction } from "@/lib/audit";
+import { toNumber } from "@/lib/money";
+
+function serializeProduct(p: { price?: unknown; cost?: unknown } & Record<string, unknown>) {
+  return { ...p, price: toNumber(p.price), cost: toNumber(p.cost) };
+}
 
 export async function GET(request: Request) {
   const user = await getAuthUser();
@@ -22,7 +27,12 @@ export async function GET(request: Request) {
     prisma.product.count({ where: { companyId: user.companyId } }),
   ]);
 
-  return NextResponse.json({ products, total, page, totalPages: Math.ceil(total / limit) });
+  return NextResponse.json({
+    products: products.map((p) => serializeProduct(p as never)),
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  });
 }
 
 export async function POST(request: Request) {
@@ -86,7 +96,7 @@ export async function POST(request: Request) {
     });
 
     await logAction("create", "product", product.id, `Produto "${product.name}" criado`);
-    return NextResponse.json({ product }, { status: 201 });
+    return NextResponse.json({ product: serializeProduct(product as never) }, { status: 201 });
   } catch (err) {
     console.error("Erro ao criar produto:", err);
     return NextResponse.json({ error: "Erro ao criar produto." }, { status: 400 });

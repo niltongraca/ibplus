@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { parsePagination } from "@/lib/utils";
 import { logAction } from "@/lib/audit";
+import { toNumber } from "@/lib/money";
 
 export async function GET(request: Request) {
   try {
@@ -23,7 +24,12 @@ export async function GET(request: Request) {
       prisma.service.count({ where: { companyId: user.companyId } }),
     ]);
 
-    return NextResponse.json({ services, total, page, totalPages: Math.ceil(total / limit) });
+    return NextResponse.json({
+    services: services.map((s) => ({ ...s, price: toNumber(s.price) })),
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  });
   } catch {
     return NextResponse.json({ error: "Erro ao carregar serviços." }, { status: 500 });
   }
@@ -59,7 +65,7 @@ export async function POST(request: Request) {
     });
 
     await logAction("create", "service", service.id, `Serviço "${service.name}" criado`);
-    return NextResponse.json({ service }, { status: 201 });
+    return NextResponse.json({ service: { ...service, price: toNumber(service.price) } }, { status: 201 });
   } catch (err) {
     console.error("Erro ao criar serviço:", err);
     return NextResponse.json({ error: "Erro ao criar serviço." }, { status: 500 });

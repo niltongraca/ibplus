@@ -38,7 +38,7 @@ export async function recordInvoicePayment(companyId: string, invoiceId: string,
     where: { companyId, refType: "invoice", refId: invoiceId },
   });
   if (existing) {
-    if (existing.amount !== amount) {
+    if (!existing.amount.eq(amount)) {
       await db.transaction.update({ where: { id: existing.id }, data: { amount } });
       await logAction("update", "payment", invoiceId, `Pagamento da fatura ${number} atualizado para ${amount} Kz`);
     } else {
@@ -74,7 +74,7 @@ export async function recordExpensePayment(companyId: string, expenseId: string,
   });
   const label = description || "Despesa";
   if (existing) {
-    if (existing.amount !== amount) {
+    if (!existing.amount.eq(amount)) {
       await db.transaction.update({ where: { id: existing.id }, data: { amount } });
       await logAction("update", "payment", expenseId, `Despesa "${label}" atualizada para ${amount} Kz nos fundos`);
     } else {

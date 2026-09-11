@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { parsePagination } from "@/lib/utils";
 import { recordExpensePayment } from "@/lib/finance";
+import { toNumber } from "@/lib/money";
 
 export async function GET(request: Request) {
   const user = await getAuthUser();
@@ -21,7 +22,12 @@ export async function GET(request: Request) {
     prisma.expense.count({ where: { companyId: user.companyId } }),
   ]);
 
-  return NextResponse.json({ expenses, total, page, totalPages: Math.ceil(total / limit) });
+  return NextResponse.json({
+    expenses: expenses.map((e) => ({ ...e, amount: toNumber(e.amount) })),
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  });
 }
 
 export async function POST(request: Request) {
@@ -56,11 +62,11 @@ export async function POST(request: Request) {
         },
       });
       if (created.paid) {
-        await recordExpensePayment(companyId, created.id, created.description, created.amount, tx);
+        await recordExpensePayment(companyId, created.id, created.description, toNumber(created.amount), tx);
       }
       return created;
     });
-    return NextResponse.json({ expense }, { status: 201 });
+    return NextResponse.json({ expense: { ...expense, amount: toNumber(expense.amount) } }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Erro ao criar despesa." }, { status: 400 });
   }

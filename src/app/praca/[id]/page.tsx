@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
+import { toNumber } from "@/lib/money";
 import { Store, MapPin, Phone, Mail, ArrowLeft, Package, Globe, Facebook, Instagram, Linkedin, MessageCircle, Send, User } from "lucide-react";
 import Link from "next/link";
 import SiteHeader from "@/components/site/Header";
@@ -242,7 +243,7 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
               {product.description && (
                 <p className="text-sm mb-3 line-clamp-2" style={{ color: "var(--text-muted)" }}>{product.description}</p>
               )}
-              <p className="text-lg font-bold text-ib-accent">{formatCurrency(product.price)}</p>
+              <p className="text-lg font-bold text-ib-accent">{formatCurrency(toNumber(product.price))}</p>
             </div>
           ))}
         </div>

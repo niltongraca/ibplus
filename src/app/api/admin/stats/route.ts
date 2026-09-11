@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { toNumber } from "@/lib/money";
 
 export async function GET() {
   try {
@@ -22,7 +23,7 @@ export async function GET() {
 
     const stats = {
       totalUsers, totalCompanies, totalProducts, totalCustomers, recentUsers,
-      totalSales: totalSalesAgg._sum.total || 0,
+      totalSales: toNumber(totalSalesAgg._sum.total),
       empresaCount: typeCounts.find((c) => c.accountType === "EMPRESA")?._count ?? 0,
       empreendedorCount: typeCounts.find((c) => c.accountType === "EMPREENDEDOR")?._count ?? 0,
       ongCount: typeCounts.find((c) => c.accountType === "ONG")?._count ?? 0,

@@ -38,8 +38,10 @@ async function main() {
   let skipped = 0;
 
   for (const inv of invoices) {
-    const legacyPaid = inv.paidAmount === 0;
-    const amount = inv.paidAmount > 0 ? inv.paidAmount : inv.total;
+    const paidAmount = inv.paidAmount.toNumber();
+    const total = inv.total.toNumber();
+    const legacyPaid = paidAmount === 0;
+    const amount = paidAmount > 0 ? paidAmount : total;
 
     if (existingRefs.has(inv.id)) {
       skipped++;
@@ -51,7 +53,7 @@ async function main() {
       await prisma.invoice.update({
         where: { id: inv.id },
         data: {
-          paidAmount: inv.total,
+          paidAmount: total,
           status: inv.status === "partially_paid" ? "paid" : inv.status,
         },
       });

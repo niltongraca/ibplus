@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { toNumber } from "@/lib/money";
 
 const MONTHS_PT = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
@@ -92,23 +93,23 @@ export async function generateReportForCompany(companyId: string, period: Report
     }),
   ]);
 
-  const totalRevenue = salesAgg._sum.total || 0;
-  const totalExpenses = expenseAgg._sum.amount || 0;
+  const totalRevenue = toNumber(salesAgg._sum.total);
+  const totalExpenses = toNumber(expenseAgg._sum.amount);
   const invoicesPaid = incomeTxAgg._count;
-  const invoicesPaidTotal = incomeTxAgg._sum.amount || 0;
+  const invoicesPaidTotal = toNumber(incomeTxAgg._sum.amount);
   const netResult = totalRevenue + invoicesPaidTotal - totalExpenses;
 
   const data = {
     recentSales: recentSales.map((s) => ({
       id: s.id,
       date: s.date,
-      total: s.total,
+      total: toNumber(s.total),
       customer: s.customer?.name ?? null,
     })),
     recentExpenses: recentExpenses.map((e) => ({
       id: e.id,
       description: e.description,
-      amount: e.amount,
+      amount: toNumber(e.amount),
       date: e.date,
       category: e.category,
     })),

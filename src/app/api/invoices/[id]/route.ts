@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { recordInvoicePayment, revertInvoicePayment, removeTransactionsByRef } from "@/lib/finance";
+import { toNumber } from "@/lib/money";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -15,7 +16,17 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   });
 
   if (!invoice) return NextResponse.json({ error: "Fatura não encontrada." }, { status: 404 });
-  return NextResponse.json({ invoice });
+  return NextResponse.json({
+    invoice: {
+      ...invoice,
+      subtotal: toNumber(invoice.subtotal),
+      discountValue: toNumber(invoice.discountValue),
+      discount: toNumber(invoice.discount),
+      total: toNumber(invoice.total),
+      paidAmount: toNumber(invoice.paidAmount),
+      items: invoice.items.map((it) => ({ ...it, unitPrice: toNumber(it.unitPrice), total: toNumber(it.total) })),
+    },
+  });
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -42,8 +53,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
   data.status = nextStatus;
 
-  const total = Number(body.total) || existing.total;
-  const calcPaidAmount = nextStatus === "paid" ? total : Number(body.paidAmount) ?? 0;
+  const total = Number(body.total) || toNumber(existing.total);
+  const calcPaidAmount = nextStatus === "paid" ? total : Number(body.paidAmount ?? 0) || 0;
   data.paidAmount = Math.max(0, Math.min(total, calcPaidAmount));
   data.total = total;
 
@@ -76,7 +87,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     if (body.discountValue !== undefined || body.discountType !== undefined) {
       const discountType = body.discountType === "percentage" ? "percentage" : (body.discountType ?? existing.discountType);
-      const discountValue = Number(body.discountValue) ?? existing.discountValue;
+      const discountValue = body.discountValue === undefined ? toNumber(existing.discountValue) : Number(body.discountValue);
       data.discountType = discountType;
       data.discountValue = discountValue;
       data.discount = discountType === "percentage" ? subtotal * Math.min(100, discountValue) / 100 : Math.min(subtotal, discountValue);
@@ -84,9 +95,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
   } else {
     // Recompute discount if subtotal/discount changed without items
-    const subtotal = Number(body.subtotal) || existing.subtotal;
+    const subtotal = Number(body.subtotal) || toNumber(existing.subtotal);
     const discountType = body.discountType === "percentage" ? "percentage" : existing.discountType;
-    const discountValue = Number(body.discountValue) ?? existing.discountValue;
+    const discountValue = body.discountValue === undefined ? toNumber(existing.discountValue) : Number(body.discountValue);
     data.discountType = discountType;
     data.discountValue = discountValue;
     data.discount = discountType === "percentage" ? subtotal * Math.min(100, discountValue) / 100 : Math.min(subtotal, discountValue);

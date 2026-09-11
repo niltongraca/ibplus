@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { toNumber } from "@/lib/money";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -15,5 +16,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   });
 
   if (!company) return NextResponse.json({ error: "Empresa não encontrada." }, { status: 404 });
-  return NextResponse.json({ company });
+  return NextResponse.json({
+    company: {
+      ...company,
+      products: company.products.map((p) => ({ ...p, price: toNumber(p.price), cost: toNumber(p.cost) })),
+    },
+  });
 }

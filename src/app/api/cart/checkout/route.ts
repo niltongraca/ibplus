@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
+import { toNumber } from "@/lib/money";
 
 const PAYMENT_METHODS = ["cash", "card", "transfer", "multicaixa"];
 
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
 
     // Total always computed from the server-side price (never trust client-sent price)
     const total = items.reduce(
-      (sum: number, item) => sum + productMap.get(item.productId)!.price * item.quantity,
+      (sum: number, item) => sum + toNumber(productMap.get(item.productId)!.price) * item.quantity,
       0
     );
 
@@ -74,8 +75,8 @@ export async function POST(request: Request) {
             create: items.map((item) => ({
               productId: item.productId,
               quantity: item.quantity,
-              unitPrice: productMap.get(item.productId)!.price,
-              total: productMap.get(item.productId)!.price * item.quantity,
+              unitPrice: toNumber(productMap.get(item.productId)!.price),
+              total: toNumber(productMap.get(item.productId)!.price) * item.quantity,
             })),
           },
         },

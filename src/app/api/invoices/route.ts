@@ -4,6 +4,7 @@ import { getAuthUser } from "@/lib/auth";
 import { findOrCreateCustomer, ensureItemsInCatalog } from "@/lib/catalog";
 import { recordInvoicePayment } from "@/lib/finance";
 import { nextInvoiceNumber } from "@/lib/sequence";
+import { toNumber } from "@/lib/money";
 
 export async function GET() {
   const user = await getAuthUser();
@@ -14,7 +15,16 @@ export async function GET() {
     orderBy: { date: "desc" },
   });
 
-  return NextResponse.json({ invoices });
+  return NextResponse.json({
+    invoices: invoices.map((i) => ({
+      ...i,
+      subtotal: toNumber(i.subtotal),
+      discountValue: toNumber(i.discountValue),
+      discount: toNumber(i.discount),
+      total: toNumber(i.total),
+      paidAmount: toNumber(i.paidAmount),
+    })),
+  });
 }
 
 export async function POST(request: Request) {
@@ -99,7 +109,17 @@ export async function POST(request: Request) {
     return created;
   });
 
-    return NextResponse.json({ invoice }, { status: 201 });
+    return NextResponse.json({
+      invoice: {
+        ...invoice,
+        subtotal: toNumber(invoice.subtotal),
+        discountValue: toNumber(invoice.discountValue),
+        discount: toNumber(invoice.discount),
+        total: toNumber(invoice.total),
+        paidAmount: toNumber(invoice.paidAmount),
+        items: invoice.items.map((it) => ({ ...it, unitPrice: toNumber(it.unitPrice), total: toNumber(it.total) })),
+      },
+    }, { status: 201 });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "";
     const error = /descrição|quantidade|preço/.test(message) ? message : "Erro ao criar fatura.";

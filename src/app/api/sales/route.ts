@@ -4,6 +4,18 @@ import { getAuthUser } from "@/lib/auth";
 import { parsePagination } from "@/lib/utils";
 import { createNotification } from "@/lib/notifications";
 import { logAction } from "@/lib/audit";
+import { toNumber } from "@/lib/money";
+
+function serializeSale(s: { total?: unknown; items: unknown[] } & Record<string, unknown>) {
+  return {
+    ...s,
+    total: toNumber(s.total),
+    items: s.items.map((it) => {
+      const item = it as Record<string, unknown>;
+      return { ...item, unitPrice: toNumber(item.unitPrice), total: toNumber(item.total) };
+    }),
+  };
+}
 
 export async function GET(request: Request) {
   const user = await getAuthUser();
@@ -23,7 +35,12 @@ export async function GET(request: Request) {
     prisma.sale.count({ where: { companyId: user.companyId } }),
   ]);
 
-  return NextResponse.json({ sales, total, page, totalPages: Math.ceil(total / limit) });
+  return NextResponse.json({
+    sales: sales.map((s) => serializeSale(s as never)),
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  });
 }
 
 export async function POST(request: Request) {
@@ -68,7 +85,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const total = normalized.reduce((sum, i) => sum + i.quantity * productMap.get(i.productId)!.price, 0);
+    const total = normalized.reduce((sum, i) => sum + i.quantity * toNumber(productMap.get(i.productId)!.price), 0);
 
     const sale = await prisma.$transaction(async (tx) => {
       const created = await tx.sale.create({
@@ -81,7 +98,7 @@ export async function POST(request: Request) {
           notes,
           items: {
             create: normalized.map((i) => {
-              const unitPrice = productMap.get(i.productId)!.price;
+              const unitPrice = toNumber(productMap.get(i.productId)!.price);
               return {
                 productId: i.productId,
                 quantity: i.quantity,
@@ -116,13 +133,13 @@ export async function POST(request: Request) {
     });
 
     const customerName = sale.customer?.name || "Cliente";
-    await logAction("create", "sale", sale.id, `Venda de ${sale.total.toLocaleString()} Kz - ${customerName}`);
+    await logAction("create", "sale", sale.id, `Venda de ${toNumber(sale.total).toLocaleString()} Kz - ${customerName}`);
     await createNotification(
-      user.companyId, "sale", `Nova venda de ${sale.total.toLocaleString()} Kz`,
+      user.companyId, "sale", `Nova venda de ${toNumber(sale.total).toLocaleString()} Kz`,
       `Venda registada para ${customerName}`, "/gestao/vendas"
     );
 
-    return NextResponse.json({ sale }, { status: 201 });
+    return NextResponse.json({ sale: serializeSale(sale as never) }, { status: 201 });
   } catch (err) {
     if (err instanceof Error && err.message === "INVALID_ITEM") {
       return NextResponse.json({ error: "Cada item deve ter uma quantidade inteira positiva." }, { status: 400 });

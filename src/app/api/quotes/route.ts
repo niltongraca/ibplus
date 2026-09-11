@@ -3,6 +3,21 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { findOrCreateCustomer, ensureItemsInCatalog } from "@/lib/catalog";
 import { nextQuoteNumber } from "@/lib/sequence";
+import { toNumber } from "@/lib/money";
+
+function serializeQuote(q: { subtotal?: unknown; discountValue?: unknown; discount?: unknown; total?: unknown; items: unknown[] } & Record<string, unknown>) {
+  return {
+    ...q,
+    subtotal: toNumber(q.subtotal),
+    discountValue: toNumber(q.discountValue),
+    discount: toNumber(q.discount),
+    total: toNumber(q.total),
+    items: q.items.map((it) => {
+      const item = it as Record<string, unknown>;
+      return { ...item, unitPrice: toNumber(item.unitPrice), total: toNumber(item.total) };
+    }),
+  };
+}
 
 export async function GET() {
   try {
@@ -15,7 +30,7 @@ export async function GET() {
       orderBy: { date: "desc" },
     });
 
-    return NextResponse.json({ quotes });
+    return NextResponse.json({ quotes: quotes.map((q) => serializeQuote(q as never)) });
   } catch {
     return NextResponse.json({ error: "Erro ao carregar orçamentos." }, { status: 500 });
   }
@@ -93,7 +108,7 @@ export async function POST(request: Request) {
       });
     });
 
-    return NextResponse.json({ quote }, { status: 201 });
+    return NextResponse.json({ quote: serializeQuote(quote as never) }, { status: 201 });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "";
     const error = /descrição|quantidade|preço/.test(message) ? message : "Erro ao criar orçamento.";

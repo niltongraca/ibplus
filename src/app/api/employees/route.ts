@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { parsePagination } from "@/lib/utils";
 import { logAction } from "@/lib/audit";
+import { toNumber } from "@/lib/money";
 
 export async function GET(request: Request) {
   const user = await getAuthUser();
@@ -21,7 +22,12 @@ export async function GET(request: Request) {
     prisma.employee.count({ where: { companyId: user.companyId } }),
   ]);
 
-  return NextResponse.json({ employees, total, page, totalPages: Math.ceil(total / limit) });
+  return NextResponse.json({
+    employees: employees.map((e) => ({ ...e, salary: toNumber(e.salary) })),
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  });
 }
 
 export async function POST(request: Request) {
@@ -62,7 +68,7 @@ export async function POST(request: Request) {
       },
     });
     await logAction("create", "employee", employee.id, `Funcionário "${employee.name}" criado`);
-    return NextResponse.json({ employee }, { status: 201 });
+    return NextResponse.json({ employee: { ...employee, salary: toNumber(employee.salary) } }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Erro ao criar funcionário." }, { status: 400 });
   }

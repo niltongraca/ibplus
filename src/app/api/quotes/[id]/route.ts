@@ -4,6 +4,21 @@ import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { nextInvoiceNumber } from "@/lib/sequence";
+import { toNumber } from "@/lib/money";
+
+function serializeQuote(q: { subtotal?: unknown; discountValue?: unknown; discount?: unknown; total?: unknown; items: unknown[] } & Record<string, unknown>) {
+  return {
+    ...q,
+    subtotal: toNumber(q.subtotal),
+    discountValue: toNumber(q.discountValue),
+    discount: toNumber(q.discount),
+    total: toNumber(q.total),
+    items: q.items.map((it) => {
+      const item = it as Record<string, unknown>;
+      return { ...item, unitPrice: toNumber(item.unitPrice), total: toNumber(item.total) };
+    }),
+  };
+}
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -16,7 +31,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   });
 
   if (!quote) return NextResponse.json({ error: "Orçamento não encontrado." }, { status: 404 });
-  return NextResponse.json({ quote });
+  return NextResponse.json({ quote: serializeQuote(quote as never) });
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -82,7 +97,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     data.items = { deleteMany: {}, create: normalizedItems };
 
     const discountType = body.discountType !== undefined ? (body.discountType === "percentage" ? "percentage" : "fixed") : quote.discountType;
-    const discountValue = body.discountValue !== undefined ? Number(body.discountValue) : quote.discountValue;
+    const discountValue = body.discountValue !== undefined ? Number(body.discountValue) : toNumber(quote.discountValue);
     data.discountType = discountType;
     data.discountValue = discountValue;
     data.discount = discountType === "percentage" ? subtotal * Math.min(100, discountValue) / 100 : Math.min(subtotal, discountValue);
@@ -90,12 +105,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   } else {
     if (body.discountType !== undefined || body.discountValue !== undefined) {
       const discountType = body.discountType !== undefined ? (body.discountType === "percentage" ? "percentage" : "fixed") : quote.discountType;
-      const discountValue = body.discountValue !== undefined ? Number(body.discountValue) : quote.discountValue;
-      const subtotal = data.subtotal !== undefined ? (data.subtotal as number) : quote.subtotal;
+      const discountValue = body.discountValue !== undefined ? Number(body.discountValue) : toNumber(quote.discountValue);
+      const subtotal = data.subtotal !== undefined ? (data.subtotal as number) : toNumber(quote.subtotal);
       data.discountType = discountType;
       data.discountValue = discountValue;
       data.discount = discountType === "percentage" ? subtotal * Math.min(100, discountValue) / 100 : Math.min(subtotal, discountValue);
-      data.total = Math.max(0, (data.subtotal !== undefined ? (data.subtotal as number) : quote.subtotal) - (data.discount as number));
+      data.total = Math.max(0, subtotal - (data.discount as number));
     }
   }
 
@@ -110,11 +125,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         const number = await nextInvoiceNumber(tx, companyId);
 
         const finalItems = data.items && data.items.create ? (data.items.create as Prisma.QuoteItemCreateWithoutQuoteInput[]) : quote.items;
-        const finalSubtotal = (data.subtotal as number) ?? quote.subtotal;
-        const finalTotal = (data.total as number) ?? quote.total;
-        const finalDiscount = (data.discount as number) ?? quote.discount;
+        const finalSubtotal = (data.subtotal as number) ?? toNumber(quote.subtotal);
+        const finalTotal = (data.total as number) ?? toNumber(quote.total);
+        const finalDiscount = (data.discount as number) ?? toNumber(quote.discount);
         const finalDiscountType = (data.discountType as string) ?? quote.discountType;
-        const finalDiscountValue = (data.discountValue as number) ?? quote.discountValue;
+        const finalDiscountValue = (data.discountValue as number) ?? toNumber(quote.discountValue);
 
         await tx.invoice.create({
           data: {

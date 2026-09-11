@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
+import { toNumber } from "@/lib/money";
 
 const STAGES = ["lead", "qualified", "proposal", "negotiation", "closed"];
 
@@ -26,7 +27,9 @@ export async function GET(request: Request) {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json({ opportunities });
+  return NextResponse.json({
+    opportunities: opportunities.map((o) => ({ ...o, value: toNumber(o.value) })),
+  });
 }
 
 export async function POST(request: Request) {
@@ -62,7 +65,7 @@ export async function POST(request: Request) {
       include: { customer: { select: { name: true, email: true, phone: true } } },
     });
     await logAction("create", "opportunity", opportunity.id, `Oportunidade "${title}" criada`);
-    return NextResponse.json({ opportunity }, { status: 201 });
+    return NextResponse.json({ opportunity: { ...opportunity, value: toNumber(opportunity.value) } }, { status: 201 });
   } catch (err: unknown) {
     const message = err instanceof Error && /Cliente não encontrado|título/.test(err.message) ? err.message : "Erro ao criar oportunidade.";
     return NextResponse.json({ error: message }, { status: 400 });

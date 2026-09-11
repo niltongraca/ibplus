@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { toNumber } from "@/lib/money";
 
 export async function GET() {
   try {
@@ -114,7 +115,7 @@ export async function GET() {
     for (const sale of sales6Months) {
       const key = `${sale.date.getFullYear()}-${String(sale.date.getMonth() + 1).padStart(2, "0")}`;
       const existing = monthlyMap.get(key) || { total: 0, count: 0 };
-      existing.total += sale.total;
+      existing.total += toNumber(sale.total);
       existing.count++;
       monthlyMap.set(key, existing);
     }
@@ -123,8 +124,8 @@ export async function GET() {
     for (const t of transactions6Months) {
       const key = `${t.date.getFullYear()}-${String(t.date.getMonth() + 1).padStart(2, "0")}`;
       const existing = fundMap.get(key) || { income: 0, expense: 0 };
-      if (t.type === "income") existing.income += t.amount;
-      else existing.expense += t.amount;
+      if (t.type === "income") existing.income += toNumber(t.amount);
+      else existing.expense += toNumber(t.amount);
       fundMap.set(key, existing);
     }
 
@@ -149,11 +150,11 @@ export async function GET() {
     const categoryMap = new Map<string, number>();
     for (const item of salesWithItems) {
       const catName = item.product?.category?.name || "Sem categoria";
-      categoryMap.set(catName, (categoryMap.get(catName) || 0) + item.total);
+      categoryMap.set(catName, (categoryMap.get(catName) || 0) + toNumber(item.total));
     }
     const categorySales = Array.from(categoryMap.entries()).map(([name, value]) => ({ name, value }));
 
-    const totalRevenue = totalSales._sum.total || 0;
+    const totalRevenue = toNumber(totalSales._sum.total);
     const totalOppCount = totalOppsAgg._count;
     const wonOppCount = wonOppsAgg._count;
 
@@ -162,7 +163,7 @@ export async function GET() {
       const name = item.product?.name || "Produto";
       const existing = topProductsMap.get(name) || { name, quantity: 0, total: 0 };
       existing.quantity += item.quantity;
-      existing.total += item.total;
+      existing.total += toNumber(item.total);
       topProductsMap.set(name, existing);
     }
     const topProducts = Array.from(topProductsMap.values())
@@ -171,40 +172,40 @@ export async function GET() {
 
     return NextResponse.json({
       totalRevenue,
-      todaySales: todaySalesAgg._sum.total || 0,
+      todaySales: toNumber(todaySalesAgg._sum.total),
       totalCustomers,
       totalProducts,
       pendingInvoices: pendingInvoicesAgg._count,
-      pendingInvoicesTotal: Math.max(0, (pendingInvoicesAgg._sum.total || 0) - (pendingInvoicesAgg._sum.paidAmount || 0)),
+      pendingInvoicesTotal: Math.max(0, toNumber(pendingInvoicesAgg._sum.total) - toNumber(pendingInvoicesAgg._sum.paidAmount)),
       productsLowStock: productsLow,
-      recentSales,
+      recentSales: recentSales.map((s) => ({ ...s, total: toNumber(s.total) })),
       recentClients,
       totalEmployees,
       totalServices,
       lowStockProducts: lowStock,
       totalDonations: totalDonationsAgg._count,
-      donationTotal: totalDonationsAgg._sum.total || 0,
+      donationTotal: toNumber(totalDonationsAgg._sum.total),
       totalStudents,
       activeCampaigns,
       totalSales: totalSalesCount,
       monthlySales,
       monthlyFunds,
       categorySales,
-      totalExpenses: totalExpensesAgg._sum.amount || 0,
-      monthExpenses: monthExpensesAgg._sum.amount || 0,
+      totalExpenses: toNumber(totalExpensesAgg._sum.amount),
+      monthExpenses: toNumber(monthExpensesAgg._sum.amount),
       pendingQuotes: pendingQuotesAgg._count,
-      pendingQuotesTotal: pendingQuotesAgg._sum.total || 0,
+      pendingQuotesTotal: toNumber(pendingQuotesAgg._sum.total),
       activeEmployees: activeEmployeesCount,
       vacationPending: vacationPendingCount,
       averageSaleValue: totalSalesCount > 0 ? totalRevenue / totalSalesCount : 0,
       conversionRate: totalOppCount > 0 ? (wonOppCount / totalOppCount) * 100 : 0,
       totalOpportunities: totalOppCount,
       wonOpportunities: wonOppCount,
-      recentExpenses,
+      recentExpenses: recentExpenses.map((e) => ({ ...e, amount: toNumber(e.amount) })),
       topProducts,
-      totalIncome: incomeAgg._sum.amount || 0,
-      totalExpense: expenseAgg._sum.amount || 0,
-      balance: (incomeAgg._sum.amount || 0) - (expenseAgg._sum.amount || 0),
+      totalIncome: toNumber(incomeAgg._sum.amount),
+      totalExpense: toNumber(expenseAgg._sum.amount),
+      balance: toNumber(incomeAgg._sum.amount) - toNumber(expenseAgg._sum.amount),
     });
   } catch {
     return NextResponse.json({ error: "Erro ao carregar dashboard." }, { status: 500 });

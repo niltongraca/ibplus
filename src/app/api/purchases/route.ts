@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { parsePagination } from "@/lib/utils";
+import { toNumber } from "@/lib/money";
 
 export async function GET(request: Request) {
   const user = await getAuthUser();
@@ -21,7 +22,16 @@ export async function GET(request: Request) {
     prisma.purchase.count({ where: { companyId: user.companyId } }),
   ]);
 
-  return NextResponse.json({ purchases, total, page, totalPages: Math.ceil(total / limit) });
+  return NextResponse.json({
+    purchases: purchases.map((p) => ({
+      ...p,
+      total: toNumber(p.total),
+      items: p.items.map((it) => ({ ...it, unitPrice: toNumber(it.unitPrice), total: toNumber(it.total) })),
+    })),
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  });
 }
 
 export async function POST(request: Request) {
@@ -51,7 +61,7 @@ export async function POST(request: Request) {
     const productMap = new Map(products.map((p) => [p.id, p]));
 
     for (const i of normalized) {
-      if (i.unitPrice <= 0) i.unitPrice = productMap.get(i.productId)!.price;
+      if (i.unitPrice <= 0) i.unitPrice = toNumber(productMap.get(i.productId)!.price);
     }
 
     const total = normalized.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0);
@@ -86,7 +96,13 @@ export async function POST(request: Request) {
       return created;
     });
 
-    return NextResponse.json({ purchase }, { status: 201 });
+    return NextResponse.json({
+      purchase: {
+        ...purchase,
+        total: toNumber(purchase.total),
+        items: purchase.items.map((it) => ({ ...it, unitPrice: toNumber(it.unitPrice), total: toNumber(it.total) })),
+      },
+    }, { status: 201 });
   } catch (err) {
     if (err instanceof Error && err.message === "INVALID_ITEM") {
       return NextResponse.json({ error: "Cada item deve ter uma quantidade inteira positiva." }, { status: 400 });

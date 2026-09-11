@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
+import { toNumber } from "@/lib/money";
 
 const TYPES = ["email", "social", "sms", "whatsapp", "other"];
 const STATUSES = ["draft", "active", "paused", "completed", "cancelled"];
@@ -17,7 +18,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   });
 
   if (!campaign) return NextResponse.json({ error: "Campanha não encontrada." }, { status: 404 });
-  return NextResponse.json({ campaign });
+  return NextResponse.json({ campaign: { ...campaign, budget: campaign.budget === null ? null : toNumber(campaign.budget) } });
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {

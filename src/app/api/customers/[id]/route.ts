@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
+import { toNumber } from "@/lib/money";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -15,7 +16,12 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   });
 
   if (!customer) return NextResponse.json({ error: "Cliente não encontrado." }, { status: 404 });
-  return NextResponse.json({ customer });
+  return NextResponse.json({
+    customer: {
+      ...customer,
+      sales: customer.sales.map((s) => ({ ...s, total: toNumber(s.total) })),
+    },
+  });
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {

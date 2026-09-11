@@ -2,6 +2,18 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
+import { toNumber } from "@/lib/money";
+
+function serializePurchase(p: { total?: unknown; items: unknown[] } & Record<string, unknown>) {
+  return {
+    ...p,
+    total: toNumber(p.total),
+    items: p.items.map((it) => {
+      const item = it as Record<string, unknown>;
+      return { ...item, unitPrice: toNumber(item.unitPrice), total: toNumber(item.total) };
+    }),
+  };
+}
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -14,7 +26,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   });
 
   if (!purchase) return NextResponse.json({ error: "Compra não encontrada." }, { status: 404 });
-  return NextResponse.json({ purchase });
+  return NextResponse.json({ purchase: serializePurchase(purchase as never) });
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -42,8 +54,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       },
       include: { items: true },
     });
-    await logAction("update", "purchase", id, `Compra atualizada - ${purchase.total.toLocaleString()} Kz`);
-    return NextResponse.json({ purchase });
+    await logAction("update", "purchase", id, `Compra atualizada - ${toNumber(purchase.total).toLocaleString()} Kz`);
+    return NextResponse.json({ purchase: serializePurchase(purchase as never) });
   }
 
   try {
@@ -62,7 +74,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (products.length !== productIds.length) return NextResponse.json({ error: "Um ou mais produtos são inválidos." }, { status: 400 });
     const productMap = new Map(products.map((p) => [p.id, p]));
     for (const i of normalized) {
-      if (i.unitPrice <= 0) i.unitPrice = productMap.get(i.productId)!.price;
+      if (i.unitPrice <= 0) i.unitPrice = toNumber(productMap.get(i.productId)!.price);
     }
 
     const oldQty = new Map<string, number>();
@@ -106,8 +118,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       });
     });
 
-    await logAction("update", "purchase", id, `Compra atualizada - ${purchase.total.toLocaleString()} Kz`);
-    return NextResponse.json({ purchase });
+    await logAction("update", "purchase", id, `Compra atualizada - ${toNumber(purchase.total).toLocaleString()} Kz`);
+    return NextResponse.json({ purchase: serializePurchase(purchase as never) });
   } catch (err) {
     if (err instanceof Error && err.message === "INVALID_ITEM") {
       return NextResponse.json({ error: "Cada item deve ter uma quantidade inteira positiva." }, { status: 400 });
