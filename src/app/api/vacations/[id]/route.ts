@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
+import { parseDateOnly } from "@/lib/utils";
 
 const STATUSES = ["pending", "approved", "rejected", "cancelled"];
 
@@ -33,12 +34,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const data: Prisma.VacationUncheckedUpdateInput = {};
 
   if (body.startDate !== undefined) {
-    const startDate = new Date(body.startDate);
+    const startDate = parseDateOnly(body.startDate) ?? new Date(body.startDate);
     if (isNaN(startDate.getTime())) return NextResponse.json({ error: "A data de início não é válida." }, { status: 400 });
     data.startDate = startDate;
   }
   if (body.endDate !== undefined) {
-    const endDate = new Date(body.endDate);
+    const endDate = parseDateOnly(body.endDate) ?? new Date(body.endDate);
     if (isNaN(endDate.getTime())) return NextResponse.json({ error: "A data de fim não é válida." }, { status: 400 });
     data.endDate = endDate;
   }

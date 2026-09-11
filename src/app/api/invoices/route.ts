@@ -5,6 +5,7 @@ import { findOrCreateCustomer, ensureItemsInCatalog } from "@/lib/catalog";
 import { recordInvoicePayment } from "@/lib/finance";
 import { nextInvoiceNumber } from "@/lib/sequence";
 import { toNumber } from "@/lib/money";
+import { parseDateOnly } from "@/lib/utils";
 
 export async function GET() {
   const user = await getAuthUser();
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
 
     let dueDate: Date | null = null;
     if (body.dueDate) {
-      dueDate = new Date(body.dueDate);
+      dueDate = parseDateOnly(body.dueDate) ?? new Date(body.dueDate);
       if (isNaN(dueDate.getTime())) return NextResponse.json({ error: "A data de vencimento não é válida." }, { status: 400 });
     }
 

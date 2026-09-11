@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
+import { parseDateOnly } from "@/lib/utils";
 
 const TYPES = ["email", "social", "sms", "whatsapp", "other"];
 const STATUSES = ["draft", "active", "paused", "completed", "cancelled"];
@@ -45,11 +46,11 @@ export async function POST(request: Request) {
     let startDate: Date | null = null;
     let endDate: Date | null = null;
     if (body.startDate) {
-      startDate = new Date(body.startDate);
+      startDate = parseDateOnly(body.startDate) ?? new Date(body.startDate);
       if (isNaN(startDate.getTime())) return NextResponse.json({ error: "A data de início não é válida." }, { status: 400 });
     }
     if (body.endDate) {
-      endDate = new Date(body.endDate);
+      endDate = parseDateOnly(body.endDate) ?? new Date(body.endDate);
       if (isNaN(endDate.getTime())) return NextResponse.json({ error: "A data de fim não é válida." }, { status: 400 });
     }
     if (startDate && endDate && endDate < startDate) return NextResponse.json({ error: "A data de fim deve ser posterior à de início." }, { status: 400 });

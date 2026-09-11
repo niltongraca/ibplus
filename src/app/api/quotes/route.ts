@@ -4,6 +4,7 @@ import { getAuthUser } from "@/lib/auth";
 import { findOrCreateCustomer, ensureItemsInCatalog } from "@/lib/catalog";
 import { nextQuoteNumber } from "@/lib/sequence";
 import { toNumber } from "@/lib/money";
+import { parseDateOnly } from "@/lib/utils";
 
 function serializeQuote(q: { subtotal?: unknown; discountValue?: unknown; discount?: unknown; total?: unknown; items: unknown[] } & Record<string, unknown>) {
   return {
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
 
     let validUntil: Date | null = null;
     if (body.validUntil) {
-      validUntil = new Date(body.validUntil);
+      validUntil = parseDateOnly(body.validUntil) ?? new Date(body.validUntil);
       if (isNaN(validUntil.getTime())) return NextResponse.json({ error: "A data de validade não é válida." }, { status: 400 });
     }
 

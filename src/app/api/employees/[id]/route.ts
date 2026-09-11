@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
+import { parseDateOnly } from "@/lib/utils";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -49,7 +50,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
   if (body.hireDate !== undefined) {
     if (body.hireDate) {
-      const hireDate = new Date(body.hireDate);
+      const hireDate = parseDateOnly(body.hireDate) ?? new Date(body.hireDate);
       if (isNaN(hireDate.getTime())) return NextResponse.json({ error: "A data de admissão não é válida." }, { status: 400 });
       data.hireDate = hireDate;
     } else {

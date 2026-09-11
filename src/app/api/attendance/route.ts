@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
+import { parseDateOnly } from "@/lib/utils";
 
 const STATUSES = ["present", "absent", "late", "half_day", "justified"];
 
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
     });
     if (!employee) return NextResponse.json({ error: "Funcionário não encontrado." }, { status: 404 });
 
-    const date = body.date ? new Date(body.date) : new Date();
+    const date = body.date ? (parseDateOnly(body.date) ?? new Date(body.date)) : new Date();
     if (isNaN(date.getTime())) return NextResponse.json({ error: "A data não é válida." }, { status: 400 });
 
     let checkIn: Date | null = null;

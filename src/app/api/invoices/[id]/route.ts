@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { recordInvoicePayment, revertInvoicePayment, removeTransactionsByRef } from "@/lib/finance";
 import { toNumber } from "@/lib/money";
+import { parseDateOnly } from "@/lib/utils";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -60,7 +61,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   if (body.dueDate !== undefined) {
     if (body.dueDate) {
-      const dueDate = new Date(body.dueDate);
+      const dueDate = parseDateOnly(body.dueDate) ?? new Date(body.dueDate);
       if (isNaN(dueDate.getTime())) return NextResponse.json({ error: "A data de vencimento não é válida." }, { status: 400 });
       data.dueDate = dueDate;
     } else {

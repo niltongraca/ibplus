@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
+import { parseDateOnly } from "@/lib/utils";
 
 const TYPES = ["email", "social", "sms", "whatsapp", "other"];
 const STATUSES = ["draft", "active", "paused", "completed", "cancelled"];
@@ -55,11 +56,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
   }
   if (body.startDate !== undefined) {
-    data.startDate = body.startDate ? new Date(body.startDate) : null;
+    data.startDate = body.startDate ? (parseDateOnly(body.startDate) ?? new Date(body.startDate)) : null;
     if (data.startDate instanceof Date && isNaN(data.startDate.getTime())) return NextResponse.json({ error: "A data de início não é válida." }, { status: 400 });
   }
   if (body.endDate !== undefined) {
-    data.endDate = body.endDate ? new Date(body.endDate) : null;
+    data.endDate = body.endDate ? (parseDateOnly(body.endDate) ?? new Date(body.endDate)) : null;
     if (data.endDate instanceof Date && isNaN(data.endDate.getTime())) return NextResponse.json({ error: "A data de fim não é válida." }, { status: 400 });
   }
   if (body.notes !== undefined) data.notes = body.notes ? String(body.notes).trim() : null;

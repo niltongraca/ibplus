@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { z } from "zod";
+import { parseDateOnly } from "@/lib/utils";
 
 const createSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
         phone: parsed.phone || null,
         nif: parsed.nif || null,
         address: parsed.address || null,
-        birthDate: parsed.birthDate ? new Date(parsed.birthDate) : null,
+        birthDate: parsed.birthDate ? (parseDateOnly(parsed.birthDate) ?? new Date(parsed.birthDate)) : null,
         grade: parsed.grade || null,
         notes: parsed.notes || null,
         companyId: user.companyId,

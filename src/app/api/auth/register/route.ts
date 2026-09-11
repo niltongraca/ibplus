@@ -6,6 +6,7 @@ import type { Prisma } from "@prisma/client";
 import { signToken } from "@/lib/auth";
 import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 import { sendEmail, welcomeEmail } from "@/lib/email";
+import { parseDateOnly } from "@/lib/utils";
 
 const accountTypeEnum = z.enum(["EMPREENDEDOR", "EMPRESA", "ONG", "ASSOCIACAO", "EDUCACAO", "COOPERATIVA"]);
 
@@ -167,7 +168,7 @@ export async function POST(request: Request) {
       if (data.accountType !== "EMPRESA" && data.accountType !== "ONG" && data.accountType !== "EDUCACAO") {
         profileData.nomeComercial = data.nomeComercial;
         profileData.bi = data.bi;
-        profileData.dataNascimento = data.dataNascimento ? new Date(data.dataNascimento) : null;
+        profileData.dataNascimento = data.dataNascimento ? (parseDateOnly(data.dataNascimento) ?? new Date(data.dataNascimento)) : null;
         profileData.sexo = data.sexo;
         profileData.pais = data.pais;
         profileData.areaActividade = data.areaActividade;

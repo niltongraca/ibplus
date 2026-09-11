@@ -12,7 +12,12 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  const seedPassword = process.env.SEED_ADMIN_PASSWORD || "ibplus-change-me";
+  const seedPassword = process.env.SEED_ADMIN_PASSWORD;
+  if (!seedPassword || seedPassword.length < 8) {
+    throw new Error(
+      "SEED_ADMIN_PASSWORD é obrigatória (mín. 8 caracteres) e não deve ficar como default no código. Defina-a em .env / Vercel antes de correr `prisma db seed`.",
+    );
+  }
   const password = await bcrypt.hash(seedPassword, 10);
 
   const company = await prisma.company.create({
@@ -42,7 +47,7 @@ async function main() {
     console.log("Admin já existe, a continuar...");
   });
 
-  const adminPassword = await bcrypt.hash(process.env.SEED_ADMIN_PASSWORD || "ibplus-change-me", 10);
+  const adminPassword = await bcrypt.hash(seedPassword, 10);
   await prisma.user.create({
     data: {
       name: "Admin IBPlus+",

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { z } from "zod";
+import { parseDateOnly } from "@/lib/utils";
 
 const updateSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório").optional(),
@@ -51,9 +52,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (parsed.phone !== undefined) data.phone = parsed.phone || null;
     if (parsed.nif !== undefined) data.nif = parsed.nif || null;
     if (parsed.address !== undefined) data.address = parsed.address || null;
-    if (parsed.birthDate !== undefined) data.birthDate = parsed.birthDate ? new Date(parsed.birthDate) : null;
+    if (parsed.birthDate !== undefined) data.birthDate = parsed.birthDate ? (parseDateOnly(parsed.birthDate) ?? new Date(parsed.birthDate)) : null;
     if (parsed.grade !== undefined) data.grade = parsed.grade || null;
-    if (parsed.enrollmentDate !== undefined) data.enrollmentDate = parsed.enrollmentDate ? new Date(parsed.enrollmentDate) : undefined;
+    if (parsed.enrollmentDate !== undefined) data.enrollmentDate = parsed.enrollmentDate ? (parseDateOnly(parsed.enrollmentDate) ?? new Date(parsed.enrollmentDate)) : undefined;
     if (parsed.active !== undefined) data.active = parsed.active;
     if (parsed.notes !== undefined) data.notes = parsed.notes || null;
 

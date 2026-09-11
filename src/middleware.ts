@@ -15,9 +15,7 @@ async function verifyTokenEdge(token: string): Promise<Record<string, any> | nul
 }
 
 function getJwtSecret(): string {
-  if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
-  if (process.env.NODE_ENV !== "production") return "ibplus-dev-secret-change-in-production";
-  return "";
+  return process.env.JWT_SECRET || "";
 }
 
 function matchRoute(pathname: string, routes: Record<string, string[]>): string | null {

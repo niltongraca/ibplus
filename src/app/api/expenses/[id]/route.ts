@@ -5,6 +5,7 @@ import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { recordExpensePayment, revertExpensePayment } from "@/lib/finance";
 import { toNumber } from "@/lib/money";
+import { parseDateOnly } from "@/lib/utils";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -43,7 +44,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
   if (data.category !== undefined) update.category = data.category || "outros";
   if (data.date !== undefined) {
-    const date = new Date(data.date);
+    const date = parseDateOnly(data.date) ?? new Date(data.date);
     if (isNaN(date.getTime())) return NextResponse.json({ error: "A data não é válida." }, { status: 400 });
     update.date = date;
   }

@@ -1,4 +1,6 @@
 const rateMap = new Map<string, { count: number; resetAt: number }>();
+const CLEANUP_INTERVAL_MS = 5 * 60_000;
+let lastCleanupAt = Date.now();
 
 interface RateLimitConfig {
   maxRequests: number;
@@ -12,15 +14,35 @@ const DEFAULTS: Record<string, RateLimitConfig> = {
 };
 
 export function getClientIp(request: Request): string {
+  // x-real-ip é definido pela plataforma (Vercel/edge) e não pode ser forjado pelo cliente.
+  const realIp = request.headers.get("x-real-ip");
+  if (realIp) return realIp.trim();
+
+  // Fallback: usa o último IP de x-forwarded-for (adicionado pelo proxy mais próximo da origem),
+  // nunca o primeiro — o primeiro pode ser inventado pelo cliente.
   const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim();
-  return request.headers.get("x-real-ip") || "127.0.0.1";
+  if (forwarded) {
+    const ips = forwarded.split(",").map((i) => i.trim()).filter(Boolean);
+    if (ips.length > 0) return ips[ips.length - 1];
+  }
+
+  return "127.0.0.1";
+}
+
+function purgeExpiredEntries(): void {
+  const now = Date.now();
+  if (now - lastCleanupAt < CLEANUP_INTERVAL_MS) return;
+  lastCleanupAt = now;
+  for (const [key, entry] of rateMap) {
+    if (now > entry.resetAt) rateMap.delete(key);
+  }
 }
 
 export function checkRateLimit(
   key: string,
   tier: keyof typeof DEFAULTS = "relaxed"
 ): { allowed: boolean; retryAfter?: number } {
+  purgeExpiredEntries();
   const config = DEFAULTS[tier];
   const now = Date.now();
   const entry = rateMap.get(key);

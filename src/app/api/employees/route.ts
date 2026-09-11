@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
-import { parsePagination } from "@/lib/utils";
+import { parsePagination, parseDateOnly } from "@/lib/utils";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
 
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
 
     let hireDate: Date | null = null;
     if (body.hireDate) {
-      hireDate = new Date(body.hireDate);
+      hireDate = parseDateOnly(body.hireDate) ?? new Date(body.hireDate);
       if (isNaN(hireDate.getTime())) return NextResponse.json({ error: "A data de admissão não é válida." }, { status: 400 });
     }
 

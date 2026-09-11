@@ -5,6 +5,7 @@ import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { nextInvoiceNumber } from "@/lib/sequence";
 import { toNumber } from "@/lib/money";
+import { parseDateOnly } from "@/lib/utils";
 
 function serializeQuote(q: { subtotal?: unknown; discountValue?: unknown; discount?: unknown; total?: unknown; items: unknown[] } & Record<string, unknown>) {
   return {
@@ -60,7 +61,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   if (body.notes !== undefined) data.notes = body.notes ? String(body.notes).trim() : null;
   if (body.validUntil !== undefined) {
     if (body.validUntil) {
-      const validUntil = new Date(body.validUntil);
+      const validUntil = parseDateOnly(body.validUntil) ?? new Date(body.validUntil);
       if (isNaN(validUntil.getTime())) return NextResponse.json({ error: "A data de validade não é válida." }, { status: 400 });
       data.validUntil = validUntil;
     } else {

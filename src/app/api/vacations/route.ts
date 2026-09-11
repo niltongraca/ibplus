@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
+import { parseDateOnly } from "@/lib/utils";
 
 export async function GET() {
   try {
@@ -34,10 +35,10 @@ export async function POST(request: Request) {
     });
     if (!employee) return NextResponse.json({ error: "Funcionário não encontrado." }, { status: 404 });
 
-    const startDate = body.startDate ? new Date(body.startDate) : null;
+    const startDate = body.startDate ? (parseDateOnly(body.startDate) ?? new Date(body.startDate)) : null;
     if (!startDate || isNaN(startDate.getTime())) return NextResponse.json({ error: "A data de início não é válida." }, { status: 400 });
 
-    const endDate = body.endDate ? new Date(body.endDate) : null;
+    const endDate = body.endDate ? (parseDateOnly(body.endDate) ?? new Date(body.endDate)) : null;
     if (!endDate || isNaN(endDate.getTime())) return NextResponse.json({ error: "A data de fim não é válida." }, { status: 400 });
 
     if (endDate < startDate) return NextResponse.json({ error: "A data de fim deve ser posterior à de início." }, { status: 400 });

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
-import { parsePagination } from "@/lib/utils";
+import { parsePagination, parseDateOnly } from "@/lib/utils";
 import { recordExpensePayment } from "@/lib/finance";
 import { toNumber } from "@/lib/money";
 
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     }
 
     const category = body.category ? String(body.category).trim() : "outros";
-    const date = body.date ? new Date(body.date) : new Date();
+    const date = body.date ? (parseDateOnly(body.date) ?? new Date(body.date)) : new Date();
     if (isNaN(date.getTime())) return NextResponse.json({ error: "A data não é válida." }, { status: 400 });
 
     const expense = await prisma.$transaction(async (tx) => {

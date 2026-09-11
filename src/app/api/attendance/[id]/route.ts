@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
+import { parseDateOnly } from "@/lib/utils";
 
 const STATUSES = ["present", "absent", "late", "half_day", "justified"];
 
@@ -33,7 +34,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const data: Prisma.AttendanceUncheckedUpdateInput = {};
 
   if (body.date !== undefined) {
-    const date = new Date(body.date);
+    const date = parseDateOnly(body.date) ?? new Date(body.date);
     if (isNaN(date.getTime())) return NextResponse.json({ error: "A data não é válida." }, { status: 400 });
     data.date = date;
   }
