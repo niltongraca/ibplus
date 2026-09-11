@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { toNumber } from "@/lib/money";
+import { startOfTodayUtc } from "@/lib/utils";
 
 export async function GET() {
   try {
@@ -22,13 +23,12 @@ export async function GET() {
       });
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = startOfTodayUtc();
 
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const thisMonth = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1));
 
     const [
       totalSales, todaySalesAgg, totalCustomers, totalProducts,
