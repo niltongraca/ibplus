@@ -8,6 +8,8 @@ import SiteHeader from "@/components/site/Header";
 import SiteFooter from "@/components/site/Footer";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 async function getCompany(id: string) {
   const company = await prisma.company.findUnique({
     where: { id },
