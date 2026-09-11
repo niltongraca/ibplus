@@ -53,15 +53,15 @@ export async function POST(request: Request) {
       0
     );
 
-    let customerId: string | undefined;
-    if (customerName) {
-      const customer = await prisma.customer.create({
-        data: { name: customerName, companyId: companyId },
-      });
-      customerId = customer.id;
-    }
-
     const sale = await prisma.$transaction(async (tx) => {
+      let customerId: string | undefined;
+      if (customerName) {
+        const customer = await tx.customer.create({
+          data: { name: customerName, companyId: companyId },
+        });
+        customerId = customer.id;
+      }
+
       const created = await tx.sale.create({
         data: {
           companyId: companyId,
@@ -83,10 +83,13 @@ export async function POST(request: Request) {
       });
 
       for (const item of items) {
-        await tx.product.update({
-          where: { id: item.productId, companyId: companyId },
+        const decremented = await tx.product.updateMany({
+          where: { id: item.productId, companyId: companyId, stock: { gte: item.quantity } },
           data: { stock: { decrement: item.quantity } },
         });
+        if (decremented.count === 0) {
+          throw new Error(`Stock insuficiente para "${productMap.get(item.productId)!.name}".`);
+        }
         await tx.stockMovement.create({
           data: {
             productId: item.productId,

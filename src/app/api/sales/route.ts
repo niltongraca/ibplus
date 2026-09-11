@@ -51,7 +51,7 @@ export async function POST(request: Request) {
       if (!i.productId || !Number.isInteger(i.quantity) || i.quantity <= 0) {
         throw new Error("INVALID_ITEM");
       }
-      return { productId: i.productId, quantity: i.quantity, unitPrice: i.unitPrice ?? 0 };
+      return { productId: i.productId, quantity: i.quantity };
     });
 
     const productIds = [...new Set(normalized.map((i) => i.productId))];
@@ -62,14 +62,13 @@ export async function POST(request: Request) {
     const productMap = new Map(products.map((p) => [p.id, p]));
 
     for (const i of normalized) {
-      if (i.unitPrice <= 0) i.unitPrice = productMap.get(i.productId)!.price;
-      const stock = productMap.get(i.productId)!.stock;
-      if (stock < i.quantity) {
-        return NextResponse.json({ error: `Stock insuficiente para "${productMap.get(i.productId)!.name}".` }, { status: 400 });
+      const product = productMap.get(i.productId)!;
+      if (product.stock < i.quantity) {
+        return NextResponse.json({ error: `Stock insuficiente para "${product.name}".` }, { status: 400 });
       }
     }
 
-    const total = normalized.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0);
+    const total = normalized.reduce((sum, i) => sum + i.quantity * productMap.get(i.productId)!.price, 0);
 
     const sale = await prisma.$transaction(async (tx) => {
       const created = await tx.sale.create({
@@ -81,22 +80,28 @@ export async function POST(request: Request) {
           paymentMethod,
           notes,
           items: {
-            create: normalized.map((i) => ({
-              productId: i.productId,
-              quantity: i.quantity,
-              unitPrice: i.unitPrice,
-              total: i.quantity * i.unitPrice,
-            })),
+            create: normalized.map((i) => {
+              const unitPrice = productMap.get(i.productId)!.price;
+              return {
+                productId: i.productId,
+                quantity: i.quantity,
+                unitPrice,
+                total: i.quantity * unitPrice,
+              };
+            }),
           },
         },
         include: { customer: { select: { name: true } }, items: true },
       });
 
       for (const i of normalized) {
-        const updated = await tx.product.update({
-          where: { id: i.productId },
+        const decremented = await tx.product.updateMany({
+          where: { id: i.productId, companyId: user.companyId!, stock: { gte: i.quantity } },
           data: { stock: { decrement: i.quantity } },
         });
+        if (decremented.count === 0) {
+          throw new Error(`INSUFFICIENT_STOCK:${productMap.get(i.productId)!.name}`);
+        }
         await tx.stockMovement.create({
           data: {
             productId: i.productId,
@@ -105,7 +110,6 @@ export async function POST(request: Request) {
             notes: `Venda #${created.id}`,
           },
         });
-        void updated;
       }
 
       return created;
@@ -122,6 +126,10 @@ export async function POST(request: Request) {
   } catch (err) {
     if (err instanceof Error && err.message === "INVALID_ITEM") {
       return NextResponse.json({ error: "Cada item deve ter uma quantidade inteira positiva." }, { status: 400 });
+    }
+    if (err instanceof Error && err.message.startsWith("INSUFFICIENT_STOCK:")) {
+      const name = err.message.slice("INSUFFICIENT_STOCK:".length);
+      return NextResponse.json({ error: `Stock insuficiente para "${name}".` }, { status: 400 });
     }
     return NextResponse.json({ error: "Erro ao criar venda." }, { status: 400 });
   }

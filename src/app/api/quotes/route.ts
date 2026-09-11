@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { findOrCreateCustomer, ensureItemsInCatalog } from "@/lib/catalog";
+import { nextQuoteNumber } from "@/lib/sequence";
 
 export async function GET() {
   try {
@@ -23,6 +24,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const companyId = user.companyId;
 
   try {
     const body = await request.json();
@@ -59,37 +61,36 @@ export async function POST(request: Request) {
     const paymentMethod = body.paymentMethod ? String(body.paymentMethod).trim() : null;
     const bankDetails = body.bankDetails ? String(body.bankDetails).trim() : null;
 
-    await findOrCreateCustomer(user.companyId, customer || "");
-    await ensureItemsInCatalog(user.companyId, normalizedItems);
+    const quote = await prisma.$transaction(async (tx) => {
+      await findOrCreateCustomer(companyId, customer || "", tx);
+      await ensureItemsInCatalog(companyId, normalizedItems, tx);
 
-    const count = await prisma.quote.count({ where: { companyId: user.companyId } });
-    const now = new Date();
-    const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
-    const number = `ORC-${dateStr}-${String(count + 1).padStart(4, "0")}`;
+      const number = await nextQuoteNumber(tx, companyId);
 
-    const quote = await prisma.quote.create({
-      data: {
-        companyId: user.companyId,
-        number,
-        customer,
-        customerEmail: body.customerEmail ? String(body.customerEmail).trim() : null,
-        customerPhone: body.customerPhone ? String(body.customerPhone).trim() : null,
-        customerNif: body.customerNif ? String(body.customerNif).trim() : null,
-        validUntil,
-        subtotal,
-        discountType,
-        discountValue,
-        discount,
-        installments,
-        currency,
-        paymentMethod,
-        bankDetails,
-        total,
-        status,
-        notes,
-        items: { create: normalizedItems },
-      },
-      include: { items: true },
+      return tx.quote.create({
+        data: {
+          companyId,
+          number,
+          customer,
+          customerEmail: body.customerEmail ? String(body.customerEmail).trim() : null,
+          customerPhone: body.customerPhone ? String(body.customerPhone).trim() : null,
+          customerNif: body.customerNif ? String(body.customerNif).trim() : null,
+          validUntil,
+          subtotal,
+          discountType,
+          discountValue,
+          discount,
+          installments,
+          currency,
+          paymentMethod,
+          bankDetails,
+          total,
+          status,
+          notes,
+          items: { create: normalizedItems },
+        },
+        include: { items: true },
+      });
     });
 
     return NextResponse.json({ quote }, { status: 201 });

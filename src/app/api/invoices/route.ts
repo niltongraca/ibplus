@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { findOrCreateCustomer, ensureItemsInCatalog } from "@/lib/catalog";
 import { recordInvoicePayment } from "@/lib/finance";
+import { nextInvoiceNumber } from "@/lib/sequence";
 
 export async function GET() {
   const user = await getAuthUser();
@@ -62,10 +63,7 @@ export async function POST(request: Request) {
     await findOrCreateCustomer(companyId, customer || "", tx);
     await ensureItemsInCatalog(companyId, normalizedItems, tx);
 
-    const count = await tx.invoice.count({ where: { companyId } });
-    const now = new Date();
-    const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
-    const number = `FAT-${dateStr}-${String(count + 1).padStart(4, "0")}`;
+    const number = await nextInvoiceNumber(tx, companyId);
 
     const created = await tx.invoice.create({
       data: {

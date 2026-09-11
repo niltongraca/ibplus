@@ -11,7 +11,7 @@ export async function GET() {
 
     const [sales, invoices, services, products] = await Promise.all([
       prisma.sale.findMany({
-        where: { companyId },
+        where: { companyId, status: { not: "cancelled" } },
         select: {
           total: true,
           customer: { select: { name: true } },
@@ -69,11 +69,17 @@ export async function GET() {
       itemMap.set(key, existing);
     }
 
-    function addCustomer(label: string, spent: number, itemName: string, quantity: number, revenue: number) {
+    function addCustomerSpend(label: string, spent: number) {
       const key = label.toLowerCase();
       const existing = customerMap.get(key) || { label, spent: 0, orders: 0, items: [] };
       existing.spent += spent;
       existing.orders += 1;
+      customerMap.set(key, existing);
+    }
+
+    function addCustomerItem(label: string, itemName: string, quantity: number, revenue: number) {
+      const key = label.toLowerCase();
+      const existing = customerMap.get(key) || { label, spent: 0, orders: 0, items: [] };
       const it = existing.items.find((x) => x.name.toLowerCase() === itemName.toLowerCase());
       if (it) {
         it.quantity += quantity;
@@ -89,8 +95,9 @@ export async function GET() {
       for (const item of sale.items) {
         const name = item.product?.name || "Produto";
         addItem(name, item.quantity, item.total, customer);
-        addCustomer(customer, sale.total, name, item.quantity, item.total);
+        addCustomerItem(customer, name, item.quantity, item.total);
       }
+      addCustomerSpend(customer, sale.total);
     }
 
     for (const invoice of invoices) {
@@ -98,8 +105,9 @@ export async function GET() {
       for (const item of invoice.items) {
         const name = item.description || "Sem nome";
         addItem(name, item.quantity, item.total, customer);
-        addCustomer(customer, invoice.total, name, item.quantity, item.total);
+        addCustomerItem(customer, name, item.quantity, item.total);
       }
+      addCustomerSpend(customer, invoice.total);
     }
 
     const itemsReport = Array.from(itemMap.values())

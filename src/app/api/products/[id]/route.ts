@@ -21,6 +21,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const companyId = user.companyId;
 
   const { id } = await params;
   const existing = await prisma.product.findFirst({ where: { id, companyId: user.companyId } });
@@ -33,21 +34,27 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (!Number.isInteger(adjust) || adjust === 0) {
       return NextResponse.json({ error: "O ajuste de stock deve ser um número inteiro diferente de zero." }, { status: 400 });
     }
-    const newStock = existing.stock + adjust;
-    if (newStock < 0) {
-      return NextResponse.json({ error: "O stock não pode ficar negativo." }, { status: 400 });
-    }
 
     const { stockAdjust, ...rest } = data;
-    await prisma.$transaction(async (tx) => {
-      await tx.product.update({ where: { id }, data: { stock: newStock } });
-      await tx.stockMovement.create({
-        data: { productId: id, type: adjust > 0 ? "IN" : "OUT", quantity: Math.abs(adjust), notes: rest.notes || "Ajuste manual" },
+    try {
+      await prisma.$transaction(async (tx) => {
+        const where = adjust < 0 ? { id, companyId, stock: { gte: Math.abs(adjust) } } : { id, companyId };
+        const result = await tx.product.updateMany({ where, data: { stock: { increment: adjust } } });
+        if (result.count === 0) throw new Error("STOCK_NEGATIVE");
+        await tx.stockMovement.create({
+          data: { productId: id, type: adjust > 0 ? "IN" : "OUT", quantity: Math.abs(adjust), notes: rest.notes || "Ajuste manual" },
+        });
       });
-    });
+    } catch (err) {
+      if (err instanceof Error && err.message === "STOCK_NEGATIVE") {
+        return NextResponse.json({ error: "O stock não pode ficar negativo." }, { status: 400 });
+      }
+      return NextResponse.json({ error: "Erro ao ajustar o stock." }, { status: 400 });
+    }
 
+    const newStock = await prisma.product.findFirst({ where: { id }, select: { stock: true } });
     await logAction("update", "product", id, `Stock de "${existing.name}" ajustado em ${adjust > 0 ? "+" : ""}${adjust}`);
-    return NextResponse.json({ success: true, stock: newStock });
+    return NextResponse.json({ success: true, stock: newStock?.stock });
   }
 
   const { name, description, price, cost, stock, minStock, unit, categoryId } = data;

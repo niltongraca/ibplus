@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
+import { nextInvoiceNumber } from "@/lib/sequence";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -106,10 +107,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         where: { companyId, notes: invoiceNotes },
       });
       if (!existing) {
-        const count = await tx.invoice.count({ where: { companyId } });
-        const now = new Date();
-        const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
-        const number = `FAT-${dateStr}-${String(count + 1).padStart(4, "0")}`;
+        const number = await nextInvoiceNumber(tx, companyId);
 
         const finalItems = data.items && data.items.create ? (data.items.create as Prisma.QuoteItemCreateWithoutQuoteInput[]) : quote.items;
         const finalSubtotal = (data.subtotal as number) ?? quote.subtotal;

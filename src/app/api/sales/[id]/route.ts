@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 
@@ -31,13 +32,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "A venda está cancelada e não pode ser editada." }, { status: 400 });
   }
 
-  const promises: Promise<unknown>[] = [];
-  if (body.customerId !== undefined) {
-    if (body.customerId) {
-      const customer = await prisma.customer.findFirst({ where: { id: body.customerId, companyId: user.companyId } });
-      if (!customer) return NextResponse.json({ error: "Cliente inválido." }, { status: 400 });
-    }
-    promises.push(prisma.sale.update({ where: { id }, data: { customerId: body.customerId } }));
+  if (body.customerId !== undefined && body.customerId) {
+    const customer = await prisma.customer.findFirst({ where: { id: body.customerId, companyId: user.companyId } });
+    if (!customer) return NextResponse.json({ error: "Cliente inválido." }, { status: 400 });
   }
 
   try {
@@ -46,9 +43,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         return NextResponse.json({ error: "A venda deve conter pelo menos um item." }, { status: 400 });
       }
 
-      const normalized: { productId: string; quantity: number; unitPrice: number }[] = body.items.map((i: { productId: string; quantity: number; unitPrice?: number }) => {
+      const normalized: { productId: string; quantity: number }[] = body.items.map((i: { productId: string; quantity: number }) => {
         if (!i.productId || !Number.isInteger(i.quantity) || i.quantity <= 0) throw new Error("INVALID_ITEM");
-        return { productId: i.productId, quantity: i.quantity, unitPrice: i.unitPrice ?? 0 };
+        return { productId: i.productId, quantity: i.quantity };
       });
 
       const productIds: string[] = [...new Set(normalized.map((i) => i.productId))];
@@ -62,7 +59,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       }
       const newQty = new Map<string, number>();
       for (const i of normalized) {
-        if (i.unitPrice <= 0) i.unitPrice = productMap.get(i.productId)!.price;
         newQty.set(i.productId, (newQty.get(i.productId) || 0) + i.quantity);
       }
 
@@ -77,7 +73,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         }
       }
 
-      const total = normalized.reduce((sum: number, i) => sum + i.quantity * i.unitPrice, 0);
+      const total = normalized.reduce((sum: number, i) => sum + i.quantity * productMap.get(i.productId)!.price, 0);
 
       const sale = await prisma.$transaction(async (tx) => {
         await tx.saleItem.deleteMany({ where: { saleId: id } });
@@ -87,7 +83,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
           await tx.stockMovement.create({ data: { productId: pid, type: "IN", quantity: qty, notes: `Reposição ao editar venda #${id}` } });
         }
         for (const [pid, qty] of newQty) {
-          await tx.product.update({ where: { id: pid }, data: { stock: { decrement: qty } } });
+          const decremented = await tx.product.updateMany({
+            where: { id: pid, companyId: user.companyId!, stock: { gte: qty } },
+            data: { stock: { decrement: qty } },
+          });
+          if (decremented.count === 0) {
+            throw new Error(`INSUFFICIENT_STOCK:${allMap.get(pid)?.name || ""}`);
+          }
           await tx.stockMovement.create({ data: { productId: pid, type: "OUT", quantity: qty, notes: `Venda #${id} (edição)` } });
         }
 
@@ -98,13 +100,17 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             status: body.status ?? existing.status,
             paymentMethod: body.paymentMethod ?? existing.paymentMethod,
             notes: body.notes ?? existing.notes,
+            customerId: body.customerId !== undefined ? body.customerId || null : existing.customerId,
             items: {
-              create: normalized.map((i) => ({
-                productId: i.productId,
-                quantity: i.quantity,
-                unitPrice: i.unitPrice,
-                total: i.quantity * i.unitPrice,
-              })),
+              create: normalized.map((i) => {
+                const unitPrice = productMap.get(i.productId)!.price;
+                return {
+                  productId: i.productId,
+                  quantity: i.quantity,
+                  unitPrice,
+                  total: i.quantity * unitPrice,
+                };
+              }),
             },
           },
           include: { customer: { select: { name: true } }, items: { include: { product: { select: { name: true } } } } },
@@ -115,19 +121,17 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ sale });
     }
 
-    if (body.status !== undefined) {
-      promises.push(
-        prisma.sale.update({ where: { id }, data: { status: body.status } })
-      );
+    const updateData: Prisma.SaleUpdateInput = {};
+    if (body.customerId !== undefined) {
+      updateData.customer = body.customerId ? { connect: { id: body.customerId } } : { disconnect: true };
     }
-    if (body.paymentMethod !== undefined) {
-      promises.push(prisma.sale.update({ where: { id }, data: { paymentMethod: body.paymentMethod } }));
-    }
-    if (body.notes !== undefined) {
-      promises.push(prisma.sale.update({ where: { id }, data: { notes: body.notes } }));
-    }
+    if (body.status !== undefined) updateData.status = body.status;
+    if (body.paymentMethod !== undefined) updateData.paymentMethod = body.paymentMethod;
+    if (body.notes !== undefined) updateData.notes = body.notes;
 
-    await Promise.all(promises);
+    if (Object.keys(updateData).length > 0) {
+      await prisma.sale.update({ where: { id }, data: updateData });
+    }
     const sale = await prisma.sale.findFirst({
       where: { id, companyId: user.companyId },
       include: { customer: { select: { name: true } }, items: { include: { product: { select: { name: true } } } } },
@@ -137,6 +141,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   } catch (err) {
     if (err instanceof Error && err.message === "INVALID_ITEM") {
       return NextResponse.json({ error: "Cada item deve ter uma quantidade inteira positiva." }, { status: 400 });
+    }
+    if (err instanceof Error && err.message.startsWith("INSUFFICIENT_STOCK:")) {
+      const name = err.message.slice("INSUFFICIENT_STOCK:".length);
+      return NextResponse.json({ error: `Stock insuficiente para "${name}".` }, { status: 400 });
     }
     return NextResponse.json({ error: "Erro ao atualizar venda." }, { status: 400 });
   }
@@ -157,16 +165,24 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     return NextResponse.json({ error: "A venda já está cancelada." }, { status: 400 });
   }
 
-  await prisma.$transaction(async (tx) => {
-    for (const item of existing.items) {
-      if (!item.productId) continue;
-      await tx.product.update({ where: { id: item.productId }, data: { stock: { increment: item.quantity } } });
-      await tx.stockMovement.create({
-        data: { productId: item.productId, type: "IN", quantity: item.quantity, notes: `Reposição ao cancelar venda #${id}` },
-      });
+  try {
+    await prisma.$transaction(async (tx) => {
+      const res = await tx.sale.updateMany({ where: { id, status: "completed" }, data: { status: "cancelled" } });
+      if (res.count === 0) throw new Error("SALE_ALREADY_CANCELLED");
+      for (const item of existing.items) {
+        if (!item.productId) continue;
+        await tx.product.update({ where: { id: item.productId }, data: { stock: { increment: item.quantity } } });
+        await tx.stockMovement.create({
+          data: { productId: item.productId, type: "IN", quantity: item.quantity, notes: `Reposição ao cancelar venda #${id}` },
+        });
+      }
+    });
+  } catch (err) {
+    if (err instanceof Error && err.message === "SALE_ALREADY_CANCELLED") {
+      return NextResponse.json({ error: "A venda já está cancelada." }, { status: 400 });
     }
-    await tx.sale.update({ where: { id }, data: { status: "cancelled" } });
-  });
+    return NextResponse.json({ error: "Erro ao cancelar venda." }, { status: 400 });
+  }
 
   await logAction("delete", "sale", id, `Venda cancelada`);
   return NextResponse.json({ success: true, message: "Venda cancelada e stock reposto." });

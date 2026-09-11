@@ -40,7 +40,9 @@ export async function POST(request: Request) {
 
     const normalized = items.map((i) => {
       if (!i.productId || !Number.isInteger(i.quantity) || i.quantity <= 0) throw new Error("INVALID_ITEM");
-      return { productId: i.productId, quantity: i.quantity, unitPrice: i.unitPrice ?? 0 };
+      const unitPrice = i.unitPrice === undefined ? null : Number(i.unitPrice);
+      if (unitPrice !== null && (!Number.isFinite(unitPrice) || unitPrice < 0)) throw new Error("INVALID_PRICE");
+      return { productId: i.productId, quantity: i.quantity, unitPrice: unitPrice ?? 0 };
     });
 
     const productIds = [...new Set(normalized.map((i) => i.productId))];
@@ -88,6 +90,9 @@ export async function POST(request: Request) {
   } catch (err) {
     if (err instanceof Error && err.message === "INVALID_ITEM") {
       return NextResponse.json({ error: "Cada item deve ter uma quantidade inteira positiva." }, { status: 400 });
+    }
+    if (err instanceof Error && err.message === "INVALID_PRICE") {
+      return NextResponse.json({ error: "O preço unitário deve ser um número não negativo." }, { status: 400 });
     }
     return NextResponse.json({ error: "Erro ao criar compra." }, { status: 400 });
   }

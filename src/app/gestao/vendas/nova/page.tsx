@@ -77,7 +77,6 @@ export default function NovaVendaPage() {
         }
       }
       if (field === "quantity") newItem.quantity = Number(value);
-      if (field === "unitPrice") newItem.unitPrice = Number(value);
       return newItem;
     });
     setItems(updated);
@@ -119,7 +118,6 @@ export default function NovaVendaPage() {
           items: items.map((i) => ({
             productId: i.productId,
             quantity: i.quantity,
-            unitPrice: i.unitPrice,
           })),
         }),
       });
@@ -261,16 +259,9 @@ export default function NovaVendaPage() {
                             <p className="mt-1 text-[11px] text-red-500 text-center">Máx {product?.stock}</p>
                           )}
                         </td>
-                        <td className="py-2 px-1">
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={item.unitPrice}
-                            onChange={(e) => updateItem(index, "unitPrice", e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40 text-right"
-                          />
-                        </td>
+<td className="py-2 px-1 text-right text-sm text-ib-primary">
+  {product ? formatCurrency(product.price) : "—"}
+</td>
                         <td className="py-2 px-1 text-right font-medium text-ib-primary">
                           {formatCurrency(item.quantity * item.unitPrice)}
                         </td>

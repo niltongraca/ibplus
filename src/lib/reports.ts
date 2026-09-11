@@ -61,7 +61,7 @@ export async function generateReportForCompany(companyId: string, period: Report
 
   const [salesAgg, salesCount, expenseAgg, incomeTxAgg] = await Promise.all([
     prisma.sale.aggregate({
-      where: { companyId, date: { gte: info.start, lt: info.end } },
+      where: { companyId, date: { gte: info.start, lt: info.end }, status: { not: "cancelled" } },
       _sum: { total: true },
     }),
     prisma.sale.count({
@@ -80,7 +80,7 @@ export async function generateReportForCompany(companyId: string, period: Report
 
   const [recentSales, recentExpenses] = await Promise.all([
     prisma.sale.findMany({
-      where: { companyId, date: { gte: info.start, lt: info.end } },
+      where: { companyId, date: { gte: info.start, lt: info.end }, status: { not: "cancelled" } },
       orderBy: { date: "desc" },
       take: 20,
       include: { customer: { select: { name: true } } },
