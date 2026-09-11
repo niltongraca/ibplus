@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { Search, BookOpen } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { useList } from "@/hooks/useList";
+import Pagination from "@/components/Pagination";
 
 interface Category {
   id: string;
@@ -20,23 +22,16 @@ interface Product {
 }
 
 export default function CatalogoPage() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const { data: products, loading, page, setPage, totalPages } = useList<Product>("/api/products", "products", { limit: 20 });
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/products").then((r) => r.json()),
-      fetch("/api/categories").then((r) => r.json()),
-    ])
-      .then(([pData, cData]) => {
-        setProducts(pData.products);
-        setCategories(cData.categories);
-      })
-      .catch((err) => console.error("Erro ao carregar catálogo:", err))
-      .finally(() => setLoading(false));
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((cData) => setCategories(cData.categories))
+      .catch((err) => console.error("Erro ao carregar categorias:", err));
   }, []);
 
   const filtered = products.filter((p) => {
@@ -112,6 +107,8 @@ export default function CatalogoPage() {
           ))}
         </div>
       )}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { Star, Search, Users, Gift, Award, TrendingUp } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 import { useList } from "@/hooks/useList";
+import Pagination from "@/components/Pagination";
 
 interface Customer {
   id: string;
@@ -21,7 +22,7 @@ interface Sale {
 type CustomerWithSales = Customer & { totalSales: number };
 
 export default function FidelizacaoPage() {
-  const { data: customers, loading } = useList<Customer>("/api/customers", "customers");
+  const { data: customers, loading, total, page, setPage, totalPages } = useList<Customer>("/api/customers", "customers", { limit: 20 });
   const [sales, setSales] = useState<Sale[]>([]);
   const [search, setSearch] = useState("");
 
@@ -55,9 +56,9 @@ export default function FidelizacaoPage() {
 
       <div className="grid sm:grid-cols-3 gap-4 mb-8">
         {[
-          { label: "Total Clientes", value: customers.length, icon: Users, color: "bg-blue-50 text-blue-600" },
+          { label: "Total Clientes", value: total, icon: Users, color: "bg-blue-50 text-blue-600" },
           { label: "Receita Total", value: formatCurrency(sales.reduce((s: number, sa: Sale) => s + sa.total, 0)), icon: TrendingUp, color: "bg-green-50 text-green-600" },
-          { label: "Ticket Médio", value: customers.length > 0 ? formatCurrency(sales.reduce((s: number, sa: Sale) => s + sa.total, 0) / Math.max(customers.length, 1)) : "0 Kz", icon: Award, color: "bg-purple-50 text-purple-600" },
+          { label: "Ticket Médio", value: total > 0 ? formatCurrency(sales.reduce((s: number, sa: Sale) => s + sa.total, 0) / Math.max(total, 1)) : "0 Kz", icon: Award, color: "bg-purple-50 text-purple-600" },
         ].map((s) => {
           const Icon = s.icon;
           return (
@@ -113,6 +114,7 @@ export default function FidelizacaoPage() {
             </div>
           )}
         />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import { FileText, Search, Plus, Calendar, Download, MoreHorizontal } from "luci
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 import { useList } from "@/hooks/useList";
+import Pagination from "@/components/Pagination";
 
 interface QuoteItem {
   id: string;
@@ -39,7 +40,7 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function PropostasPage() {
-  const { data: quotes, setData: setQuotes, loading } = useList<Quote>("/api/quotes", "quotes");
+  const { data: quotes, setData: setQuotes, loading, page, setPage, totalPages } = useList<Quote>("/api/quotes", "quotes", { limit: 20 });
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ customer: "", validUntil: "", notes: "", itemDesc: "", itemQty: "1", itemPrice: "" });
@@ -196,6 +197,7 @@ export default function PropostasPage() {
             </div>
           )}
         />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );

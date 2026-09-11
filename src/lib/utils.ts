@@ -39,3 +39,26 @@ export function parsePagination(searchParams: URLSearchParams, defaultLimit = 20
   const safeLimit = Number.isFinite(limit) ? Math.min(Math.max(1, limit), maxLimit) : defaultLimit;
   return { page: safePage, limit: safeLimit, skip: (safePage - 1) * safeLimit };
 }
+
+/**
+ * Devolve o instante UTC de meia-noite do dia corrente no fuso da empresa.
+ * Previne o bug de "hoje": `new Date().setHours(0,0,0,0)` usa o fuso do servidor
+ * (UTC na Vercel) e às 00:30 locais (ex.: Angola UTC+1) venda conta como "ontem".
+ * Usa `Intl` para obter a data calendário no fuso e devolve `Date.UTC(y,m,d)`.
+ */
+export function startOfTodayUtc(tz = process.env.COMPANY_TIMEZONE || "Africa/Luanda"): Date {
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const parts = dtf.formatToParts(new Date());
+  let year = "", month = "", day = "";
+  for (const p of parts) {
+    if (p.type === "year") year = p.value;
+    else if (p.type === "month") month = p.value;
+    else if (p.type === "day") day = p.value;
+  }
+  return new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), 0, 0, 0));
+}

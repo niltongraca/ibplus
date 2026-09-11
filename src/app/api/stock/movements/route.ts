@@ -8,18 +8,24 @@ export async function GET(request: Request) {
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const url = new URL(request.url);
-  const { limit } = parsePagination(url.searchParams);
+  const { page, limit, skip } = parsePagination(url.searchParams);
   const productId = url.searchParams.get("productId");
 
-  const movements = await prisma.stockMovement.findMany({
-    where: {
-      product: { companyId: user.companyId },
-      ...(productId ? { productId } : {}),
-    },
-    include: { product: { select: { name: true, unit: true } } },
-    orderBy: { createdAt: "desc" },
-    take: limit,
-  });
+  const where = {
+    product: { companyId: user.companyId },
+    ...(productId ? { productId } : {}),
+  };
 
-  return NextResponse.json({ movements });
+  const [movements, total] = await Promise.all([
+    prisma.stockMovement.findMany({
+      where,
+      include: { product: { select: { name: true, unit: true } } },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+    }),
+    prisma.stockMovement.count({ where }),
+  ]);
+
+  return NextResponse.json({ movements, total, page, totalPages: Math.ceil(total / limit) });
 }

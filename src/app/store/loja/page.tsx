@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Search, ShoppingBag, ShoppingCart, Plus, Minus, Trash2, CreditCard, X } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { SuccessCheck } from "@/components/ui/SuccessCheck";
 import { ClearInput } from "@/components/ui/ClearInput";
+import { useList } from "@/hooks/useList";
+import Pagination from "@/components/Pagination";
 
 interface Category { name: string; }
 
@@ -27,8 +29,7 @@ interface CartItem {
 }
 
 export default function LojaOnlinePage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: products, loading, page, setPage, totalPages } = useList<Product>("/api/products", "products", { limit: 20 });
   const [search, setSearch] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
@@ -38,14 +39,6 @@ export default function LojaOnlinePage() {
   const [checkingOut, setCheckingOut] = useState(false);
   const [checkoutDone, setCheckoutDone] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
-
-  useEffect(() => {
-    fetch("/api/products")
-      .then((r) => r.json())
-      .then((d) => setProducts(d.products))
-      .catch((err) => console.error("Erro ao carregar loja:", err))
-      .finally(() => setLoading(false));
-  }, []);
 
   const filtered = products.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase())
@@ -174,6 +167,8 @@ export default function LojaOnlinePage() {
           })}
         </div>
       )}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       {showCart && (
         <div className="fixed inset-0 bg-black/50 z-50 flex justify-end" onClick={() => setShowCart(false)}>

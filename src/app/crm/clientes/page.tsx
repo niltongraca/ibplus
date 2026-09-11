@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Users, Search, Phone, Mail, ShoppingCart, Calendar } from "lucide-react";
 import Link from "next/link";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
+import { useList } from "@/hooks/useList";
+import Pagination from "@/components/Pagination";
 
 interface Customer {
   id: string;
@@ -17,17 +19,8 @@ interface Customer {
 }
 
 export default function CrmClientesPage() {
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: customers, loading, page, setPage, totalPages } = useList<Customer>("/api/customers", "customers", { limit: 20 });
   const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    fetch("/api/customers")
-      .then((r) => r.json())
-      .then((d) => setCustomers(d.customers))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
 
   const filtered = customers.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase())
@@ -88,6 +81,8 @@ export default function CrmClientesPage() {
           ))}
         </div>
       )}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 }
