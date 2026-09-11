@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { z } from "zod";
-import { parseDateOnly } from "@/lib/utils";
+import { parseDateOnly, parsePagination } from "@/lib/utils";
 
 const createSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -15,16 +15,25 @@ const createSchema = z.object({
   notes: z.string().optional().nullable(),
 });
 
-export async function GET() {
+export async function GET(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-  const students = await prisma.student.findMany({
-    where: { companyId: user.companyId },
-    orderBy: { name: "asc" },
-  });
+  const url = new URL(request.url);
+  const { page, limit, skip } = parsePagination(url.searchParams);
+  const where = { companyId: user.companyId };
 
-  return NextResponse.json({ students });
+  const [students, total] = await Promise.all([
+    prisma.student.findMany({
+      where,
+      orderBy: { name: "asc" },
+      skip,
+      take: limit,
+    }),
+    prisma.student.count({ where }),
+  ]);
+
+  return NextResponse.json({ students, total, page, totalPages: Math.ceil(total / limit) });
 }
 
 export async function POST(request: Request) {

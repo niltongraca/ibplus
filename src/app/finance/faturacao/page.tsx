@@ -6,6 +6,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import { buildDocumentHtml } from "@/lib/exportDocument";
 import { useConfirm } from "@/components/ConfirmModal";
 import Link from "next/link";
+import Pagination from "@/components/Pagination";
 
 interface Invoice {
   id: string;
@@ -23,19 +24,23 @@ export default function FaturacaoPage() {
   const [company, setCompany] = useState<{ name: string; nif?: string | null; email?: string | null; phone?: string | null; address?: string | null; logo?: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
+    setLoading(true);
     Promise.all([
-      fetch("/api/invoices").then((r) => r.json()),
+      fetch(`/api/invoices?page=${page}&limit=20`).then((r) => r.json()),
       fetch("/api/company").then((r) => r.json()).catch(() => ({ company: null })),
     ])
       .then(([d, c]) => {
         setInvoices(d.invoices);
+        setTotalPages(typeof d.totalPages === "number" ? d.totalPages : 1);
         setCompany(c.company);
       })
       .catch((err) => console.error("Erro ao carregar faturação:", err))
       .finally(() => setLoading(false));
-  }, []);
+  }, [page]);
 
   const filtered = invoices.filter((inv) =>
     (inv.number + " " + (inv.customer || "")).toLowerCase().includes(search.toLowerCase())
@@ -198,6 +203,7 @@ export default function FaturacaoPage() {
           </div>
         )}
       </div>
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 }

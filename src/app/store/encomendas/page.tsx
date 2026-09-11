@@ -5,6 +5,7 @@ import { Package, Search } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 import { useList } from "@/hooks/useList";
+import Pagination from "@/components/Pagination";
 
 interface Sale {
   id: string;
@@ -15,7 +16,7 @@ interface Sale {
 }
 
 export default function EncomendasPage() {
-  const { data: sales, loading } = useList<Sale>("/api/sales", "sales");
+  const { data: sales, loading, page, setPage, totalPages } = useList<Sale>("/api/sales", "sales", { limit: 20 });
   const [search, setSearch] = useState("");
 
   const filtered = sales.filter((s) =>
@@ -73,6 +74,7 @@ export default function EncomendasPage() {
             </div>
           )}
         />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
+import { parsePagination } from "@/lib/utils";
 
 const STAGES = ["lead", "qualified", "proposal", "negotiation", "closed"];
 
@@ -13,22 +14,31 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const stage = searchParams.get("stage") || undefined;
+  const { page, limit, skip } = parsePagination(searchParams);
 
   if (!user.companyId) {
-    return NextResponse.json({ opportunities: [] });
+    return NextResponse.json({ opportunities: [], total: 0, page: 1, totalPages: 0 });
   }
 
   const where: Prisma.OpportunityWhereInput = { companyId: user.companyId };
   if (stage) where.stage = stage;
 
-  const opportunities = await prisma.opportunity.findMany({
-    where,
-    include: { customer: { select: { name: true, email: true, phone: true } } },
-    orderBy: { createdAt: "desc" },
-  });
+  const [opportunities, total] = await Promise.all([
+    prisma.opportunity.findMany({
+      where,
+      include: { customer: { select: { name: true, email: true, phone: true } } },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+    }),
+    prisma.opportunity.count({ where }),
+  ]);
 
   return NextResponse.json({
     opportunities: opportunities.map((o) => ({ ...o, value: toNumber(o.value) })),
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
   });
 }
 

@@ -5,6 +5,7 @@ import { Mail, Search, Plus, Calendar, Send, MoreHorizontal } from "lucide-react
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 import { useList } from "@/hooks/useList";
+import Pagination from "@/components/Pagination";
 
 interface Campaign {
   id: string;
@@ -29,7 +30,7 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function EmailMarketingPage() {
-  const { data: allCampaigns, setData: setCampaigns, loading } = useList<Campaign>("/api/campaigns", "campaigns");
+  const { data: allCampaigns, setData: setCampaigns, loading, page, setPage, totalPages } = useList<Campaign>("/api/campaigns", "campaigns", { limit: 20 });
   const campaigns = allCampaigns.filter((c) => c.type === "email");
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -130,6 +131,7 @@ export default function EmailMarketingPage() {
             </div>
           )}
         />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );

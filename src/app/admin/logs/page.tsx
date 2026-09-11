@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Activity, Search, Info, AlertTriangle, Shield, UserCheck, Settings, Package, DollarSign, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import Pagination from "@/components/Pagination";
 
 interface AuditLog {
   id: string;
@@ -33,14 +34,20 @@ export default function AdminLogs() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    fetch("/api/admin/logs")
+    setLoading(true);
+    fetch(`/api/admin/logs?page=${page}&limit=20`)
       .then((r) => r.json())
-      .then((d) => setLogs(d.logs || []))
+      .then((d) => {
+        setLogs(d.logs || []);
+        setTotalPages(typeof d.totalPages === "number" ? d.totalPages : 1);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [page]);
 
   const filtered = logs.filter((l) =>
     (l.details || l.action || l.entity).toLowerCase().includes(search.toLowerCase())
@@ -94,6 +101,8 @@ export default function AdminLogs() {
           </div>
         )}
       </div>
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </AdminLayout>
   );
 }

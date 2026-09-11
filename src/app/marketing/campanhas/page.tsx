@@ -5,6 +5,7 @@ import { Megaphone, Search, Plus, Calendar, DollarSign, MoreHorizontal } from "l
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 import { useList } from "@/hooks/useList";
+import Pagination from "@/components/Pagination";
 
 interface Campaign {
   id: string;
@@ -34,7 +35,7 @@ const typeLabels: Record<string, string> = {
 };
 
 export default function CampanhasPage() {
-  const { data: campaigns, setData: setCampaigns, loading } = useList<Campaign>("/api/campaigns", "campaigns");
+  const { data: campaigns, setData: setCampaigns, loading, page, setPage, totalPages } = useList<Campaign>("/api/campaigns", "campaigns", { limit: 20 });
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [formError, setFormError] = useState("");
@@ -179,6 +180,7 @@ export default function CampanhasPage() {
             </div>
           )}
         />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import { buildDocumentHtml } from "@/lib/exportDocument";
 import { useConfirm } from "@/components/ConfirmModal";
 import Link from "next/link";
+import Pagination from "@/components/Pagination";
 
 interface Quote {
   id: string;
@@ -23,19 +24,23 @@ export default function OrcamentosPage() {
   const [company, setCompany] = useState<{ name: string; nif?: string | null; email?: string | null; phone?: string | null; address?: string | null; logo?: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
+    setLoading(true);
     Promise.all([
-      fetch("/api/quotes").then((r) => r.json()),
+      fetch(`/api/quotes?page=${page}&limit=20`).then((r) => r.json()),
       fetch("/api/company").then((r) => r.json()).catch(() => ({ company: null })),
     ])
       .then(([d, c]) => {
         setQuotes(d.quotes);
+        setTotalPages(typeof d.totalPages === "number" ? d.totalPages : 1);
         setCompany(c.company);
       })
       .catch((err) => console.error("Erro ao carregar orçamentos:", err))
       .finally(() => setLoading(false));
-  }, []);
+  }, [page]);
 
   const filtered = quotes.filter((q) =>
     (q.number + " " + (q.customer || "")).toLowerCase().includes(search.toLowerCase())
@@ -201,6 +206,7 @@ export default function OrcamentosPage() {
           </div>
         )}
       </div>
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { DataTable } from "@/components/ui/DataTable";
 import { useList } from "@/hooks/useList";
+import Pagination from "@/components/Pagination";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Search, FileText, CheckCircle } from "lucide-react";
 
@@ -28,7 +29,7 @@ const tabs: { key: FilterTab; label: string }[] = [
 export default function ContasReceberPage() {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
-  const { data: invoices, setData: setInvoices, loading } = useList<Invoice>("/api/invoices", "invoices");
+  const { data: invoices, setData: setInvoices, loading, page, setPage, totalPages } = useList<Invoice>("/api/invoices", "invoices", { limit: 20 });
 
   const searched = invoices.filter((inv) =>
     (inv.number + " " + (inv.customer || "")).toLowerCase().includes(search.toLowerCase())
@@ -211,6 +212,7 @@ export default function ContasReceberPage() {
           mobileCard={mobileCard}
           keyExtractor={(inv) => inv.id}
         />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );

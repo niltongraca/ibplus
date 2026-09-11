@@ -5,6 +5,7 @@ import { Tag, Search, Plus, Calendar, Percent, MoreHorizontal } from "lucide-rea
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 import { useList } from "@/hooks/useList";
+import Pagination from "@/components/Pagination";
 
 interface Campaign {
   id: string;
@@ -30,7 +31,7 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function PromocoesPage() {
-  const { data: allCampaigns, setData: setCampaigns, loading } = useList<Campaign>("/api/campaigns", "campaigns");
+  const { data: allCampaigns, setData: setCampaigns, loading, page, setPage, totalPages } = useList<Campaign>("/api/campaigns", "campaigns", { limit: 20 });
   const campaigns = allCampaigns.filter((c) => c.type === "other");
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -145,6 +146,7 @@ export default function PromocoesPage() {
             </div>
           )}
         />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );

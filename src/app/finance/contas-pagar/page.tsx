@@ -6,6 +6,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import { Search, FileText } from "lucide-react";
 import { AnimatedTabs } from "@/components/ui/transitions/AnimatedTabs";
 import { useList } from "@/hooks/useList";
+import Pagination from "@/components/Pagination";
 
 interface Expense {
   id: string;
@@ -25,7 +26,7 @@ const tabs: { key: FilterTab; label: string }[] = [
 ];
 
 export default function ContasPagarPage() {
-  const { data: expenses, setData: setExpenses, loading } = useList<Expense>("/api/expenses", "expenses");
+  const { data: expenses, setData: setExpenses, loading, page, setPage, totalPages } = useList<Expense>("/api/expenses", "expenses", { limit: 20 });
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
 
@@ -156,6 +157,7 @@ export default function ContasPagarPage() {
           mobileCard={mobileCard}
           keyExtractor={(exp) => exp.id}
         />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );

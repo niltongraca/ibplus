@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Wrench, Search } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import Pagination from "@/components/Pagination";
 
 interface Service {
   id: string;
@@ -17,12 +18,20 @@ interface Service {
 export default function AdminServicos() {
   const [services, setServices] = useState<Service[]>([]);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/services")
+    setLoading(true);
+    fetch(`/api/services?page=${page}&limit=20`)
       .then((r) => r.json())
-      .then((d) => setServices(d.services));
-  }, []);
+      .then((d) => {
+        setServices(d.services);
+        setTotalPages(typeof d.totalPages === "number" ? d.totalPages : 1);
+      })
+      .finally(() => setLoading(false));
+  }, [page]);
 
   const filtered = services.filter((s) =>
     s.name.toLowerCase().includes(search.toLowerCase())
@@ -71,6 +80,8 @@ export default function AdminServicos() {
           )}
         </div>
       </div>
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </AdminLayout>
   );
 }

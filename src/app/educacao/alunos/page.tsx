@@ -6,6 +6,7 @@ import { DataTable } from "@/components/ui/DataTable";
 import { useToast } from "@/components/Toast";
 import { useConfirm } from "@/components/ConfirmModal";
 import { useList } from "@/hooks/useList";
+import Pagination from "@/components/Pagination";
 import Link from "next/link";
 
 interface Student {
@@ -20,7 +21,7 @@ interface Student {
 export default function AlunosPage() {
   const { toast } = useToast();
   const { confirm } = useConfirm();
-  const { data: students, setData: setStudents, loading } = useList<Student>("/api/students", "students");
+  const { data: students, setData: setStudents, loading, page, setPage, totalPages } = useList<Student>("/api/students", "students", { limit: 20 });
   const [search, setSearch] = useState("");
 
   async function handleDelete(id: string) {
@@ -109,6 +110,7 @@ export default function AlunosPage() {
             </Link>
           )}
         />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );

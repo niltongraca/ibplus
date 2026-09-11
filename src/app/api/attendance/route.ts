@@ -2,23 +2,31 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
-import { parseDateOnly } from "@/lib/utils";
+import { parseDateOnly, parsePagination } from "@/lib/utils";
 
 const STATUSES = ["present", "absent", "late", "half_day", "justified"];
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const user = await getAuthUser();
     if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-    const attendances = await prisma.attendance.findMany({
-      where: { employee: { companyId: user.companyId } },
-      include: { employee: { select: { name: true } } },
-      orderBy: { date: "desc" },
-      take: 100,
-    });
+    const url = new URL(request.url);
+    const { page, limit, skip } = parsePagination(url.searchParams);
+    const where = { employee: { companyId: user.companyId } };
 
-    return NextResponse.json({ attendances });
+    const [attendances, total] = await Promise.all([
+      prisma.attendance.findMany({
+        where,
+        include: { employee: { select: { name: true } } },
+        orderBy: { date: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.attendance.count({ where }),
+    ]);
+
+    return NextResponse.json({ attendances, total, page, totalPages: Math.ceil(total / limit) });
   } catch {
     return NextResponse.json({ error: "Erro ao carregar presenças." }, { status: 500 });
   }

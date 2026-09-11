@@ -5,6 +5,7 @@ import { Sun, Search, Plus, Calendar, CheckCircle, XCircle, Clock, MoreHorizonta
 import { formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 import { useList } from "@/hooks/useList";
+import Pagination from "@/components/Pagination";
 
 interface Employee {
   id: string;
@@ -33,7 +34,7 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function FeriasPage() {
-  const { data: vacations, setData: setVacations, loading } = useList<Vacation>("/api/vacations", "vacations");
+  const { data: vacations, setData: setVacations, loading, page, setPage, totalPages } = useList<Vacation>("/api/vacations", "vacations", { limit: 20 });
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -172,6 +173,7 @@ export default function FeriasPage() {
             </div>
           )}
         />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );

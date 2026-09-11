@@ -1,20 +1,30 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { parsePagination } from "@/lib/utils";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const user = await getAuthUser();
     if (!user || user.role !== "admin") return NextResponse.json({ error: "Não autorizado." }, { status: 403 });
 
-    const empresas = await prisma.user.findMany({
-      where: { accountType: "EMPRESA" },
-      include: {
-        company: { select: { id: true, name: true, nif: true, email: true } },
-        companyProfile: { select: { nomeEmpresa: true, nif: true, registoComercial: true } },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+    const url = new URL(request.url);
+    const { page, limit, skip } = parsePagination(url.searchParams);
+    const where = { accountType: "EMPRESA" as const };
+
+    const [empresas, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        include: {
+          company: { select: { id: true, name: true, nif: true, email: true } },
+          companyProfile: { select: { nomeEmpresa: true, nif: true, registoComercial: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.user.count({ where }),
+    ]);
 
     const companyIds = empresas.map((e) => e.companyId).filter(Boolean) as string[];
 
@@ -31,7 +41,7 @@ export async function GET() {
       },
     }));
 
-    return NextResponse.json({ empresas: empresasWithCounts });
+    return NextResponse.json({ empresas: empresasWithCounts, total, page, totalPages: Math.ceil(total / limit) });
   } catch (error) {
     return NextResponse.json({ error: "Erro interno do servidor." }, { status: 500 });
   }

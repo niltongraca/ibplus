@@ -5,6 +5,7 @@ import { MessageSquare, Search, Plus, Phone, Mail, UserCheck, Calendar, MoreHori
 import { formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 import { useList } from "@/hooks/useList";
+import Pagination from "@/components/Pagination";
 
 interface Customer {
   id: string;
@@ -15,7 +16,7 @@ interface Customer {
 }
 
 export default function FollowUpPage() {
-  const { data: customers, loading } = useList<Customer>("/api/customers", "customers");
+  const { data: customers, loading, page, setPage, totalPages } = useList<Customer>("/api/customers", "customers", { limit: 20 });
   const [search, setSearch] = useState("");
   const [followUps, setFollowUps] = useState<Record<string, { date: string; note: string }[]>>({});
   const [showForm, setShowForm] = useState<string | null>(null);
@@ -115,6 +116,7 @@ export default function FollowUpPage() {
             );
           }}
         />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );

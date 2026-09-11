@@ -5,6 +5,7 @@ import { Clock, Search, Plus, CheckCircle, XCircle, AlertTriangle, MoreHorizonta
 import { formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 import { useList } from "@/hooks/useList";
+import Pagination from "@/components/Pagination";
 
 interface Employee {
   id: string;
@@ -35,7 +36,7 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function PresencasPage() {
-  const { data: attendances, setData: setAttendances, loading } = useList<Attendance>("/api/attendance", "attendances");
+  const { data: attendances, setData: setAttendances, loading, page, setPage, totalPages } = useList<Attendance>("/api/attendance", "attendances", { limit: 20 });
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -190,6 +191,7 @@ export default function PresencasPage() {
             </div>
           )}
         />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );

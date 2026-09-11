@@ -4,7 +4,7 @@ import { getAuthUser } from "@/lib/auth";
 import { findOrCreateCustomer, ensureItemsInCatalog } from "@/lib/catalog";
 import { nextQuoteNumber } from "@/lib/sequence";
 import { toNumber } from "@/lib/money";
-import { parseDateOnly } from "@/lib/utils";
+import { parseDateOnly, parsePagination } from "@/lib/utils";
 
 function serializeQuote(q: { subtotal?: unknown; discountValue?: unknown; discount?: unknown; total?: unknown; items: unknown[] } & Record<string, unknown>) {
   return {
@@ -20,18 +20,32 @@ function serializeQuote(q: { subtotal?: unknown; discountValue?: unknown; discou
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const user = await getAuthUser();
     if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-    const quotes = await prisma.quote.findMany({
-      where: { companyId: user.companyId },
-      include: { items: true },
-      orderBy: { date: "desc" },
-    });
+    const url = new URL(request.url);
+    const { page, limit, skip } = parsePagination(url.searchParams);
+    const where = { companyId: user.companyId };
 
-    return NextResponse.json({ quotes: quotes.map((q) => serializeQuote(q as never)) });
+    const [quotes, total] = await Promise.all([
+      prisma.quote.findMany({
+        where,
+        include: { items: true },
+        orderBy: { date: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.quote.count({ where }),
+    ]);
+
+    return NextResponse.json({
+      quotes: quotes.map((q) => serializeQuote(q as never)),
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch {
     return NextResponse.json({ error: "Erro ao carregar orçamentos." }, { status: 500 });
   }

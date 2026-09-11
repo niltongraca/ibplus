@@ -5,6 +5,7 @@ import { CreditCard, Search } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 import { useList } from "@/hooks/useList";
+import Pagination from "@/components/Pagination";
 
 interface Invoice {
   id: string;
@@ -16,7 +17,7 @@ interface Invoice {
 }
 
 export default function PagamentosStorePage() {
-  const { data: invoices, loading } = useList<Invoice>("/api/invoices", "invoices");
+  const { data: invoices, loading, page, setPage, totalPages } = useList<Invoice>("/api/invoices", "invoices", { limit: 20 });
   const [search, setSearch] = useState("");
 
   const filtered = invoices.filter((inv) =>
@@ -75,6 +76,7 @@ export default function PagamentosStorePage() {
             </div>
           )}
         />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );

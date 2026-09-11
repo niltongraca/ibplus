@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Users, Search, Mail, Calendar, Shield } from "lucide-react";
+import Pagination from "@/components/Pagination";
 
 interface User {
   id: string;
@@ -41,12 +42,20 @@ const planStyles: Record<string, string> = {
 export default function AdminUsuarios() {
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/admin/usuarios")
+    setLoading(true);
+    fetch(`/api/admin/usuarios?page=${page}&limit=20`)
       .then((r) => r.json())
-      .then((d) => setUsers(d.users));
-  }, []);
+      .then((d) => {
+        setUsers(d.users);
+        setTotalPages(typeof d.totalPages === "number" ? d.totalPages : 1);
+      })
+      .finally(() => setLoading(false));
+  }, [page]);
 
   const filtered = users.filter((u) =>
     u.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -125,6 +134,8 @@ export default function AdminUsuarios() {
           </table>
         </div>
       </div>
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </AdminLayout>
   );
 }

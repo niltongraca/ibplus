@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Building2, Search, Mail, FileText } from "lucide-react";
+import Pagination from "@/components/Pagination";
 
 interface EmpresaUser {
   id: string;
@@ -18,12 +19,20 @@ interface EmpresaUser {
 export default function AdminEmpresas() {
   const [empresas, setEmpresas] = useState<EmpresaUser[]>([]);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/admin/empresas")
+    setLoading(true);
+    fetch(`/api/admin/empresas?page=${page}&limit=20`)
       .then((r) => r.json())
-      .then((d) => setEmpresas(d.empresas));
-  }, []);
+      .then((d) => {
+        setEmpresas(d.empresas);
+        setTotalPages(typeof d.totalPages === "number" ? d.totalPages : 1);
+      })
+      .finally(() => setLoading(false));
+  }, [page]);
 
   const filtered = empresas.filter((e) =>
     e.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -97,6 +106,8 @@ export default function AdminEmpresas() {
           </table>
         </div>
       </div>
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </AdminLayout>
   );
 }

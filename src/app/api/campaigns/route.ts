@@ -3,22 +3,36 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
-import { parseDateOnly } from "@/lib/utils";
+import { parseDateOnly, parsePagination } from "@/lib/utils";
 
 const TYPES = ["email", "social", "sms", "whatsapp", "other"];
 const STATUSES = ["draft", "active", "paused", "completed", "cancelled"];
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const user = await getAuthUser();
     if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-    const campaigns = await prisma.campaign.findMany({
-      where: { companyId: user.companyId },
-      orderBy: { createdAt: "desc" },
-    });
+    const url = new URL(request.url);
+    const { page, limit, skip } = parsePagination(url.searchParams);
+    const where = { companyId: user.companyId };
 
-    return NextResponse.json({ campaigns: campaigns.map((c) => ({ ...c, budget: c.budget === null ? null : toNumber(c.budget) })) });
+    const [campaigns, total] = await Promise.all([
+      prisma.campaign.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.campaign.count({ where }),
+    ]);
+
+    return NextResponse.json({
+      campaigns: campaigns.map((c) => ({ ...c, budget: c.budget === null ? null : toNumber(c.budget) })),
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch {
     return NextResponse.json({ error: "Erro ao carregar campanhas." }, { status: 500 });
   }

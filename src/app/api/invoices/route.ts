@@ -5,16 +5,25 @@ import { findOrCreateCustomer, ensureItemsInCatalog } from "@/lib/catalog";
 import { recordInvoicePayment } from "@/lib/finance";
 import { nextInvoiceNumber } from "@/lib/sequence";
 import { toNumber } from "@/lib/money";
-import { parseDateOnly } from "@/lib/utils";
+import { parseDateOnly, parsePagination } from "@/lib/utils";
 
-export async function GET() {
+export async function GET(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-  const invoices = await prisma.invoice.findMany({
-    where: { companyId: user.companyId },
-    orderBy: { date: "desc" },
-  });
+  const url = new URL(request.url);
+  const { page, limit, skip } = parsePagination(url.searchParams);
+  const where = { companyId: user.companyId };
+
+  const [invoices, total] = await Promise.all([
+    prisma.invoice.findMany({
+      where,
+      orderBy: { date: "desc" },
+      skip,
+      take: limit,
+    }),
+    prisma.invoice.count({ where }),
+  ]);
 
   return NextResponse.json({
     invoices: invoices.map((i) => ({
@@ -25,6 +34,9 @@ export async function GET() {
       total: toNumber(i.total),
       paidAmount: toNumber(i.paidAmount),
     })),
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
   });
 }
 

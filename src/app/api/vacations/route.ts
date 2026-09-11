@@ -2,20 +2,29 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
-import { parseDateOnly } from "@/lib/utils";
+import { parseDateOnly, parsePagination } from "@/lib/utils";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const user = await getAuthUser();
     if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-    const vacations = await prisma.vacation.findMany({
-      where: { employee: { companyId: user.companyId } },
-      include: { employee: { select: { name: true } } },
-      orderBy: { startDate: "desc" },
-    });
+    const url = new URL(request.url);
+    const { page, limit, skip } = parsePagination(url.searchParams);
+    const where = { employee: { companyId: user.companyId } };
 
-    return NextResponse.json({ vacations });
+    const [vacations, total] = await Promise.all([
+      prisma.vacation.findMany({
+        where,
+        include: { employee: { select: { name: true } } },
+        orderBy: { startDate: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.vacation.count({ where }),
+    ]);
+
+    return NextResponse.json({ vacations, total, page, totalPages: Math.ceil(total / limit) });
   } catch {
     return NextResponse.json({ error: "Erro ao carregar férias." }, { status: 500 });
   }

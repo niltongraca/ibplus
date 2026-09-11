@@ -8,6 +8,7 @@ import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import Pagination from "@/components/Pagination";
 
 interface ContentItem {
   id: string;
@@ -42,14 +43,18 @@ export default function AdminConteudosPage() {
   const { confirm } = useConfirm();
   const [content, setContent] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [page]);
 
   async function load() {
     try {
-      const res = await fetch("/api/admin/content");
+      setLoading(true);
+      const res = await fetch(`/api/admin/content?page=${page}&limit=20`);
       const data = await res.json();
       setContent(data.content || []);
+      setTotalPages(typeof data.totalPages === "number" ? data.totalPages : 1);
     } catch (err) {
       console.error(err);
     } finally {
@@ -163,6 +168,8 @@ export default function AdminConteudosPage() {
           </tbody>
         </table>
       </div>
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
     </AdminLayout>
   );

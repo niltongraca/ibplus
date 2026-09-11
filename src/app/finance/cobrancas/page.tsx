@@ -5,6 +5,7 @@ import { DataTable } from "@/components/ui/DataTable";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Search, FileText, CheckCircle } from "lucide-react";
 import { useList } from "@/hooks/useList";
+import Pagination from "@/components/Pagination";
 
 interface Invoice {
   id: string;
@@ -25,7 +26,7 @@ const tabs: { key: FilterTab; label: string }[] = [
 ];
 
 export default function CobrancasPage() {
-  const { data: invoices, setData: setInvoices, loading } = useList<Invoice>("/api/invoices", "invoices");
+  const { data: invoices, setData: setInvoices, loading, page, setPage, totalPages } = useList<Invoice>("/api/invoices", "invoices", { limit: 20 });
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
 
@@ -192,6 +193,7 @@ export default function CobrancasPage() {
           mobileCard={mobileCard}
           keyExtractor={(inv) => inv.id}
         />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );

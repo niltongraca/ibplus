@@ -4,6 +4,7 @@ import { DollarSign, Users, TrendingUp } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { DataTable } from "@/components/ui/DataTable";
 import { useList } from "@/hooks/useList";
+import Pagination from "@/components/Pagination";
 
 interface Employee {
   id: string;
@@ -13,7 +14,7 @@ interface Employee {
 }
 
 export default function SalariosPage() {
-  const { data: employees, loading } = useList<Employee>("/api/employees", "employees");
+  const { data: employees, loading, page, setPage, totalPages } = useList<Employee>("/api/employees", "employees", { limit: 20 });
 
   const totalSalaries = employees.reduce((sum, e) => sum + e.salary, 0);
   const avgSalary = employees.length > 0 ? totalSalaries / employees.length : 0;
@@ -73,6 +74,7 @@ export default function SalariosPage() {
             </div>
           )}
         />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );
