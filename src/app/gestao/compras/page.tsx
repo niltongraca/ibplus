@@ -19,15 +19,11 @@ interface Purchase {
 }
 
 export default function ComprasPage() {
+  const [search, setSearch] = useState("");
   const { data: purchases, setData: setPurchases, loading, page, setPage, totalPages } = useList<Purchase>(
     "/api/purchases",
     "purchases",
-    { limit: 20 }
-  );
-  const [search, setSearch] = useState("");
-
-  const filtered = purchases.filter((p) =>
-    (p.supplier || "").toLowerCase().includes(search.toLowerCase())
+    { limit: 20, params: { search } }
   );
 
   const { toast } = useToast();
@@ -83,7 +79,7 @@ export default function ComprasPage() {
               </button>
             )},
           ]}
-          data={filtered}
+          data={purchases}
           loading={loading}
           emptyIcon={<ShoppingCart className="w-12 h-12 text-gray-300 mx-auto mb-3" />}
           emptyText="Nenhuma compra encontrada."

@@ -20,12 +20,12 @@ interface Sale {
 }
 
 export default function VendasPage() {
+  const [search, setSearch] = useState("");
   const { data: sales, setData: setSales, loading, page, setPage, totalPages } = useList<Sale>(
     "/api/sales",
     "sales",
-    { limit: 20 }
+    { limit: 20, params: { search } }
   );
-  const [search, setSearch] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -47,12 +47,8 @@ export default function VendasPage() {
     }
   }
 
-  const filtered = sales.filter((s) =>
-    (s.customer?.name || "").toLowerCase().includes(search.toLowerCase())
-  );
-
   function exportCsv() {
-    const data = filtered.map((s) => ({
+    const data = sales.map((s) => ({
       cliente: s.customer?.name || "—",
       total: s.total,
       metodo: s.paymentMethod || "—",
@@ -120,7 +116,7 @@ export default function VendasPage() {
               ) : <span />,
             },
           ]}
-          data={filtered}
+          data={sales}
           loading={loading}
           emptyIcon={<DollarSign className="w-12 h-12 text-gray-300 mx-auto mb-3" />}
           emptyText="Nenhuma venda encontrada."

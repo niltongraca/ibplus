@@ -32,7 +32,7 @@ export default function ProdutosPage() {
   const { data: products, setData: setProducts, loading, page, setPage, totalPages } = useList<Product>(
     "/api/products",
     "products",
-    { limit: 20 }
+    { limit: 20, params: { search } }
   );
 
   async function handleDelete(id: string) {
@@ -46,10 +46,6 @@ export default function ProdutosPage() {
       toast(data?.error || "Erro ao eliminar produto.", "error");
     }
   }
-
-  const filtered = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
 
   return (
     <div>

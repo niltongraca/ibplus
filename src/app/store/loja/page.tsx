@@ -29,8 +29,8 @@ interface CartItem {
 }
 
 export default function LojaOnlinePage() {
-  const { data: products, loading, page, setPage, totalPages } = useList<Product>("/api/products", "products", { limit: 20 });
   const [search, setSearch] = useState("");
+  const { data: products, loading, page, setPage, totalPages } = useList<Product>("/api/products", "products", { limit: 20, params: { search } });
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
@@ -39,10 +39,6 @@ export default function LojaOnlinePage() {
   const [checkingOut, setCheckingOut] = useState(false);
   const [checkoutDone, setCheckoutDone] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
-
-  const filtered = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
 
   function addToCart(product: Product) {
     setCart((prev) => {
@@ -127,14 +123,14 @@ export default function LojaOnlinePage() {
 
       {loading ? (
         <div className="p-12 text-center text-ib-muted text-sm">A carregar...</div>
-      ) : filtered.length === 0 ? (
+      ) : products.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <ShoppingBag className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <p className="text-ib-muted text-sm">Nenhum produto encontrado.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filtered.map((product) => {
+          {products.map((product) => {
             const inCart = cart.find((item) => item.productId === product.id);
             return (
               <div key={product.id} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow flex flex-col">

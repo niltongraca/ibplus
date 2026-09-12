@@ -40,15 +40,11 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function PropostasPage() {
-  const { data: quotes, setData: setQuotes, loading, page, setPage, totalPages } = useList<Quote>("/api/quotes", "quotes", { limit: 20 });
   const [search, setSearch] = useState("");
+  const { data: quotes, setData: setQuotes, loading, page, setPage, totalPages } = useList<Quote>("/api/quotes", "quotes", { limit: 20, params: { search } });
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ customer: "", validUntil: "", notes: "", itemDesc: "", itemQty: "1", itemPrice: "" });
   const [items, setItems] = useState<{ description: string; quantity: number; unitPrice: number }[]>([]);
-
-  const filtered = quotes.filter((q) =>
-    (q.customer || q.number).toLowerCase().includes(search.toLowerCase())
-  );
 
   function addItem() {
     if (!form.itemDesc || !form.itemPrice) return;
@@ -179,7 +175,7 @@ export default function PropostasPage() {
             )},
             { key: "actions", header: "", hide: "mobile", className: "text-right w-10", render: () => <MoreHorizontal className="w-4 h-4 text-ib-muted" /> },
           ]}
-          data={filtered}
+          data={quotes}
           loading={loading}
           emptyIcon={<FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />}
           emptyText="Nenhuma proposta encontrada."

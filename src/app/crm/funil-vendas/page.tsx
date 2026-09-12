@@ -31,12 +31,12 @@ export default function FunilVendasPage() {
   const [form, setForm] = useState({ customerId: "", title: "", value: "", stage: "lead" });
 
   useEffect(() => {
-    fetch("/api/opportunities")
+    fetch("/api/opportunities?all=true")
       .then((r) => r.json())
       .then((d) => setOpportunities(d.opportunities || []))
       .catch(() => {})
       .finally(() => setLoading(false));
-    fetch("/api/customers")
+    fetch("/api/customers?all=true")
       .then((r) => r.json())
       .then((d) => setCustomers((d.customers || []).map((c: { id: string; name: string }) => ({ id: c.id, name: c.name }))))
       .catch(() => {});

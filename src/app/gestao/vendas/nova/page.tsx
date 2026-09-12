@@ -41,8 +41,8 @@ export default function NovaVendaPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/customers").then((r) => r.json()),
-      fetch("/api/products").then((r) => r.json()),
+      fetch("/api/customers?all=true").then((r) => r.json()),
+      fetch("/api/products?all=true").then((r) => r.json()),
     ])
       .then(([cData, pData]) => {
         setCustomers(cData.customers || []);

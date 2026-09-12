@@ -7,6 +7,7 @@ import { buildDocumentHtml } from "@/lib/exportDocument";
 import { useConfirm } from "@/components/ConfirmModal";
 import Link from "next/link";
 import Pagination from "@/components/Pagination";
+import { useList } from "@/hooks/useList";
 
 interface Invoice {
   id: string;
@@ -20,31 +21,16 @@ interface Invoice {
 
 export default function FaturacaoPage() {
   const { confirm } = useConfirm();
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [company, setCompany] = useState<{ name: string; nif?: string | null; email?: string | null; phone?: string | null; address?: string | null; logo?: string | null } | null>(null);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const { data: invoices, setData: setInvoices, loading, page, setPage, totalPages } = useList<Invoice>("/api/invoices", "invoices", { limit: 20, params: { search } });
 
   useEffect(() => {
-    setLoading(true);
-    Promise.all([
-      fetch(`/api/invoices?page=${page}&limit=20`).then((r) => r.json()),
-      fetch("/api/company").then((r) => r.json()).catch(() => ({ company: null })),
-    ])
-      .then(([d, c]) => {
-        setInvoices(d.invoices);
-        setTotalPages(typeof d.totalPages === "number" ? d.totalPages : 1);
-        setCompany(c.company);
-      })
-      .catch((err) => console.error("Erro ao carregar faturação:", err))
-      .finally(() => setLoading(false));
-  }, [page]);
-
-  const filtered = invoices.filter((inv) =>
-    (inv.number + " " + (inv.customer || "")).toLowerCase().includes(search.toLowerCase())
-  );
+    fetch("/api/company")
+      .then((r) => r.json())
+      .then((c) => setCompany(c.company))
+      .catch(() => setCompany(null));
+  }, []);
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
@@ -152,7 +138,7 @@ export default function FaturacaoPage() {
 
         {loading ? (
           <div className="p-12 text-center text-ib-muted">A carregar...</div>
-        ) : filtered.length === 0 ? (
+        ) : invoices.length === 0 ? (
           <div className="p-12 text-center">
             <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <p className="text-ib-muted">Nenhuma fatura encontrada.</p>
@@ -172,7 +158,7 @@ export default function FaturacaoPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((inv) => (
+                {invoices.map((inv) => (
                   <tr key={inv.id} className="border-b border-gray-50 hover:bg-gray-50/50">
                     <td className="p-4 font-medium text-ib-primary">{inv.number}</td>
                     <td className="p-4 text-ib-muted">{inv.customer || "—"}</td>

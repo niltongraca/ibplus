@@ -31,15 +31,10 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function PromocoesPage() {
-  const { data: allCampaigns, setData: setCampaigns, loading, page, setPage, totalPages } = useList<Campaign>("/api/campaigns", "campaigns", { limit: 20 });
-  const campaigns = allCampaigns.filter((c) => c.type === "other");
   const [search, setSearch] = useState("");
+  const { data: campaigns, setData: setCampaigns, loading, page, setPage, totalPages } = useList<Campaign>("/api/campaigns", "campaigns", { limit: 20, params: { search, type: "other" } });
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", type: "other", status: "draft", startDate: "", endDate: "", budget: "", notes: "" });
-
-  const filtered = campaigns.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -126,7 +121,7 @@ export default function PromocoesPage() {
             { key: "budget", header: "Valor", hide: "mobile", className: "text-right", render: (c: Campaign) => <span className="font-semibold">{c.budget ? formatCurrency(c.budget) : "—"}</span> },
             { key: "actions", header: "", hide: "mobile", className: "text-right w-10", render: () => <MoreHorizontal className="w-4 h-4 text-ib-muted" /> },
           ]}
-          data={filtered}
+          data={campaigns}
           loading={loading}
           emptyIcon={<Percent className="w-12 h-12 text-gray-300 mx-auto mb-3" />}
           emptyText="Nenhuma promoção encontrada."

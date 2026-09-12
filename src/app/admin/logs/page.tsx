@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Activity, Search, Info, AlertTriangle, Shield, UserCheck, Settings, Package, DollarSign, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Pagination from "@/components/Pagination";
+import { useList } from "@/hooks/useList";
 
 interface AuditLog {
   id: string;
@@ -31,27 +32,8 @@ const entityIcons: Record<string, LucideIcon> = {
 };
 
 export default function AdminLogs() {
-  const [logs, setLogs] = useState<AuditLog[]>([]);
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-
-  useEffect(() => {
-    setLoading(true);
-    fetch(`/api/admin/logs?page=${page}&limit=20`)
-      .then((r) => r.json())
-      .then((d) => {
-        setLogs(d.logs || []);
-        setTotalPages(typeof d.totalPages === "number" ? d.totalPages : 1);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [page]);
-
-  const filtered = logs.filter((l) =>
-    (l.details || l.action || l.entity).toLowerCase().includes(search.toLowerCase())
-  );
+  const { data: logs, loading, page, setPage, totalPages } = useList<AuditLog>("/api/admin/logs", "logs", { limit: 20, params: { search } });
 
   return (
     <AdminLayout>
@@ -72,11 +54,11 @@ export default function AdminLogs() {
         </div>
         {loading ? (
           <div className="p-12 text-center text-ib-muted">A carregar...</div>
-        ) : filtered.length === 0 ? (
+        ) : logs.length === 0 ? (
           <div className="p-12 text-center text-ib-muted">Nenhum registo encontrado.</div>
         ) : (
           <div className="divide-y divide-gray-100">
-            {filtered.map((log) => {
+            {logs.map((log) => {
               const Icon = entityIcons[log.entity] || Activity;
               const isWarning = log.action === "delete";
               return (

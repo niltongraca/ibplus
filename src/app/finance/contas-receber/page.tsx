@@ -29,17 +29,15 @@ const tabs: { key: FilterTab; label: string }[] = [
 export default function ContasReceberPage() {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
-  const { data: invoices, setData: setInvoices, loading, page, setPage, totalPages } = useList<Invoice>("/api/invoices", "invoices", { limit: 20 });
+  const { data: invoices, setData: setInvoices, loading, page, setPage, totalPages } = useList<Invoice>("/api/invoices", "invoices", { limit: 20, params: { search, status: activeTab === "paid" ? "paid" : undefined } });
 
-  const searched = invoices.filter((inv) =>
-    (inv.number + " " + (inv.customer || "")).toLowerCase().includes(search.toLowerCase())
-  );
-
-  const filtered = searched.filter((inv) => {
-    if (activeTab === "all") return inv.status !== "cancelled";
-    if (activeTab === "unpaid") return inv.status === "pending" || inv.status === "partially_paid" || inv.status === "draft" || inv.status === "sent" || inv.status === "overdue";
-    return inv.status === "paid";
-  });
+  const filtered =
+    activeTab === "paid"
+      ? invoices
+      : invoices.filter((inv) => {
+          if (activeTab === "all") return inv.status !== "cancelled";
+          return inv.status === "pending" || inv.status === "partially_paid" || inv.status === "draft" || inv.status === "sent" || inv.status === "overdue";
+        });
 
   async function markAsPaid(inv: Invoice) {
     const res = await fetch(`/api/invoices/${inv.id}`, {
@@ -149,8 +147,8 @@ export default function ContasReceberPage() {
     </div>
   );
 
-  const unpaidTotal = filtered.filter(i => i.status !== "paid" && i.status !== "cancelled").reduce((sum, i) => sum + Math.max(0, i.total - (i.paidAmount || 0)), 0);
-  const paidTotal = filtered.filter(i => i.status === "paid").reduce((sum, i) => sum + i.total, 0);
+  const unpaidTotal = invoices.filter(i => i.status !== "paid" && i.status !== "cancelled").reduce((sum, i) => sum + Math.max(0, i.total - (i.paidAmount || 0)), 0);
+  const paidTotal = invoices.filter(i => i.status === "paid").reduce((sum, i) => sum + i.total, 0);
 
   return (
     <div>

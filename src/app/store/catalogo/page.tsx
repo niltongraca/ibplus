@@ -22,10 +22,10 @@ interface Product {
 }
 
 export default function CatalogoPage() {
-  const { data: products, loading, page, setPage, totalPages } = useList<Product>("/api/products", "products", { limit: 20 });
-  const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
+  const { data: products, loading, page, setPage, totalPages } = useList<Product>("/api/products", "products", { limit: 20, params: { search, categoryId: categoryFilter === "" ? undefined : categoryFilter } });
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     fetch("/api/categories")
@@ -33,12 +33,6 @@ export default function CatalogoPage() {
       .then((cData) => setCategories(cData.categories))
       .catch((err) => console.error("Erro ao carregar categorias:", err));
   }, []);
-
-  const filtered = products.filter((p) => {
-    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = !categoryFilter || p.category?.id === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
 
   return (
     <div>
@@ -74,14 +68,14 @@ export default function CatalogoPage() {
 
       {loading ? (
         <div className="p-12 text-center text-ib-muted text-sm">A carregar...</div>
-      ) : filtered.length === 0 ? (
+      ) : products.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <p className="text-ib-muted text-sm">Nenhum produto encontrado.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((product) => (
+          {products.map((product) => (
             <div key={product.id} className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow">
               <div className="w-full h-40 bg-gray-50 rounded-lg flex items-center justify-center mb-4">
                 <BookOpen className="w-12 h-12 text-gray-300" />

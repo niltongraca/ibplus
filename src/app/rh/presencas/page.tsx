@@ -36,24 +36,20 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function PresencasPage() {
-  const { data: attendances, setData: setAttendances, loading, page, setPage, totalPages } = useList<Attendance>("/api/attendance", "attendances", { limit: 20 });
-  const [employees, setEmployees] = useState<Employee[]>([]);
   const [search, setSearch] = useState("");
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const { data: attendances, setData: setAttendances, loading, page, setPage, totalPages } = useList<Attendance>("/api/attendance", "attendances", { limit: 20, params: { search } });
   const [showForm, setShowForm] = useState(false);
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ employeeId: "", date: "", checkIn: "", checkOut: "", status: "present", notes: "" });
 
   useEffect(() => {
-    fetch("/api/employees")
+    fetch("/api/employees?all=true")
       .then((r) => r.json())
       .then((eData) => setEmployees(eData.employees || []))
       .catch((err) => console.error("Erro ao carregar presenças:", err));
   }, []);
-
-  const filtered = attendances.filter((a) =>
-    a.employee.name.toLowerCase().includes(search.toLowerCase())
-  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -170,7 +166,7 @@ export default function PresencasPage() {
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusStyles[a.status]}`}>{statusLabels[a.status]}</span>
             )},
           ]}
-          data={filtered}
+          data={attendances}
           loading={loading}
           emptyIcon={<AlertTriangle className="w-12 h-12 text-gray-300 mx-auto mb-3" />}
           emptyText="Nenhum registo de presença encontrado."

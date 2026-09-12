@@ -16,12 +16,8 @@ interface Sale {
 }
 
 export default function EncomendasPage() {
-  const { data: sales, loading, page, setPage, totalPages } = useList<Sale>("/api/sales", "sales", { limit: 20 });
   const [search, setSearch] = useState("");
-
-  const filtered = sales.filter((s) =>
-    (s.customer?.name || "").toLowerCase().includes(search.toLowerCase())
-  );
+  const { data: sales, loading, page, setPage, totalPages } = useList<Sale>("/api/sales", "sales", { limit: 20, params: { search } });
 
   const statusBadge = (status: string) => {
     const styles: Record<string, string> = { pending: "bg-yellow-100 text-yellow-700", completed: "bg-green-100 text-green-700", cancelled: "bg-red-100 text-red-700" };
@@ -56,7 +52,7 @@ export default function EncomendasPage() {
               <span className="text-ib-accent text-xs font-medium cursor-pointer hover:underline">Detalhes</span>
             )},
           ]}
-          data={filtered}
+          data={sales}
           loading={loading}
           emptyIcon={<Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />}
           emptyText="Nenhuma encomenda encontrada."

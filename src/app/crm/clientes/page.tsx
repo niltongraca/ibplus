@@ -19,12 +19,8 @@ interface Customer {
 }
 
 export default function CrmClientesPage() {
-  const { data: customers, loading, page, setPage, totalPages } = useList<Customer>("/api/customers", "customers", { limit: 20 });
   const [search, setSearch] = useState("");
-
-  const filtered = customers.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const { data: customers, loading, page, setPage, totalPages } = useList<Customer>("/api/customers", "customers", { limit: 20, params: { search } });
 
   if (loading) return <div className="p-12 text-center text-ib-muted">A carregar...</div>;
 
@@ -48,14 +44,14 @@ export default function CrmClientesPage() {
         </div>
       </div>
 
-      {filtered.length === 0 ? (
+      {customers.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <p className="text-ib-muted">Nenhum cliente encontrado.</p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((c) => (
+          {customers.map((c) => (
             <div key={c.id} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-sm transition-shadow">
               <div className="flex items-start justify-between mb-3">
                 <div>

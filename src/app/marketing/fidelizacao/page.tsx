@@ -27,7 +27,7 @@ export default function FidelizacaoPage() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetch("/api/sales")
+    fetch("/api/sales?all=true")
       .then((r) => r.json())
       .then((sData) => setSales(sData.sales || []))
       .catch((err) => console.error("Erro ao carregar fidelização:", err));

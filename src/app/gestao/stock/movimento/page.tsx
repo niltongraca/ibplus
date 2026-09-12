@@ -20,7 +20,7 @@ export default function MovimentoStockPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("/api/products")
+    fetch("/api/products?all=true")
       .then((r) => r.json())
       .then((d) => setProducts(d.products || []));
   }, []);

@@ -17,12 +17,8 @@ interface Invoice {
 }
 
 export default function PagamentosStorePage() {
-  const { data: invoices, loading, page, setPage, totalPages } = useList<Invoice>("/api/invoices", "invoices", { limit: 20 });
   const [search, setSearch] = useState("");
-
-  const filtered = invoices.filter((inv) =>
-    (inv.number + " " + (inv.customer || "")).toLowerCase().includes(search.toLowerCase())
-  );
+  const { data: invoices, loading, page, setPage, totalPages } = useList<Invoice>("/api/invoices", "invoices", { limit: 20, params: { search } });
 
   const statusBadge = (status: string) => {
     const styles: Record<string, string> = { draft: "bg-gray-100 text-gray-600", sent: "bg-blue-100 text-blue-700", paid: "bg-green-100 text-green-700", overdue: "bg-red-100 text-red-700", cancelled: "bg-gray-100 text-gray-400" };
@@ -58,7 +54,7 @@ export default function PagamentosStorePage() {
               <span className="text-ib-accent text-xs font-medium cursor-pointer hover:underline">Detalhes</span>
             )},
           ]}
-          data={filtered}
+          data={invoices}
           loading={loading}
           emptyIcon={<CreditCard className="w-12 h-12 text-gray-300 mx-auto mb-3" />}
           emptyText="Nenhuma factura encontrada."

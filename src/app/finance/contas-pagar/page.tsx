@@ -26,19 +26,9 @@ const tabs: { key: FilterTab; label: string }[] = [
 ];
 
 export default function ContasPagarPage() {
-  const { data: expenses, setData: setExpenses, loading, page, setPage, totalPages } = useList<Expense>("/api/expenses", "expenses", { limit: 20 });
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
-
-  const searched = expenses.filter((exp) =>
-    exp.description.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const filtered = searched.filter((exp) => {
-    if (activeTab === "all") return true;
-    if (activeTab === "unpaid") return !exp.paid;
-    return exp.paid;
-  });
+  const { data: expenses, loading, page, setPage, totalPages } = useList<Expense>("/api/expenses", "expenses", { limit: 20, params: { search, paid: activeTab === "all" ? undefined : activeTab === "unpaid" ? "false" : "true" } });
 
   const getPaidBadge = (paid: boolean) => {
     if (paid) {
@@ -99,8 +89,8 @@ export default function ContasPagarPage() {
     </div>
   );
 
-  const unpaidTotal = filtered.filter(e => !e.paid).reduce((sum, e) => sum + e.amount, 0);
-  const paidTotal = filtered.filter(e => e.paid).reduce((sum, e) => sum + e.amount, 0);
+  const unpaidTotal = expenses.filter(e => !e.paid).reduce((sum, e) => sum + e.amount, 0);
+  const paidTotal = expenses.filter(e => e.paid).reduce((sum, e) => sum + e.amount, 0);
 
   return (
     <div>
@@ -150,7 +140,7 @@ export default function ContasPagarPage() {
 
         <DataTable
           columns={columns}
-          data={filtered}
+          data={expenses}
           loading={loading}
           emptyIcon={<FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />}
           emptyText="Nenhuma despesa encontrada."

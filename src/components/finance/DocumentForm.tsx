@@ -105,9 +105,9 @@ export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; 
   useEffect(() => {
     Promise.all([
       apiFetch<{ company?: Company }>("/api/company"),
-      apiFetch<{ customers?: Customer[] }>("/api/customers?limit=1000"),
-      apiFetch<{ products?: Product[] }>("/api/products?limit=1000"),
-      apiFetch<{ services?: Service[] }>("/api/services?limit=1000"),
+      apiFetch<{ customers?: Customer[] }>("/api/customers?all=true"),
+      apiFetch<{ products?: Product[] }>("/api/products?all=true"),
+      apiFetch<{ services?: Service[] }>("/api/services?all=true"),
     ])
       .then(([co, c, p, s]) => {
         setCompany(co.company || null);

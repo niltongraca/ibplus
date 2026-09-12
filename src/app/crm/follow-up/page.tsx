@@ -16,15 +16,11 @@ interface Customer {
 }
 
 export default function FollowUpPage() {
-  const { data: customers, loading, page, setPage, totalPages } = useList<Customer>("/api/customers", "customers", { limit: 20 });
   const [search, setSearch] = useState("");
+  const { data: customers, loading, page, setPage, totalPages } = useList<Customer>("/api/customers", "customers", { limit: 20, params: { search } });
   const [followUps, setFollowUps] = useState<Record<string, { date: string; note: string }[]>>({});
   const [showForm, setShowForm] = useState<string | null>(null);
   const [formNote, setFormNote] = useState("");
-
-  const filtered = customers.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
 
   function addFollowUp(customerId: string) {
     if (!formNote.trim()) return;
@@ -97,7 +93,7 @@ export default function FollowUpPage() {
               </button>
             )},
           ]}
-          data={filtered}
+          data={customers}
           loading={loading}
           emptyIcon={<MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />}
           emptyText="Nenhum cliente encontrado."

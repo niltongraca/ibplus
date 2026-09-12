@@ -25,14 +25,8 @@ export default function DespesasPage() {
   const { data: expenses, setData: setExpenses, loading, page, setPage, totalPages } = useList<Expense>(
     "/api/expenses",
     "expenses",
-    { limit: 20 }
+    { limit: 20, params: { search, paid: filter === "unpaid" ? "false" : filter === "paid" ? "true" : undefined } }
   );
-
-  const filtered = expenses.filter((e) => {
-    const matchSearch = e.description.toLowerCase().includes(search.toLowerCase());
-    const matchFilter = filter === "all" ? true : filter === "paid" ? e.paid : !e.paid;
-    return matchSearch && matchFilter;
-  });
 
   const { toast } = useToast();
   const { confirm } = useConfirm();
@@ -113,7 +107,7 @@ export default function DespesasPage() {
               </div>
             )},
           ]}
-          data={filtered}
+          data={expenses}
           loading={loading}
           emptyIcon={<TrendingDown className="w-12 h-12 text-gray-300 mx-auto mb-3" />}
           emptyText="Nenhuma despesa encontrada."

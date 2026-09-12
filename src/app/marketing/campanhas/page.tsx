@@ -35,16 +35,12 @@ const typeLabels: Record<string, string> = {
 };
 
 export default function CampanhasPage() {
-  const { data: campaigns, setData: setCampaigns, loading, page, setPage, totalPages } = useList<Campaign>("/api/campaigns", "campaigns", { limit: 20 });
   const [search, setSearch] = useState("");
+  const { data: campaigns, setData: setCampaigns, loading, page, setPage, totalPages } = useList<Campaign>("/api/campaigns", "campaigns", { limit: 20, params: { search } });
   const [showForm, setShowForm] = useState(false);
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: "", type: "email", status: "draft", startDate: "", endDate: "", budget: "", notes: "" });
-
-  const filtered = campaigns.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -159,7 +155,7 @@ export default function CampanhasPage() {
             { key: "budget", header: "Orçamento", hide: "mobile", className: "text-right", render: (c: Campaign) => <span className="font-semibold">{c.budget ? formatCurrency(c.budget) : "—"}</span> },
             { key: "actions", header: "", hide: "mobile", className: "text-right w-10", render: () => <MoreHorizontal className="w-4 h-4 text-ib-muted" /> },
           ]}
-          data={filtered}
+          data={campaigns}
           loading={loading}
           emptyIcon={<Megaphone className="w-12 h-12 text-gray-300 mx-auto mb-3" />}
           emptyText="Nenhuma campanha encontrada."

@@ -27,11 +27,7 @@ export default function FuncionariosPage() {
   const { data: employees, setData: setEmployees, loading, page, setPage, totalPages } = useList<Employee>(
     "/api/employees",
     "employees",
-    { limit: 20 }
-  );
-
-  const filtered = employees.filter((e) =>
-    e.name.toLowerCase().includes(search.toLowerCase())
+    { limit: 20, params: { search } }
   );
 
   const { toast } = useToast();
@@ -129,7 +125,7 @@ export default function FuncionariosPage() {
               </button>
             )},
           ]}
-          data={filtered}
+          data={employees}
           loading={loading}
           emptyIcon={<Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />}
           emptyText="Nenhum funcionário encontrado."

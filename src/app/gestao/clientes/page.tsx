@@ -24,12 +24,12 @@ interface Customer {
 export default function ClientesPage() {
   const { toast } = useToast();
   const { confirm } = useConfirm();
+  const [search, setSearch] = useState("");
   const { data: customers, setData: setCustomers, loading, page, setPage, totalPages } = useList<Customer>(
     "/api/customers",
     "customers",
-    { limit: 20 }
+    { limit: 20, params: { search } }
   );
-  const [search, setSearch] = useState("");
 
   async function handleDelete(id: string) {
     if (!(await confirm({ title: "Eliminar cliente", message: "Tem a certeza que deseja eliminar este cliente?", variant: "danger" }))) return;
@@ -42,10 +42,6 @@ export default function ClientesPage() {
       toast(data?.error || "Erro ao eliminar cliente.", "error");
     }
   }
-
-  const filtered = customers.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
 
   return (
     <div>
@@ -76,7 +72,7 @@ export default function ClientesPage() {
 
         {loading ? (
           <CardSkeleton count={6} />
-        ) : filtered.length === 0 ? (
+        ) : customers.length === 0 ? (
           <EmptyState
             icon={<Users className="w-8 h-8 text-gray-400" />}
             title="Nenhum cliente encontrado"
@@ -108,7 +104,7 @@ export default function ClientesPage() {
                   </div>
                 )},
               ]}
-              data={filtered}
+              data={customers}
               loading={false}
               keyExtractor={(c) => c.id}
               mobileCard={(c) => (

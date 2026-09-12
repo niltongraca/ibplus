@@ -21,8 +21,8 @@ interface Student {
 export default function AlunosPage() {
   const { toast } = useToast();
   const { confirm } = useConfirm();
-  const { data: students, setData: setStudents, loading, page, setPage, totalPages } = useList<Student>("/api/students", "students", { limit: 20 });
   const [search, setSearch] = useState("");
+  const { data: students, setData: setStudents, loading, page, setPage, totalPages } = useList<Student>("/api/students", "students", { limit: 20, params: { search } });
 
   async function handleDelete(id: string) {
     if (!(await confirm({ title: "Eliminar aluno", message: "Tem a certeza que deseja eliminar este aluno?", variant: "danger" }))) return;
@@ -34,10 +34,6 @@ export default function AlunosPage() {
       toast("Erro ao eliminar aluno.", "error");
     }
   }
-
-  const filtered = students.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase())
-  );
 
   return (
     <div>
@@ -90,7 +86,7 @@ export default function AlunosPage() {
               </div>
             )},
           ]}
-          data={filtered}
+          data={students}
           loading={loading}
           emptyIcon={<GraduationCap className="w-12 h-12 text-gray-300 mx-auto mb-3" />}
           emptyText="Nenhum aluno encontrado."

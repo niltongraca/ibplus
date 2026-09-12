@@ -34,8 +34,8 @@ export default function FluxoCaixaPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/sales").then((r) => r.json()),
-      fetch("/api/expenses").then((r) => r.json()),
+      fetch("/api/sales?all=true").then((r) => r.json()),
+      fetch("/api/expenses?all=true").then((r) => r.json()),
     ]).then(([salesData, expensesData]) => {
       const sales = (salesData.sales || []) as Sale[];
       const exps = (expensesData.expenses || []) as Expense[];

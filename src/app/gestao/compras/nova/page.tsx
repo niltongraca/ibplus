@@ -32,7 +32,7 @@ export default function NovaCompraPage() {
   const [items, setItems] = useState<LineItem[]>([]);
 
   useEffect(() => {
-    fetch("/api/products")
+    fetch("/api/products?all=true")
       .then((r) => r.json())
       .then((d) => setProducts(d.products || []))
       .catch((err) => console.error("Erro ao carregar dados para compra:", err));

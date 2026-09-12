@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Users, Search, Mail, Calendar, Shield } from "lucide-react";
 import Pagination from "@/components/Pagination";
+import { useList } from "@/hooks/useList";
 
 interface User {
   id: string;
@@ -40,27 +41,8 @@ const planStyles: Record<string, string> = {
 };
 
 export default function AdminUsuarios() {
-  const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(true);
-    fetch(`/api/admin/usuarios?page=${page}&limit=20`)
-      .then((r) => r.json())
-      .then((d) => {
-        setUsers(d.users);
-        setTotalPages(typeof d.totalPages === "number" ? d.totalPages : 1);
-      })
-      .finally(() => setLoading(false));
-  }, [page]);
-
-  const filtered = users.filter((u) =>
-    u.name.toLowerCase().includes(search.toLowerCase()) ||
-    u.email.toLowerCase().includes(search.toLowerCase())
-  );
+  const { data: users, total, page, setPage, totalPages } = useList<User>("/api/admin/usuarios", "users", { limit: 20, params: { search } });
 
   return (
     <AdminLayout>
@@ -78,7 +60,7 @@ export default function AdminUsuarios() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input type="text" placeholder="Pesquisar utilizadores..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
           </div>
-          <span className="text-xs text-ib-muted">{filtered.length} utilizador{filtered.length !== 1 ? "es" : ""}</span>
+          <span className="text-xs text-ib-muted">{total} utilizador{total !== 1 ? "es" : ""}</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -91,7 +73,7 @@ export default function AdminUsuarios() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((u) => (
+              {users.map((u) => (
                 <tr key={u.id} className="border-b border-gray-50 text-ib-primary hover:bg-gray-50 transition-colors">
                   <td className="p-4">
                     <div className="flex items-center gap-3">
@@ -127,7 +109,7 @@ export default function AdminUsuarios() {
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
+              {users.length === 0 && (
                 <tr><td colSpan={4} className="p-12 text-center text-ib-muted">Nenhum utilizador encontrado.</td></tr>
               )}
             </tbody>

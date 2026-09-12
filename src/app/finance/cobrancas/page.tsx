@@ -26,15 +26,11 @@ const tabs: { key: FilterTab; label: string }[] = [
 ];
 
 export default function CobrancasPage() {
-  const { data: invoices, setData: setInvoices, loading, page, setPage, totalPages } = useList<Invoice>("/api/invoices", "invoices", { limit: 20 });
   const [search, setSearch] = useState("");
+  const { data: invoices, setData: setInvoices, loading, page, setPage, totalPages } = useList<Invoice>("/api/invoices", "invoices", { limit: 20, params: { search } });
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
 
-  const searched = invoices.filter((inv) =>
-    (inv.number + " " + (inv.customer || "")).toLowerCase().includes(search.toLowerCase())
-  );
-
-  const filtered = searched.filter((inv) => {
+  const filtered = invoices.filter((inv) => {
     const openStatuses = ["pending", "partially_paid", "sent", "overdue"];
     if (!openStatuses.includes(inv.status)) return false;
     if (activeTab === "all") return true;

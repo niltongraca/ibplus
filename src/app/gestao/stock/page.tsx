@@ -28,28 +28,22 @@ interface Movement {
 }
 
 export default function StockPage() {
+  const [search, setSearch] = useState("");
+  const [showLow, setShowLow] = useState(false);
   const { data: products, loading, page, setPage, totalPages, total: totalCount } = useList<Product>(
     "/api/products",
     "products",
-    { limit: 20 }
+    { limit: 20, params: { search, lowStock: showLow ? "true" : undefined } }
   );
-  const [search, setSearch] = useState("");
-  const [showLow, setShowLow] = useState(false);
+  const { data: movements } = useList<Movement>("/api/stock/movements", "movements", { limit: 20 });
   const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [movements, setMovements] = useState<Movement[]>([]);
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/products?page=1&limit=10000").then((r) => r.json()),
-      fetch("/api/stock/movements?limit=8").then((r) => r.json()),
-    ]).then(([all, movData]) => {
-      setAllProducts(all.products || []);
-      setMovements(movData.movements || []);
-    }).catch((err) => console.error("Erro ao carregar stock:", err));
+    fetch("/api/products?all=true")
+      .then((r) => r.json())
+      .then((d) => setAllProducts(d.products || []))
+      .catch((err) => console.error("Erro ao carregar stock:", err));
   }, []);
-
-  let filtered = products.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
-  if (showLow) filtered = filtered.filter((p) => p.stock <= p.minStock);
 
   const totalStock = allProducts.reduce((s, p) => s + p.stock, 0);
   const criticalCount = allProducts.filter((p) => p.stock <= p.minStock).length;
@@ -111,7 +105,7 @@ export default function StockPage() {
               );
             }},
           ]}
-          data={filtered}
+          data={products}
           loading={loading}
           emptyIcon={<Warehouse className="w-12 h-12 text-gray-300 mx-auto mb-3" />}
           emptyText="Nenhum produto encontrado."

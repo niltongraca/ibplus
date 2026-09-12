@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Building2, Search, Mail, FileText } from "lucide-react";
 import Pagination from "@/components/Pagination";
+import { useList } from "@/hooks/useList";
 
 interface EmpresaUser {
   id: string;
@@ -17,27 +18,8 @@ interface EmpresaUser {
 }
 
 export default function AdminEmpresas() {
-  const [empresas, setEmpresas] = useState<EmpresaUser[]>([]);
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(true);
-    fetch(`/api/admin/empresas?page=${page}&limit=20`)
-      .then((r) => r.json())
-      .then((d) => {
-        setEmpresas(d.empresas);
-        setTotalPages(typeof d.totalPages === "number" ? d.totalPages : 1);
-      })
-      .finally(() => setLoading(false));
-  }, [page]);
-
-  const filtered = empresas.filter((e) =>
-    e.name.toLowerCase().includes(search.toLowerCase()) ||
-    (e.email && e.email.toLowerCase().includes(search.toLowerCase()))
-  );
+  const { data: empresas, total, page, setPage, totalPages } = useList<EmpresaUser>("/api/admin/empresas", "empresas", { limit: 20, params: { search } });
 
   return (
     <AdminLayout>
@@ -55,7 +37,7 @@ export default function AdminEmpresas() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input type="text" placeholder="Pesquisar empresas..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
           </div>
-          <span className="text-xs text-ib-muted">{filtered.length} empresa{filtered.length !== 1 ? "s" : ""}</span>
+          <span className="text-xs text-ib-muted">{total} empresa{total !== 1 ? "s" : ""}</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -68,7 +50,7 @@ export default function AdminEmpresas() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((e) => {
+              {empresas.map((e) => {
                 const companyName = e.company?.name || e.companyProfile?.nomeEmpresa || e.name;
                 const nif = e.companyProfile?.nif || e.company?.nif;
                 return (
@@ -99,7 +81,7 @@ export default function AdminEmpresas() {
                 </tr>
                 );
               })}
-              {filtered.length === 0 && (
+              {empresas.length === 0 && (
                 <tr><td colSpan={4} className="p-12 text-center text-ib-muted">Nenhuma empresa encontrada.</td></tr>
               )}
             </tbody>

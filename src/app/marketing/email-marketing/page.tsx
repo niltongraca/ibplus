@@ -30,15 +30,10 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function EmailMarketingPage() {
-  const { data: allCampaigns, setData: setCampaigns, loading, page, setPage, totalPages } = useList<Campaign>("/api/campaigns", "campaigns", { limit: 20 });
-  const campaigns = allCampaigns.filter((c) => c.type === "email");
   const [search, setSearch] = useState("");
+  const { data: campaigns, setData: setCampaigns, loading, page, setPage, totalPages } = useList<Campaign>("/api/campaigns", "campaigns", { limit: 20, params: { search, type: "email" } });
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", status: "draft", startDate: "", notes: "" });
-
-  const filtered = campaigns.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -116,7 +111,7 @@ export default function EmailMarketingPage() {
             { key: "startDate", header: "Envio", hide: "tablet", render: (c: Campaign) => <span className="text-ib-muted">{c.startDate ? formatDate(c.startDate) : "—"}</span> },
             { key: "actions", header: "", hide: "mobile", className: "text-right w-10", render: () => <MoreHorizontal className="w-4 h-4 text-ib-muted" /> },
           ]}
-          data={filtered}
+          data={campaigns}
           loading={loading}
           emptyIcon={<Send className="w-12 h-12 text-gray-300 mx-auto mb-3" />}
           emptyText="Nenhuma campanha de e-mail."

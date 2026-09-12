@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useConfirm } from "@/components/ConfirmModal";
-import { Plus, Pencil, Trash2, ExternalLink, Youtube, Book, FileText } from "lucide-react";
+import { Plus, Pencil, Trash2, ExternalLink, Youtube, Book, FileText, Search } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import Pagination from "@/components/Pagination";
+import { useList } from "@/hooks/useList";
 
 interface ContentItem {
   id: string;
@@ -41,31 +42,18 @@ const typeIcons: Record<string, LucideIcon> = {
 export default function AdminConteudosPage() {
   const router = useRouter();
   const { confirm } = useConfirm();
-  const [content, setContent] = useState<ContentItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-
-  useEffect(() => { load(); }, [page]);
-
-  async function load() {
-    try {
-      setLoading(true);
-      const res = await fetch(`/api/admin/content?page=${page}&limit=20`);
-      const data = await res.json();
-      setContent(data.content || []);
-      setTotalPages(typeof data.totalPages === "number" ? data.totalPages : 1);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const { data: content, loading, page, setPage, totalPages, refresh } = useList<ContentItem>(
+    "/api/admin/content",
+    "content",
+    { limit: 20, params: { search, type: typeFilter === "all" ? undefined : typeFilter } }
+  );
 
   async function handleDelete(id: string) {
     if (!(await confirm({ title: "Eliminar conteúdo", message: "Tem a certeza que deseja eliminar este conteúdo?", variant: "danger" }))) return;
     await fetch(`/api/admin/content/${id}`, { method: "DELETE" });
-    setContent((prev) => prev.filter((c) => c.id !== id));
+    refresh();
   }
 
   async function toggleFeatured(item: ContentItem) {
@@ -74,7 +62,7 @@ export default function AdminConteudosPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ featured: !item.featured }),
     });
-    load();
+    refresh();
   }
 
   async function togglePublished(item: ContentItem) {
@@ -83,7 +71,7 @@ export default function AdminConteudosPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ published: !item.published }),
     });
-    load();
+    refresh();
   }
 
   if (loading) return <AdminLayout><div className="p-12 text-center text-ib-muted">A carregar...</div></AdminLayout>;
@@ -102,6 +90,19 @@ export default function AdminConteudosPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input type="text" placeholder="Pesquisar conteúdos..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+          </div>
+          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40">
+            <option value="all">Todos os tipos</option>
+            <option value="VIDEO">Vídeos</option>
+            <option value="POST">Posts</option>
+            <option value="BOOK">Ebooks</option>
+            <option value="ARTICLE">Artigos</option>
+          </select>
+        </div>
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200 text-ib-muted text-xs uppercase tracking-wider">

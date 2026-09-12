@@ -34,24 +34,20 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function FeriasPage() {
-  const { data: vacations, setData: setVacations, loading, page, setPage, totalPages } = useList<Vacation>("/api/vacations", "vacations", { limit: 20 });
-  const [employees, setEmployees] = useState<Employee[]>([]);
   const [search, setSearch] = useState("");
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const { data: vacations, setData: setVacations, loading, page, setPage, totalPages } = useList<Vacation>("/api/vacations", "vacations", { limit: 20, params: { search } });
   const [showForm, setShowForm] = useState(false);
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ employeeId: "", startDate: "", endDate: "", notes: "" });
 
   useEffect(() => {
-    fetch("/api/employees")
+    fetch("/api/employees?all=true")
       .then((r) => r.json())
       .then((eData) => setEmployees(eData.employees || []))
       .catch((err) => console.error("Erro ao carregar férias:", err));
   }, []);
-
-  const filtered = vacations.filter((v) =>
-    v.employee.name.toLowerCase().includes(search.toLowerCase())
-  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -156,7 +152,7 @@ export default function FeriasPage() {
             )},
             { key: "actions", header: "", hide: "mobile", className: "text-right", render: () => <MoreHorizontal className="w-4 h-4 text-ib-muted ml-auto" /> },
           ]}
-          data={filtered}
+          data={vacations}
           loading={loading}
           emptyIcon={<Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />}
           emptyText="Nenhum período de férias encontrado."

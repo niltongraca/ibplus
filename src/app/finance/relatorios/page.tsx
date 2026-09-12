@@ -49,14 +49,14 @@ export default function RelatoriosPage() {
   const [generating, setGenerating] = useState(false);
 
   function loadReports() {
-    fetch("/api/reports")
+    fetch("/api/reports?page=1&limit=100")
       .then((r) => r.json())
       .then((d) => setReports(d.reports || []))
       .catch((err) => console.error("Erro ao carregar relatórios gerados:", err));
   }
 
   useEffect(() => {
-    Promise.all([fetch("/api/dashboard").then((r) => r.json()), fetch("/api/reports").then((r) => r.json())])
+    Promise.all([fetch("/api/dashboard").then((r) => r.json()), fetch("/api/reports?page=1&limit=100").then((r) => r.json())])
       .then(([d, rep]) => {
         setData(d);
         setReports(rep.reports || []);

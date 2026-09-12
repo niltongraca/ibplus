@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Wrench, Search } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import Pagination from "@/components/Pagination";
+import { useList } from "@/hooks/useList";
 
 interface Service {
   id: string;
@@ -16,26 +17,8 @@ interface Service {
 }
 
 export default function AdminServicos() {
-  const [services, setServices] = useState<Service[]>([]);
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(true);
-    fetch(`/api/services?page=${page}&limit=20`)
-      .then((r) => r.json())
-      .then((d) => {
-        setServices(d.services);
-        setTotalPages(typeof d.totalPages === "number" ? d.totalPages : 1);
-      })
-      .finally(() => setLoading(false));
-  }, [page]);
-
-  const filtered = services.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const { data: services, page, setPage, totalPages } = useList<Service>("/api/services", "services", { limit: 20, params: { search } });
 
   return (
     <AdminLayout>
@@ -57,7 +40,7 @@ export default function AdminServicos() {
           </div>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-          {filtered.map((s) => (
+          {services.map((s) => (
             <div key={s.id} className="border border-gray-200 rounded-xl p-5 hover:shadow-sm transition-shadow">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center">
@@ -75,7 +58,7 @@ export default function AdminServicos() {
               <p className="text-lg font-bold text-ib-accent">{formatCurrency(s.price)}</p>
             </div>
           ))}
-          {filtered.length === 0 && (
+          {services.length === 0 && (
             <div className="col-span-full p-12 text-center text-ib-muted">Nenhum serviço encontrado.</div>
           )}
         </div>

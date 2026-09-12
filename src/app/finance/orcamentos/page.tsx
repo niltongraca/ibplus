@@ -7,6 +7,7 @@ import { buildDocumentHtml } from "@/lib/exportDocument";
 import { useConfirm } from "@/components/ConfirmModal";
 import Link from "next/link";
 import Pagination from "@/components/Pagination";
+import { useList } from "@/hooks/useList";
 
 interface Quote {
   id: string;
@@ -20,31 +21,16 @@ interface Quote {
 
 export default function OrcamentosPage() {
   const { confirm } = useConfirm();
-  const [quotes, setQuotes] = useState<Quote[]>([]);
   const [company, setCompany] = useState<{ name: string; nif?: string | null; email?: string | null; phone?: string | null; address?: string | null; logo?: string | null } | null>(null);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const { data: quotes, setData: setQuotes, loading, page, setPage, totalPages } = useList<Quote>("/api/quotes", "quotes", { limit: 20, params: { search } });
 
   useEffect(() => {
-    setLoading(true);
-    Promise.all([
-      fetch(`/api/quotes?page=${page}&limit=20`).then((r) => r.json()),
-      fetch("/api/company").then((r) => r.json()).catch(() => ({ company: null })),
-    ])
-      .then(([d, c]) => {
-        setQuotes(d.quotes);
-        setTotalPages(typeof d.totalPages === "number" ? d.totalPages : 1);
-        setCompany(c.company);
-      })
-      .catch((err) => console.error("Erro ao carregar orçamentos:", err))
-      .finally(() => setLoading(false));
-  }, [page]);
-
-  const filtered = quotes.filter((q) =>
-    (q.number + " " + (q.customer || "")).toLowerCase().includes(search.toLowerCase())
-  );
+    fetch("/api/company")
+      .then((r) => r.json())
+      .then((c) => setCompany(c.company))
+      .catch(() => setCompany(null));
+  }, []);
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
@@ -149,7 +135,7 @@ export default function OrcamentosPage() {
 
         {loading ? (
           <div className="p-12 text-center text-ib-muted">A carregar...</div>
-        ) : filtered.length === 0 ? (
+        ) : quotes.length === 0 ? (
           <div className="p-12 text-center">
             <ScrollText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <p className="text-ib-muted">Nenhum orçamento encontrado.</p>
@@ -169,7 +155,7 @@ export default function OrcamentosPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((q) => (
+                {quotes.map((q) => (
                   <tr key={q.id} className="border-b border-gray-50 hover:bg-gray-50/50">
                     <td className="p-4 font-medium text-ib-primary">{q.number}</td>
                     <td className="p-4 text-ib-muted">{q.customer || "—"}</td>

@@ -52,7 +52,7 @@ export default function RedePage() {
   const [liked, setLiked] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    fetch("/api/content")
+    fetch("/api/content?limit=100")
       .then((r) => r.json())
       .then((d) => setContent(d.content || []))
       .catch(() => {})

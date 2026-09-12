@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Plus, Search, Pencil, Trash2, Wrench } from "lucide-react";
 import { useToast } from "@/components/Toast";
@@ -8,6 +8,7 @@ import { useConfirm } from "@/components/ConfirmModal";
 import { CardSkeleton } from "@/components/Skeleton";
 import EmptyState from "@/components/EmptyState";
 import Pagination from "@/components/Pagination";
+import { useList } from "@/hooks/useList";
 import { formatCurrency } from "@/lib/utils";
 
 interface Service {
@@ -20,22 +21,10 @@ interface Service {
 }
 
 export default function ServicosPage() {
-  const [services, setServices] = useState<Service[]>([]);
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const { data: services, setData: setServices, loading, page, setPage, totalPages } = useList<Service>("/api/services", "services", { limit: 20, params: { search } });
   const { toast } = useToast();
   const { confirm } = useConfirm();
-
-  useEffect(() => {
-    setLoading(true);
-    fetch(`/api/services?page=${page}&limit=20`)
-      .then((r) => r.json())
-      .then((d) => { setServices(d.services || []); setTotalPages(d.totalPages || 1); })
-      .catch((err) => console.error("Erro ao carregar serviços:", err))
-      .finally(() => setLoading(false));
-  }, [page]);
 
   async function handleDelete(id: string) {
     if (!(await confirm({ title: "Eliminar serviço", message: "Tem a certeza que pretende eliminar este serviço?", variant: "danger" }))) return;
@@ -48,10 +37,6 @@ export default function ServicosPage() {
       toast(data?.error || "Erro ao eliminar serviço.", "error");
     }
   }
-
-  const filtered = services.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase())
-  );
 
   return (
     <>
@@ -78,7 +63,7 @@ export default function ServicosPage() {
 
       {loading ? (
         <CardSkeleton count={6} />
-      ) : filtered.length === 0 ? (
+      ) : services.length === 0 ? (
         <EmptyState
           icon={<Wrench className="w-8 h-8 text-gray-400" />}
           title="Nenhum serviço encontrado"
@@ -89,7 +74,7 @@ export default function ServicosPage() {
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((service) => (
+            {services.map((service) => (
               <div key={service.id} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-all">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
