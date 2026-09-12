@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
-import { parsePagination } from "@/lib/utils";
+import { parsePagination, buildSearch, parseBool } from "@/lib/utils";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
 
@@ -15,16 +15,27 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const { page, limit, skip } = parsePagination(url.searchParams);
+  const all = url.searchParams.get("all") === "true";
+  const search = buildSearch(["name", "description"], url.searchParams.get("search"));
+  const categoryId = url.searchParams.get("categoryId") ?? undefined;
+  const active = parseBool(url.searchParams.get("active"));
+  const lowStock = parseBool(url.searchParams.get("lowStock"));
+  const where = {
+    companyId: user.companyId,
+    ...(search ?? {}),
+    ...(categoryId ? { categoryId } : {}),
+    ...(active !== undefined ? { active } : {}),
+    ...(lowStock !== undefined ? { stock: { lte: prisma.product.fields.minStock } } : {}),
+  };
 
   const [products, total] = await Promise.all([
     prisma.product.findMany({
-      where: { companyId: user.companyId },
+      where,
       include: { category: true },
       orderBy: { name: "asc" },
-      skip,
-      take: limit,
+      ...(all ? {} : { skip, take: limit }),
     }),
-    prisma.product.count({ where: { companyId: user.companyId } }),
+    prisma.product.count({ where }),
   ]);
 
   return NextResponse.json({

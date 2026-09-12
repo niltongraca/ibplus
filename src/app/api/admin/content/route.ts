@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
-import { parsePagination } from "@/lib/utils";
+import { parsePagination, buildSearch } from "@/lib/utils";
+import type { Prisma, ContentType } from "@prisma/client";
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,9 +12,15 @@ export async function GET(request: NextRequest) {
     }
     const { searchParams } = new URL(request.url);
     const { page, limit, skip } = parsePagination(searchParams);
+    const search = buildSearch(["title", "author", "type"], searchParams.get("search"));
+    const type = searchParams.get("type") || undefined;
+    const where: Prisma.ContentWhereInput = {
+      ...(search ?? {}),
+      ...(type ? { type: type as ContentType } : {}),
+    };
     const [content, total] = await Promise.all([
-      prisma.content.findMany({ orderBy: { createdAt: "desc" }, skip, take: limit }),
-      prisma.content.count(),
+      prisma.content.findMany({ where, orderBy: { createdAt: "desc" }, skip, take: limit }),
+      prisma.content.count({ where }),
     ]);
     return NextResponse.json({ content, total, page, totalPages: Math.ceil(total / limit) });
   } catch {

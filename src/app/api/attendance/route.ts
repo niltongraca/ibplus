@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
-import { parseDateOnly, parsePagination } from "@/lib/utils";
+import { parseDateOnly, parsePagination, buildSearch } from "@/lib/utils";
 
 const STATUSES = ["present", "absent", "late", "half_day", "justified"];
 
@@ -13,7 +13,13 @@ export async function GET(request: Request) {
 
     const url = new URL(request.url);
     const { page, limit, skip } = parsePagination(url.searchParams);
-    const where = { employee: { companyId: user.companyId } };
+    const search = buildSearch(["employee.name"], url.searchParams.get("search"));
+    const status = url.searchParams.get("status") ?? undefined;
+    const where = {
+      employee: { companyId: user.companyId },
+      ...(search ?? {}),
+      ...(status ? { status } : {}),
+    };
 
     const [attendances, total] = await Promise.all([
       prisma.attendance.findMany({

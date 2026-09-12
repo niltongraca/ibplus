@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
-import { parsePagination } from "@/lib/utils";
+import { parsePagination, buildSearch } from "@/lib/utils";
+import type { Prisma, PlanType } from "@prisma/client";
 
 export async function GET(request: Request) {
   try {
@@ -10,7 +11,13 @@ export async function GET(request: Request) {
 
     const url = new URL(request.url);
     const { page, limit, skip } = parsePagination(url.searchParams);
-    const where = { accountType: "EMPRESA" as const };
+    const search = buildSearch(["name", "email"], url.searchParams.get("search"));
+    const plan = url.searchParams.get("plan") || undefined;
+    const where: Prisma.UserWhereInput = {
+      accountType: "EMPRESA",
+      ...(search ?? {}),
+      ...(plan ? { plan: plan as PlanType } : {}),
+    };
 
     const [empresas, total] = await Promise.all([
       prisma.user.findMany({

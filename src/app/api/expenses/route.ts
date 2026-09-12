@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
-import { parsePagination, parseDateOnly } from "@/lib/utils";
+import { parsePagination, parseDateOnly, buildSearch, parseBool } from "@/lib/utils";
 import { recordExpensePayment } from "@/lib/finance";
 import { toNumber } from "@/lib/money";
 
@@ -11,15 +11,22 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const { page, limit, skip } = parsePagination(url.searchParams);
+  const all = url.searchParams.get("all") === "true";
+  const search = buildSearch(["description", "category"], url.searchParams.get("search"));
+  const paid = parseBool(url.searchParams.get("paid"));
+  const where = {
+    companyId: user.companyId,
+    ...(search ?? {}),
+    ...(paid !== undefined ? { paid } : {}),
+  };
 
   const [expenses, total] = await Promise.all([
     prisma.expense.findMany({
-      where: { companyId: user.companyId },
+      where,
       orderBy: { date: "desc" },
-      skip,
-      take: limit,
+      ...(all ? {} : { skip, take: limit }),
     }),
-    prisma.expense.count({ where: { companyId: user.companyId } }),
+    prisma.expense.count({ where }),
   ]);
 
   return NextResponse.json({

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
-import { parsePagination } from "@/lib/utils";
+import { parsePagination, buildSearch } from "@/lib/utils";
 import { createNotification } from "@/lib/notifications";
 import { logAction } from "@/lib/audit";
 
@@ -11,16 +11,23 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const { page, limit, skip } = parsePagination(url.searchParams);
+  const all = url.searchParams.get("all") === "true";
+  const search = buildSearch(["name", "email", "phone", "nif"], url.searchParams.get("search"));
+  const type = url.searchParams.get("type") ?? undefined;
+  const where = {
+    companyId: user.companyId,
+    ...(search ?? {}),
+    ...(type ? { type } : {}),
+  };
 
   const [customers, total] = await Promise.all([
     prisma.customer.findMany({
-      where: { companyId: user.companyId },
+      where,
       include: { _count: { select: { sales: true } } },
       orderBy: { name: "asc" },
-      skip,
-      take: limit,
+      ...(all ? {} : { skip, take: limit }),
     }),
-    prisma.customer.count({ where: { companyId: user.companyId } }),
+    prisma.customer.count({ where }),
   ]);
 
   return NextResponse.json({ customers, total, page, totalPages: Math.ceil(total / limit) });

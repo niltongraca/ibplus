@@ -41,6 +41,30 @@ export function parsePagination(searchParams: URLSearchParams, defaultLimit = 20
 }
 
 /**
+ * Constrói um filtro Prisma `OR` de pesquisa (contains, case-insensitive) sobre
+ * os campos indicados. Cada campo pode ser "nome" ou [relação, campo] para
+ * pesquisar em relações (ex.: ["customer", "name"]).
+ */
+export function buildSearch(fields: Array<string | [string, string]>, value?: string | null) {
+  const v = (value ?? "").trim();
+  if (!v) return undefined;
+  return {
+    OR: fields.map((f) => {
+      if (typeof f === "string") return { [f]: { contains: v, mode: "insensitive" as const } };
+      const [rel, field] = f;
+      return { [rel]: { [field]: { contains: v, mode: "insensitive" as const } } };
+    }),
+  };
+}
+
+/** Converte "true"/"1"/"false"/"0" em boolean (ou undefined se ausente). */
+export function parseBool(value?: string | null): boolean | undefined {
+  if (value === "true" || value === "1") return true;
+  if (value === "false" || value === "0") return false;
+  return undefined;
+}
+
+/**
  * Devolve o instante UTC de meia-noite do dia corrente no fuso da empresa.
  * Previne o bug de "hoje": `new Date().setHours(0,0,0,0)` usa o fuso do servidor
  * (UTC na Vercel) e às 00:30 locais (ex.: Angola UTC+1) venda conta como "ontem".

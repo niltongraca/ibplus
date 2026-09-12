@@ -4,7 +4,7 @@ import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
-import { parsePagination } from "@/lib/utils";
+import { parsePagination, buildSearch } from "@/lib/utils";
 
 const STAGES = ["lead", "qualified", "proposal", "negotiation", "closed"];
 
@@ -14,22 +14,24 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const stage = searchParams.get("stage") || undefined;
+  const all = searchParams.get("all") === "true";
   const { page, limit, skip } = parsePagination(searchParams);
 
   if (!user.companyId) {
     return NextResponse.json({ opportunities: [], total: 0, page: 1, totalPages: 0 });
   }
 
+  const search = buildSearch(["title", "customer.name"], searchParams.get("search"));
   const where: Prisma.OpportunityWhereInput = { companyId: user.companyId };
   if (stage) where.stage = stage;
+  if (search) where.OR = search.OR;
 
   const [opportunities, total] = await Promise.all([
     prisma.opportunity.findMany({
       where,
       include: { customer: { select: { name: true, email: true, phone: true } } },
       orderBy: { createdAt: "desc" },
-      skip,
-      take: limit,
+      ...(all ? {} : { skip, take: limit }),
     }),
     prisma.opportunity.count({ where }),
   ]);

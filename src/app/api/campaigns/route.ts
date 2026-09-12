@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
-import { parseDateOnly, parsePagination } from "@/lib/utils";
+import { parseDateOnly, parsePagination, buildSearch } from "@/lib/utils";
 
 const TYPES = ["email", "social", "sms", "whatsapp", "other"];
 const STATUSES = ["draft", "active", "paused", "completed", "cancelled"];
@@ -15,7 +15,15 @@ export async function GET(request: Request) {
 
     const url = new URL(request.url);
     const { page, limit, skip } = parsePagination(url.searchParams);
-    const where = { companyId: user.companyId };
+    const search = buildSearch(["name"], url.searchParams.get("search"));
+    const type = url.searchParams.get("type") ?? undefined;
+    const status = url.searchParams.get("status") ?? undefined;
+    const where = {
+      companyId: user.companyId,
+      ...(search ?? {}),
+      ...(type ? { type } : {}),
+      ...(status ? { status } : {}),
+    };
 
     const [campaigns, total] = await Promise.all([
       prisma.campaign.findMany({

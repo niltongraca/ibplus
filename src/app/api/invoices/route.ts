@@ -5,7 +5,7 @@ import { findOrCreateCustomer, ensureItemsInCatalog } from "@/lib/catalog";
 import { recordInvoicePayment } from "@/lib/finance";
 import { nextInvoiceNumber } from "@/lib/sequence";
 import { toNumber } from "@/lib/money";
-import { parseDateOnly, parsePagination } from "@/lib/utils";
+import { parseDateOnly, parsePagination, buildSearch } from "@/lib/utils";
 
 export async function GET(request: Request) {
   const user = await getAuthUser();
@@ -13,7 +13,13 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const { page, limit, skip } = parsePagination(url.searchParams);
-  const where = { companyId: user.companyId };
+  const search = buildSearch(["number", "customer", "customerEmail"], url.searchParams.get("search"));
+  const status = url.searchParams.get("status") ?? undefined;
+  const where = {
+    companyId: user.companyId,
+    ...(search ?? {}),
+    ...(status ? { status } : {}),
+  };
 
   const [invoices, total] = await Promise.all([
     prisma.invoice.findMany({

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
-import { parsePagination } from "@/lib/utils";
+import { parsePagination, buildSearch } from "@/lib/utils";
+import type { Prisma, AccountType, PlanType } from "@prisma/client";
 
 export async function GET(request: Request) {
   try {
@@ -10,9 +11,20 @@ export async function GET(request: Request) {
 
     const url = new URL(request.url);
     const { page, limit, skip } = parsePagination(url.searchParams);
+    const search = buildSearch(["name", "email", "phone"], url.searchParams.get("search"));
+    const accountType = url.searchParams.get("accountType") || undefined;
+    const plan = url.searchParams.get("plan") || undefined;
+    const role = url.searchParams.get("role") || undefined;
+    const where: Prisma.UserWhereInput = {
+      ...(search ?? {}),
+      ...(accountType ? { accountType: accountType as AccountType } : {}),
+      ...(plan ? { plan: plan as PlanType } : {}),
+      ...(role ? { role } : {}),
+    };
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({
+        where,
         select: {
           id: true,
           name: true,
@@ -29,7 +41,7 @@ export async function GET(request: Request) {
         skip,
         take: limit,
       }),
-      prisma.user.count(),
+      prisma.user.count({ where }),
     ]);
 
     return NextResponse.json({ users, total, page, totalPages: Math.ceil(total / limit) });

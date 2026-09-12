@@ -14,6 +14,7 @@ export async function GET(request: Request) {
   const where = {
     product: { companyId: user.companyId },
     ...(productId ? { productId } : {}),
+    ...(url.searchParams.get("type") ? { type: url.searchParams.get("type")! } : {}),
   };
 
   const [movements, total] = await Promise.all([

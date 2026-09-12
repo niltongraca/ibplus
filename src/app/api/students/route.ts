@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { z } from "zod";
-import { parseDateOnly, parsePagination } from "@/lib/utils";
+import { parseDateOnly, parsePagination, buildSearch } from "@/lib/utils";
 
 const createSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -21,7 +21,11 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const { page, limit, skip } = parsePagination(url.searchParams);
-  const where = { companyId: user.companyId };
+  const search = buildSearch(["name", "email"], url.searchParams.get("search"));
+  const where = {
+    companyId: user.companyId,
+    ...(search ?? {}),
+  };
 
   const [students, total] = await Promise.all([
     prisma.student.findMany({

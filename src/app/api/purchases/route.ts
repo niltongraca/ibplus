@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
-import { parsePagination } from "@/lib/utils";
+import { parsePagination, buildSearch } from "@/lib/utils";
 import { toNumber } from "@/lib/money";
 
 export async function GET(request: Request) {
@@ -10,16 +10,23 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const { page, limit, skip } = parsePagination(url.searchParams);
+  const search = buildSearch(["supplier", "invoiceNumber"], url.searchParams.get("search"));
+  const status = url.searchParams.get("status") ?? undefined;
+  const where = {
+    companyId: user.companyId,
+    ...(search ?? {}),
+    ...(status ? { status } : {}),
+  };
 
   const [purchases, total] = await Promise.all([
     prisma.purchase.findMany({
-      where: { companyId: user.companyId },
+      where,
       include: { items: { include: { product: { select: { name: true } } } } },
       orderBy: { date: "desc" },
       skip,
       take: limit,
     }),
-    prisma.purchase.count({ where: { companyId: user.companyId } }),
+    prisma.purchase.count({ where }),
   ]);
 
   return NextResponse.json({
