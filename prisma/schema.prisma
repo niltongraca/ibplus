@@ -177,6 +177,7 @@ opportunities       Opportunity[]
   transactions        Transaction[]
   reports             Report[]
   cargos              Cargo[]
+  cargoPermissions    CargoPermission[]
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
 }
@@ -592,6 +593,22 @@ model ResourcePermission {
   updatedAt   DateTime   @updatedAt
 
   @@unique([resourceId, accountType])
+}
+
+// Permissões por nível de cargo e por empresa (RBAC dinâmico)
+model CargoPermission {
+  id         String   @id @default(cuid())
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  // owner | manager | collaborator | viewer
+  cargoLevel String
+  feature    String
+  access     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([companyId, cargoLevel, feature])
+  @@index([cargoLevel, feature])
 }
 
 model Invite {

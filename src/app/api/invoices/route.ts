@@ -6,10 +6,12 @@ import { recordInvoicePayment } from "@/lib/finance";
 import { nextInvoiceNumber } from "@/lib/sequence";
 import { toNumber } from "@/lib/money";
 import { parseDateOnly, parsePagination, buildSearch } from "@/lib/utils";
+import { requireFeature, requireWrite } from "@/lib/permissions";
 
 export async function GET(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireFeature(user, "faturacao"); if (denied) return denied;
 
   const url = new URL(request.url);
   const { page, limit, skip } = parsePagination(url.searchParams);
@@ -49,6 +51,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireWrite(user, "faturacao"); if (denied) return denied;
   const companyId = user.companyId;
 
   try {

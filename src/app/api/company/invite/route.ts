@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { requireFeature, requireTeamManage } from "@/lib/permissions";
 import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 import { sendEmail, inviteEmail } from "@/lib/email";
 
@@ -12,6 +13,9 @@ export async function POST(request: Request) {
 
   const currentUser = await getAuthUser();
   if (!currentUser?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+
+  const denied = await requireTeamManage(currentUser);
+  if (denied) return denied;
 
   if (currentUser.accountType === "EMPREENDEDOR") {
     return NextResponse.json({ error: "Contas de empreendedor não podem ter múltiplos utilizadores." }, { status: 403 });
@@ -50,6 +54,9 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+
+  const denied = await requireFeature(user, "rh");
+  if (denied) return denied;
 
   const invites = await prisma.invite.findMany({
     where: { companyId: user.companyId },

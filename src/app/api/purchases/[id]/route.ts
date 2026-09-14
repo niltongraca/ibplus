@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
+import { requireFeature, requireWrite, requireDelete } from "@/lib/permissions";
 
 function serializePurchase(p: { total?: unknown; items: unknown[] } & Record<string, unknown>) {
   return {
@@ -18,6 +19,7 @@ function serializePurchase(p: { total?: unknown; items: unknown[] } & Record<str
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireFeature(user, "compras"); if (denied) return denied;
 
   const { id } = await params;
   const purchase = await prisma.purchase.findFirst({
@@ -32,6 +34,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireWrite(user, "compras"); if (denied) return denied;
 
   const { id } = await params;
   const data = await request.json();
@@ -131,6 +134,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireDelete(user, "compras"); if (denied) return denied;
 
   const { id } = await params;
   const existing = await prisma.purchase.findFirst({

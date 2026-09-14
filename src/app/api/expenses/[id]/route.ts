@@ -6,10 +6,12 @@ import { logAction } from "@/lib/audit";
 import { recordExpensePayment, revertExpensePayment } from "@/lib/finance";
 import { toNumber } from "@/lib/money";
 import { parseDateOnly } from "@/lib/utils";
+import { requireFeature, requireWrite, requireDelete } from "@/lib/permissions";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireFeature(user, "despesas"); if (denied) return denied;
 
   const { id } = await params;
   const expense = await prisma.expense.findFirst({
@@ -23,6 +25,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireWrite(user, "despesas"); if (denied) return denied;
   const companyId = user.companyId;
 
   const { id } = await params;
@@ -76,6 +79,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireDelete(user, "despesas"); if (denied) return denied;
   const companyId = user.companyId;
 
   const { id } = await params;

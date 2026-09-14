@@ -4,11 +4,13 @@ import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
+import { requireFeature, requireWrite, requireDelete } from "@/lib/permissions";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   if (!user.companyId) return NextResponse.json({ error: "Sem empresa associada." }, { status: 400 });
+  const denied = await requireFeature(user, "servicos"); if (denied) return denied;
   const { id } = await params;
   const service = await prisma.service.findFirst({ where: { id, companyId: user.companyId } });
   if (!service) return NextResponse.json({ error: "Serviço não encontrado." }, { status: 404 });
@@ -19,6 +21,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   if (!user.companyId) return NextResponse.json({ error: "Sem empresa associada." }, { status: 400 });
+  const denied = await requireWrite(user, "servicos"); if (denied) return denied;
   const { id } = await params;
 
   const existing = await prisma.service.findFirst({ where: { id, companyId: user.companyId } });
@@ -56,6 +59,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   if (!user.companyId) return NextResponse.json({ error: "Sem empresa associada." }, { status: 400 });
+  const denied = await requireDelete(user, "servicos"); if (denied) return denied;
   const { id } = await params;
 
   const result = await prisma.service.deleteMany({ where: { id, companyId: user.companyId } });

@@ -2,11 +2,13 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { toNumber } from "@/lib/money";
+import { requireFeature } from "@/lib/permissions";
 
 export async function GET() {
   try {
     const user = await getAuthUser();
     if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+    const denied = await requireFeature(user, "relatorios"); if (denied) return denied;
 
     const companyId = user.companyId;
 

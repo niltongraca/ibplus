@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
 import { getJwtSecret } from "./secrets";
+import type { CargoLevel } from "@/config/permissions";
 
 interface JwtPayload {
   userId: string;
@@ -11,6 +12,7 @@ interface JwtPayload {
   accountType: string;
   plan: string;
   tokenVersion: number;
+  cargoLevel: string | null;
 }
 
 export function signToken(payload: JwtPayload): string {
@@ -37,7 +39,7 @@ export async function getAuthUser() {
     where: { id: payload.userId },
     select: {
       id: true, name: true, email: true, phone: true, avatar: true, accountType: true, plan: true, companyId: true, role: true, tokenVersion: true,
-      employees: { select: { isOwner: true }, take: 1 },
+      employees: { select: { isOwner: true, cargo: { select: { level: true } } }, take: 1 },
     },
   });
 
@@ -49,5 +51,9 @@ export async function getAuthUser() {
     return null;
   }
 
-  return { ...rest, isOwner: employees[0]?.isOwner ?? false };
+  return {
+    ...rest,
+    isOwner: employees[0]?.isOwner ?? false,
+    cargoLevel: (employees[0]?.cargo?.level ?? null) as CargoLevel | null,
+  };
 }

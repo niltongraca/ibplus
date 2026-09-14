@@ -5,6 +5,7 @@ import { logAction } from "@/lib/audit";
 import { generateReportForCompany, type ReportPeriod } from "@/lib/reports";
 import { toNumber } from "@/lib/money";
 import { parsePagination } from "@/lib/utils";
+import { requireFeature, requireWrite } from "@/lib/permissions";
 
 function serializeReport(r: { totalRevenue?: unknown; totalExpenses?: unknown; netResult?: unknown; invoicesPaidTotal?: unknown } & Record<string, unknown>) {
   return {
@@ -19,6 +20,7 @@ function serializeReport(r: { totalRevenue?: unknown; totalExpenses?: unknown; n
 export async function GET(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireFeature(user, "relatorios"); if (denied) return denied;
 
   const url = new URL(request.url);
   const { page, limit, skip } = parsePagination(url.searchParams);
@@ -45,6 +47,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireWrite(user, "relatorios"); if (denied) return denied;
 
   const body = await request.json().catch(() => ({}));
   const period: ReportPeriod = body.period === "quarterly" || body.period === "annual" ? body.period : "monthly";

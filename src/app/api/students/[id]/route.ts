@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { z } from "zod";
 import { parseDateOnly } from "@/lib/utils";
+import { requireFeature, requireWrite, requireDelete } from "@/lib/permissions";
 
 const updateSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório").optional(),
@@ -27,6 +28,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const { id } = await params;
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireFeature(user, "educacao"); if (denied) return denied;
 
   const student = await getStudent(id, user.companyId);
   if (!student) return NextResponse.json({ error: "Aluno não encontrado." }, { status: 404 });
@@ -38,6 +40,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireWrite(user, "educacao"); if (denied) return denied;
 
   const student = await getStudent(id, user.companyId);
   if (!student) return NextResponse.json({ error: "Aluno não encontrado." }, { status: 404 });
@@ -76,6 +79,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   const { id } = await params;
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireDelete(user, "educacao"); if (denied) return denied;
 
   const student = await getStudent(id, user.companyId);
   if (!student) return NextResponse.json({ error: "Aluno não encontrado." }, { status: 404 });

@@ -3,12 +3,14 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { parseDateOnly } from "@/lib/utils";
+import { requireFeature, requireTeamManage } from "@/lib/permissions";
 
 const STATUSES = ["pending", "approved", "rejected", "cancelled"];
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireFeature(user, "rh"); if (denied) return denied;
 
   const { id } = await params;
   const vacation = await prisma.vacation.findFirst({
@@ -23,6 +25,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireTeamManage(user); if (denied) return denied;
 
   const { id } = await params;
   const existing = await prisma.vacation.findFirst({
@@ -60,6 +63,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireTeamManage(user); if (denied) return denied;
 
   const { id } = await params;
   const existing = await prisma.vacation.findFirst({

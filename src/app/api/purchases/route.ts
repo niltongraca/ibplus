@@ -3,10 +3,12 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { parsePagination, buildSearch } from "@/lib/utils";
 import { toNumber } from "@/lib/money";
+import { requireFeature, requireWrite } from "@/lib/permissions";
 
 export async function GET(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireFeature(user, "compras"); if (denied) return denied;
 
   const url = new URL(request.url);
   const { page, limit, skip } = parsePagination(url.searchParams);
@@ -44,6 +46,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireWrite(user, "compras"); if (denied) return denied;
 
   try {
     const body = await request.json();

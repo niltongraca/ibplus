@@ -340,6 +340,8 @@ export async function POST(request: Request) {
         select: { id: true, name: true, email: true, phone: true, accountType: true, plan: true, role: true, companyId: true, tokenVersion: true },
       });
 
+      let cargoLevel: string | null = null;
+
       if (companyId && data.accountType !== "EMPREENDEDOR") {
         await tx.employee.create({
           data: {
@@ -353,16 +355,20 @@ export async function POST(request: Request) {
             isOwner: !invited,
           },
         });
+        if (cargoId) {
+          const cargo = await tx.cargo.findFirst({ where: { id: cargoId, companyId }, select: { level: true } });
+          cargoLevel = cargo?.level ?? null;
+        }
       }
 
-      return { ...createdUser, isOwner: !invited && companyId !== null && data.accountType !== "EMPREENDEDOR" };
+      return { ...createdUser, isOwner: !invited && companyId !== null && data.accountType !== "EMPREENDEDOR", cargoLevel };
     });
 
     const mail = welcomeEmail(user.name, user.accountType);
     await sendEmail(user.email, mail.subject, mail.html);
 
     const token = signToken({
-      userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType, plan: user.plan, tokenVersion: user.tokenVersion,
+      userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType, plan: user.plan, tokenVersion: user.tokenVersion, cargoLevel: user.cargoLevel,
     });
 
     const response = NextResponse.json({ user });

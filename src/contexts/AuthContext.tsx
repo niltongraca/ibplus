@@ -14,6 +14,8 @@ interface User {
   companyId?: string | null;
   role: string;
   isOwner?: boolean;
+  cargoLevel?: string | null;
+  allowedFeatures?: string[];
 }
 
 interface AuthContextType {

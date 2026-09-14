@@ -5,12 +5,14 @@ import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
 import { parsePagination, buildSearch } from "@/lib/utils";
+import { requireFeature, requireWrite, requireDelete } from "@/lib/permissions";
 
 const STAGES = ["lead", "qualified", "proposal", "negotiation", "closed"];
 
 export async function GET(request: Request) {
   const user = await getAuthUser();
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireFeature(user, "crm"); if (denied) return denied;
 
   const { searchParams } = new URL(request.url);
   const stage = searchParams.get("stage") || undefined;
@@ -47,6 +49,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireWrite(user, "crm"); if (denied) return denied;
 
   try {
     const body = await request.json();
@@ -87,6 +90,7 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireWrite(user, "crm"); if (denied) return denied;
 
   try {
     const body = await request.json();
@@ -117,6 +121,7 @@ export async function PATCH(request: Request) {
 export async function DELETE(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireDelete(user, "crm"); if (denied) return denied;
 
   try {
     const { id } = await request.json();

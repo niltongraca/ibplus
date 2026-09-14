@@ -16,10 +16,24 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname() ?? "";
   const { user } = useAuth();
   const groups = getSidebarConfig(user?.accountType || "");
+  const isOwner = Boolean(user?.isOwner);
+  const allowedFeatures = user?.allowedFeatures;
+  const effectiveAllowed = Array.isArray(allowedFeatures) ? new Set(allowedFeatures) : null;
+
+  const filteredGroups = groups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => {
+        if (item.ownerOnly && !isOwner) return false;
+        if (effectiveAllowed && item.feature && !effectiveAllowed.has(item.feature)) return false;
+        return true;
+      }),
+    }))
+    .filter((group) => group.items.length > 0);
 
   const sidebarContent = (
     <nav className="px-3 py-4 space-y-6 overflow-y-auto h-full">
-      {groups.map((group) => (
+      {filteredGroups.map((group) => (
         <div key={group.name}>
           <div className="flex items-center gap-2 px-3 mb-1">
             <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>

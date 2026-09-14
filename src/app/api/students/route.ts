@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { z } from "zod";
 import { parseDateOnly, parsePagination, buildSearch } from "@/lib/utils";
+import { requireFeature, requireWrite } from "@/lib/permissions";
 
 const createSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -18,6 +19,7 @@ const createSchema = z.object({
 export async function GET(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireFeature(user, "educacao"); if (denied) return denied;
 
   const url = new URL(request.url);
   const { page, limit, skip } = parsePagination(url.searchParams);
@@ -43,6 +45,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireWrite(user, "educacao"); if (denied) return denied;
 
   try {
     const body = await request.json();

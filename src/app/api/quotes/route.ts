@@ -5,6 +5,7 @@ import { findOrCreateCustomer, ensureItemsInCatalog } from "@/lib/catalog";
 import { nextQuoteNumber } from "@/lib/sequence";
 import { toNumber } from "@/lib/money";
 import { parseDateOnly, parsePagination, buildSearch } from "@/lib/utils";
+import { requireFeature, requireWrite } from "@/lib/permissions";
 
 function serializeQuote(q: { subtotal?: unknown; discountValue?: unknown; discount?: unknown; total?: unknown; items: unknown[] } & Record<string, unknown>) {
   return {
@@ -24,6 +25,7 @@ export async function GET(request: Request) {
   try {
     const user = await getAuthUser();
     if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+    const denied = await requireFeature(user, "orcamentos"); if (denied) return denied;
 
     const url = new URL(request.url);
     const { page, limit, skip } = parsePagination(url.searchParams);
@@ -60,6 +62,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireWrite(user, "orcamentos"); if (denied) return denied;
   const companyId = user.companyId;
 
   try {

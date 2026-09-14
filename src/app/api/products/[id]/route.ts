@@ -4,10 +4,12 @@ import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
+import { requireFeature, requireWrite, requireDelete } from "@/lib/permissions";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireFeature(user, "produtos"); if (denied) return denied;
 
   const { id } = await params;
   const product = await prisma.product.findFirst({
@@ -22,6 +24,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireWrite(user, "produtos"); if (denied) return denied;
   const companyId = user.companyId;
 
   const { id } = await params;
@@ -110,6 +113,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireDelete(user, "produtos"); if (denied) return denied;
 
   const { id } = await params;
   const product = await prisma.product.findFirst({

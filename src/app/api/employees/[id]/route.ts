@@ -5,10 +5,12 @@ import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
 import { parseDateOnly } from "@/lib/utils";
+import { requireFeature, requireTeamManage } from "@/lib/permissions";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireFeature(user, "rh"); if (denied) return denied;
 
   const { id } = await params;
   const employee = await prisma.employee.findFirst({
@@ -23,6 +25,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireTeamManage(user); if (denied) return denied;
 
   const { id } = await params;
   const existing = await prisma.employee.findFirst({ where: { id, companyId: user.companyId } });
@@ -79,6 +82,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireTeamManage(user); if (denied) return denied;
 
   const { id } = await params;
   const employee = await prisma.employee.findFirst({

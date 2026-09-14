@@ -4,10 +4,12 @@ import { getAuthUser } from "@/lib/auth";
 import { parsePagination, parseDateOnly, buildSearch, parseBool } from "@/lib/utils";
 import { recordExpensePayment } from "@/lib/finance";
 import { toNumber } from "@/lib/money";
+import { requireFeature, requireWrite } from "@/lib/permissions";
 
 export async function GET(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireFeature(user, "despesas"); if (denied) return denied;
 
   const url = new URL(request.url);
   const { page, limit, skip } = parsePagination(url.searchParams);
@@ -40,6 +42,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireWrite(user, "despesas"); if (denied) return denied;
   const companyId = user.companyId;
 
   try {

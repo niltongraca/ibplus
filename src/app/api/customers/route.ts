@@ -4,10 +4,12 @@ import { getAuthUser } from "@/lib/auth";
 import { parsePagination, buildSearch } from "@/lib/utils";
 import { createNotification } from "@/lib/notifications";
 import { logAction } from "@/lib/audit";
+import { requireFeature, requireWrite } from "@/lib/permissions";
 
 export async function GET(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireFeature(user, "clientes"); if (denied) return denied;
 
   const url = new URL(request.url);
   const { page, limit, skip } = parsePagination(url.searchParams);
@@ -36,6 +38,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireWrite(user, "clientes"); if (denied) return denied;
 
   try {
     const body = await request.json();

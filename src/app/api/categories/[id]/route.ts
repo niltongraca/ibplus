@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { requireWrite, requireDelete } from "@/lib/permissions";
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireWrite(user, "produtos"); if (denied) return denied;
 
   const { id } = await params;
   const { name } = await request.json();
@@ -19,6 +21,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireDelete(user, "produtos"); if (denied) return denied;
 
   const { id } = await params;
   const category = await prisma.category.findFirst({ where: { id, companyId: user.companyId }, include: { _count: { select: { products: true } } } });

@@ -3,11 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { toNumber } from "@/lib/money";
 import { startOfTodayUtc } from "@/lib/utils";
+import { requireFeature } from "@/lib/permissions";
 
 export async function GET() {
   try {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+    const denied = await requireFeature(user, "dashboard"); if (denied) return denied;
 
     if (!user.companyId) {
       return NextResponse.json({

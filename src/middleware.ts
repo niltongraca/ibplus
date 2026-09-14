@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 import { ROUTE_PERMISSIONS, PUBLIC_ROUTES } from "@/config/rbacRoutes";
+import { CARGO_LEVELS, DEFAULT_FEATURE_PERMISSIONS, ROUTE_FEATURE_MAP, type CargoLevel } from "@/config/permissions";
 
 async function verifyTokenEdge(token: string): Promise<Record<string, any> | null> {
   try {
@@ -19,6 +20,13 @@ function getJwtSecret(): string {
 }
 
 function matchRoute(pathname: string, routes: Record<string, string[]>): string | null {
+  for (const prefix of Object.keys(routes)) {
+    if (pathname === prefix || pathname.startsWith(prefix + "/")) return prefix;
+  }
+  return null;
+}
+
+function matchFeatureRoute(pathname: string, routes: Record<string, string>): string | null {
   for (const prefix of Object.keys(routes)) {
     if (pathname === prefix || pathname.startsWith(prefix + "/")) return prefix;
   }
@@ -84,6 +92,23 @@ export async function middleware(request: NextRequest) {
       const res = NextResponse.redirect(new URL("/gestao/dashboard", request.url));
       addSecurityHeaders(res);
       return res;
+    }
+  }
+
+  // Printeria por nível de cargo (matriz default; edge sem acesso à BD).
+  // Contas sem cargo (ex.: antigas) ou sem empresa não são restringidas;
+  // as restrições dinâmicas por empresa são aplicadas nas APIs/servidor.
+  if (role !== "admin" && payload.companyId) {
+    const cargoLevel = payload.cargoLevel as CargoLevel | undefined;
+    const featurePrefix = matchFeatureRoute(pathname, ROUTE_FEATURE_MAP);
+    if (featurePrefix) {
+      const feature = ROUTE_FEATURE_MAP[featurePrefix];
+      const level = cargoLevel && CARGO_LEVELS.includes(cargoLevel) ? cargoLevel : null;
+      if (level && DEFAULT_FEATURE_PERMISSIONS[level][feature] === false) {
+        const res = NextResponse.redirect(new URL("/gestao/dashboard", request.url));
+        addSecurityHeaders(res);
+        return res;
+      }
     }
   }
 

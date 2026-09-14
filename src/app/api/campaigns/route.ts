@@ -4,6 +4,7 @@ import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
 import { parseDateOnly, parsePagination, buildSearch } from "@/lib/utils";
+import { requireFeature, requireWrite } from "@/lib/permissions";
 
 const TYPES = ["email", "social", "sms", "whatsapp", "other"];
 const STATUSES = ["draft", "active", "paused", "completed", "cancelled"];
@@ -12,6 +13,7 @@ export async function GET(request: Request) {
   try {
     const user = await getAuthUser();
     if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+    const denied = await requireFeature(user, "marketing"); if (denied) return denied;
 
     const url = new URL(request.url);
     const { page, limit, skip } = parsePagination(url.searchParams);
@@ -49,6 +51,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireWrite(user, "marketing"); if (denied) return denied;
 
   try {
     const body = await request.json();

@@ -27,13 +27,18 @@ export async function POST(request: Request) {
     }
 
     const employee = user.companyId
-      ? await prisma.employee.findFirst({ where: { userId: user.id }, select: { isOwner: true } })
+      ? await prisma.employee.findFirst({
+          where: { userId: user.id },
+          select: { isOwner: true, cargo: { select: { level: true } } },
+        })
       : null;
 
-    const token = signToken({ userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType, plan: user.plan, tokenVersion: user.tokenVersion });
+    const cargoLevel = employee?.cargo?.level ?? null;
+
+    const token = signToken({ userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType, plan: user.plan, tokenVersion: user.tokenVersion, cargoLevel });
 
     const response = NextResponse.json({
-      user: { id: user.id, name: user.name, email: user.email, phone: user.phone, avatar: user.avatar, accountType: user.accountType, plan: user.plan, companyId: user.companyId, role: user.role, isOwner: employee?.isOwner ?? false },
+      user: { id: user.id, name: user.name, email: user.email, phone: user.phone, avatar: user.avatar, accountType: user.accountType, plan: user.plan, companyId: user.companyId, role: user.role, isOwner: employee?.isOwner ?? false, cargoLevel },
     });
 
     response.cookies.set("ibplus_session", token, {

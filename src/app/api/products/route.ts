@@ -4,6 +4,7 @@ import { getAuthUser } from "@/lib/auth";
 import { parsePagination, buildSearch, parseBool } from "@/lib/utils";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
+import { requireFeature, requireWrite } from "@/lib/permissions";
 
 function serializeProduct(p: { price?: unknown; cost?: unknown } & Record<string, unknown>) {
   return { ...p, price: toNumber(p.price), cost: toNumber(p.cost) };
@@ -12,6 +13,7 @@ function serializeProduct(p: { price?: unknown; cost?: unknown } & Record<string
 export async function GET(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireFeature(user, "produtos"); if (denied) return denied;
 
   const url = new URL(request.url);
   const { page, limit, skip } = parsePagination(url.searchParams);
@@ -49,6 +51,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireWrite(user, "produtos"); if (denied) return denied;
   const companyId = user.companyId;
 
   try {
