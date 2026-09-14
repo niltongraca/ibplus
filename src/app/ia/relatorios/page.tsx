@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { BarChart3, Download, TrendingUp, DollarSign, ShoppingCart, Users, FileText, Bot } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { buildReportHtml } from "@/lib/reportDocument";
 
 interface ReportData {
   totalRevenue: number;
@@ -15,12 +16,18 @@ interface ReportData {
 
 export default function RelatoriosIAPage() {
   const [data, setData] = useState<ReportData | null>(null);
+  const [company, setCompany] = useState<{ name: string; nif?: string | null; email?: string | null; phone?: string | null; address?: string | null; logo?: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/dashboard")
-      .then((r) => r.json())
-      .then((d) => setData(d))
+    Promise.all([
+      fetch("/api/dashboard").then((r) => r.json()),
+      fetch("/api/company").then((r) => r.json()).catch(() => ({ company: null })),
+    ])
+      .then(([d, c]) => {
+        setData(d);
+        setCompany(c.company);
+      })
       .catch((err) => console.error("Erro ao carregar relatórios IA:", err))
       .finally(() => setLoading(false));
   }, []);
@@ -29,47 +36,33 @@ export default function RelatoriosIAPage() {
     if (!data) return;
     const win = window.open("", "_blank");
     if (!win) return;
-    const dateStr = new Date().toLocaleDateString("pt-AO");
+    const analysis = `Com base nos dados actuais, a receita total é de ${formatCurrency(data.totalRevenue)} com ${data.totalSales} vendas realizadas. A empresa tem ${data.totalCustomers} clientes registados e ${data.totalProducts} produtos no catálogo. Recomenda-se atenção especial aos ${data.pendingInvoices} faturas pendentes (${formatCurrency(data.pendingInvoicesTotal)}).`;
 
-    win.document.write(`
-      <!DOCTYPE html>
-      <html><head><meta charset="utf-8"><title>Relatório IA - ${metric}</title>
-      <style>
-        body{font-family:Arial,sans-serif;margin:40px;color:#1a2a4a;}
-        h1{color:#0056b3;font-size:22px;}
-        .tag{display:inline-block;background:#e8f4fd;color:#0056b3;padding:3px 10px;border-radius:12px;font-size:11px;margin-bottom:15px;}
-        .stats{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:30px 0;}
-        .card{border:1px solid #ddd;padding:20px;border-radius:8px;}
-        .card h3{font-size:13px;color:#666;text-transform:uppercase;margin:0 0 5px;}
-        .card p{font-size:24px;font-weight:bold;margin:0;color:#1a2a4a;}
-        .analysis{background:#f8f9ff;border-left:4px solid #0056b3;padding:20px;border-radius:8px;margin-top:20px;}
-        .analysis h3{color:#0056b3;font-size:14px;margin:0 0 10px;}
-        .analysis p{font-size:13px;color:#444;line-height:1.6;margin:0;}
-        table{width:100%;border-collapse:collapse;margin-top:20px;}
-        th{background:#1a2a4a;color:white;padding:10px;text-align:left;font-size:12px;}
-        td{padding:10px;border-bottom:1px solid #eee;font-size:13px;}
-        .footer{font-size:12px;color:#999;border-top:1px solid #eee;padding-top:20px;margin-top:30px;}
-      </style>
-      </head>
-      <body>
-        <span class="tag">Relatório Inteligente — IBPlus IA</span>
-        <h1>Relatório IA - ${metric}</h1>
-        <p style="color:#666;font-size:13px;">Gerado em ${dateStr}</p>
-        <div class="stats">
-          <div class="card"><h3>Receita Total</h3><p>${formatCurrency(data.totalRevenue)}</p></div>
-          <div class="card"><h3>Total Vendas</h3><p>${data.totalSales}</p></div>
-          <div class="card"><h3>Clientes</h3><p>${data.totalCustomers}</p></div>
-          <div class="card"><h3>Produtos</h3><p>${data.totalProducts}</p></div>
-        </div>
-        <div class="analysis">
-          <h3>Análise IA</h3>
-          <p>Com base nos dados actuais, a receita total é de ${formatCurrency(data.totalRevenue)} com ${data.totalSales} vendas realizadas. A empresa tem ${data.totalCustomers} clientes registados e ${data.totalProducts} produtos no catálogo. Recomenda-se atenção especial aos ${data.pendingInvoices} faturas pendentes (${formatCurrency(data.pendingInvoicesTotal)}).</p>
-        </div>
-        <div class="footer">IBPlus+ — Relatório gerado por inteligência artificial</div>
-        <script>window.print();<\/script>
-      </body>
-      </html>
-    `);
+    win.document.write(
+      buildReportHtml({
+        title: "Relatório Inteligente",
+        subtitle: metric,
+        period: "Análise gerada por IA com os dados actuais",
+        company,
+        sections: [
+          {
+            heading: "Indicadores",
+            metrics: [
+              { label: "Receita Total", value: formatCurrency(data.totalRevenue), tone: "green" },
+              { label: "Total de Vendas", value: String(data.totalSales) },
+              { label: "Clientes", value: String(data.totalCustomers) },
+              { label: "Produtos", value: String(data.totalProducts) },
+              { label: "Faturas Pendentes", value: `${data.pendingInvoices} (${formatCurrency(data.pendingInvoicesTotal)})` },
+            ],
+          },
+          {
+            heading: "Análise IA",
+            text: analysis,
+          },
+        ],
+        footnote: "Relatório elaborado com recurso a inteligência artificial de apoio à gestão",
+      })
+    );
     win.document.close();
   }
 

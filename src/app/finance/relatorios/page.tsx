@@ -6,6 +6,7 @@ import type { LucideIcon } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { jsonToCsv, downloadCsv } from "@/lib/csv";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Legend } from "recharts";
+import { buildReportHtml } from "@/lib/reportDocument";
 
 const COLORS = ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
 
@@ -18,7 +19,11 @@ interface ReportData {
   pendingInvoicesTotal: number;
   totalIncome: number;
   totalExpense: number;
+  monthIncome?: number;
+  monthExpense?: number;
   balance: number;
+  pendingQuotes?: number;
+  pendingQuotesTotal?: number;
   recentSales: { id: string; total: number; date: string; customer: { name: string } | null }[];
   monthlySales?: { month: string; total: number; count: number }[];
   categorySales?: { name: string; value: number }[];
@@ -44,6 +49,7 @@ interface GeneratedReport {
 export default function RelatoriosPage() {
   const [data, setData] = useState<ReportData | null>(null);
   const [reports, setReports] = useState<GeneratedReport[]>([]);
+  const [company, setCompany] = useState<{ name: string; nif?: string | null; email?: string | null; phone?: string | null; address?: string | null; logo?: string | null } | null>(null);
   const [period, setPeriod] = useState("month");
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -56,10 +62,11 @@ export default function RelatoriosPage() {
   }
 
   useEffect(() => {
-    Promise.all([fetch("/api/dashboard").then((r) => r.json()), fetch("/api/reports?page=1&limit=100").then((r) => r.json())])
-      .then(([d, rep]) => {
+    Promise.all([fetch("/api/dashboard").then((r) => r.json()), fetch("/api/reports?page=1&limit=100").then((r) => r.json()), fetch("/api/company").then((r) => r.json()).catch(() => ({ company: null }))])
+      .then(([d, rep, c]) => {
         setData(d);
         setReports(rep.reports || []);
+        setCompany(c.company);
       })
       .catch((err) => console.error("Erro ao carregar relatórios financeiros:", err))
       .finally(() => setLoading(false));
@@ -114,46 +121,61 @@ export default function RelatoriosPage() {
     if (!data) return;
     const win = window.open("", "_blank");
     if (!win) return;
-    const dateStr = new Date().toLocaleDateString("pt-AO");
+    const tone = (v: number) => (v >= 0 ? "green" : "red");
 
-    win.document.write(`
-      <!DOCTYPE html>
-      <html><head><meta charset="utf-8"><title>Relatório - ${metric}</title>
-      <style>
-        body{font-family:Arial,sans-serif;margin:40px;color:#1a2a4a;}
-        h1{color:#0056b3;font-size:22px;}
-        .stats{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:30px 0;}
-        .card{border:1px solid #ddd;padding:20px;border-radius:8px;}
-        .card h3{font-size:13px;color:#666;text-transform:uppercase;margin:0 0 5px;}
-        .card p{font-size:24px;font-weight:bold;margin:0;color:#1a2a4a;}
-        table{width:100%;border-collapse:collapse;margin-top:20px;}
-        th{background:#1a2a4a;color:white;padding:10px;text-align:left;font-size:12px;}
-        td{padding:10px;border-bottom:1px solid #eee;font-size:13px;}
-        .footer{font-size:12px;color:#999;border-top:1px solid #eee;padding-top:20px;margin-top:30px;}
-      </style>
-      </head>
-      <body>
-        <h1>Relatório - ${metric}</h1>
-        <p style="color:#666;font-size:13px;">Gerado em ${dateStr}</p>
-        <div class="stats">
-          <div class="card"><h3>Receita Total</h3><p>${formatCurrency(data.totalRevenue)}</p></div>
-          <div class="card"><h3>Total Vendas</h3><p>${data.totalSales}</p></div>
-          <div class="card"><h3>Despesas</h3><p>${formatCurrency(data.totalExpenses)}</p></div>
-          <div class="card"><h3>Lucro Líquido</h3><p>${formatCurrency(netProfit)}</p></div>
-          <div class="card"><h3>Faturas Pendentes</h3><p>${data.pendingInvoices} (${formatCurrency(data.pendingInvoicesTotal)})</p></div>
-          <div class="card"><h3>Margem de Lucro</h3><p>${profitMargin.toFixed(1)}%</p></div>
-        </div>
-        ${data.recentSales.length > 0 ? `
-        <h2>Últimas Vendas</h2>
-        <table>
-          <tr><th>Data</th><th>Cliente</th><th>Total</th></tr>
-          ${data.recentSales.map(s => `<tr><td>${new Date(s.date).toLocaleDateString("pt-AO")}</td><td>${s.customer?.name || "—"}</td><td>${formatCurrency(s.total)}</td></tr>`).join("")}
-        </table>` : ""}
-        <div class="footer">IBPlus+ — Plataforma de Gestão Empresarial | Relatório gerado automaticamente</div>
-        <script>window.print();<\/script>
-      </body>
-      </html>
-    `);
+    const periodLabel: Record<string, string> = {
+      week: "Semana actual",
+      month: "Mês actual",
+      quarter: "Trimestre actual",
+      year: "Ano actual",
+    };
+
+    win.document.write(
+      buildReportHtml({
+        title: "Relatório Financeiro",
+        subtitle: metric,
+        period: periodLabel[period] || "Mês actual",
+        company,
+        sections: [
+          {
+            heading: "Resultados",
+            metrics: [
+              { label: "Receita Total", value: formatCurrency(data.totalRevenue), tone: "green" },
+              { label: "Total de Vendas", value: String(data.totalSales) },
+              { label: "Total de Compras", value: formatCurrency(data.totalPurchases) },
+              { label: "Total de Despesas", value: formatCurrency(data.totalExpenses), tone: "red" },
+              { label: "Lucro Líquido", value: formatCurrency(netProfit), tone: tone(netProfit) },
+              { label: "Margem de Lucro", value: `${profitMargin.toFixed(1)}%` },
+            ],
+          },
+          {
+            heading: "Carteira e Fundos",
+            metrics: [
+              { label: "Faturas Pendentes", value: `${data.pendingInvoices} (${formatCurrency(data.pendingInvoicesTotal)})` },
+              { label: "Fundos Ganhos (faturas pagas)", value: formatCurrency(data.totalIncome || 0), tone: "green" },
+              { label: "Entradas no Mês", value: formatCurrency(data.monthIncome || 0), tone: "green" },
+              { label: "Saídas no Mês", value: formatCurrency(data.monthExpense || 0), tone: "red" },
+              { label: "Saldo Contábil", value: formatCurrency(data.balance || 0), tone: tone(data.balance || 0) },
+              { label: "Orçamentos Pendentes", value: `${data.pendingQuotes || 0} (${formatCurrency(data.pendingQuotesTotal || 0)})` },
+            ],
+          },
+          ...(data.recentSales.length ? [{
+            heading: "Últimas Vendas",
+            table: {
+              headers: ["Data", "Cliente", "Total"],
+              rows: data.recentSales.map((s) => [formatDate(s.date), s.customer?.name || "—", formatCurrency(s.total)]),
+            },
+          }] : []),
+          ...(data.recentExpenses?.length ? [{
+            heading: "Últimas Despesas",
+            table: {
+              headers: ["Descrição", "Categoria", "Data", "Valor"],
+              rows: data.recentExpenses.map((e) => [e.description, e.category || "—", formatDate(e.date), formatCurrency(e.amount)]),
+            },
+          }] : []),
+        ],
+      })
+    );
     win.document.close();
   }
 

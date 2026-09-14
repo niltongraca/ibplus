@@ -6,6 +6,7 @@ import type { LucideIcon } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { jsonToCsv, downloadCsv } from "@/lib/csv";
 import { ChartsWidget } from "@/dashboard/widgets/ChartsWidget";
+import { buildReportHtml } from "@/lib/reportDocument";
 
 interface ReportPageData {
   totalRevenue: number;
@@ -28,6 +29,8 @@ interface ReportPageData {
   topProducts: { name: string; quantity: number; total: number }[];
   totalIncome: number;
   totalExpense: number;
+  monthIncome: number;
+  monthExpense: number;
   balance: number;
 }
 
@@ -52,6 +55,7 @@ interface CustomerStat {
 export default function RelatorioPage() {
   const [data, setData] = useState<ReportPageData | null>(null);
   const [analytics, setAnalytics] = useState<{ items: ItemStat[]; customers: CustomerStat[] } | null>(null);
+  const [company, setCompany] = useState<{ name: string; nif?: string | null; email?: string | null; phone?: string | null; address?: string | null; logo?: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
@@ -65,10 +69,11 @@ export default function RelatorioPage() {
   };
 
   useEffect(() => {
-    Promise.all([fetch("/api/dashboard").then((r) => r.json()), fetch("/api/reports/analytics").then((r) => r.json())])
-      .then(([d, a]) => {
+    Promise.all([fetch("/api/dashboard").then((r) => r.json()), fetch("/api/reports/analytics").then((r) => r.json()), fetch("/api/company").then((r) => r.json()).catch(() => ({ company: null }))])
+      .then(([d, a, c]) => {
         setData(d);
         setAnalytics({ items: a.items || [], customers: a.customers || [] });
+        setCompany(c.company);
       })
       .catch((err) => console.error("Erro ao carregar relatório:", err))
       .finally(() => setLoading(false));
@@ -80,6 +85,7 @@ export default function RelatorioPage() {
   const d = data;
   const netProfit = d.totalRevenue - d.totalExpenses;
   const profitMargin = d.totalRevenue > 0 ? (netProfit / d.totalRevenue) * 100 : 0;
+  const prevFundsBalance = d.balance - d.monthIncome + d.monthExpense;
 
   function exportCsv() {
     const csv =
@@ -90,9 +96,10 @@ export default function RelatorioPage() {
           { metric: "Vendas de Hoje", value: formatCurrency(d.todaySales) },
           { metric: "Despesas Totais", value: formatCurrency(d.totalExpenses) },
           { metric: "Lucro Líquido", value: formatCurrency(netProfit) },
-          { metric: "Fundos Entradas", value: formatCurrency(d.totalIncome) },
-          { metric: "Fundos Saídas", value: formatCurrency(d.totalExpense) },
+          { metric: "Fundos Entradas", value: formatCurrency(d.monthIncome) },
+          { metric: "Fundos Saídas", value: formatCurrency(d.monthExpense) },
           { metric: "Saldo de Fundos", value: formatCurrency(d.balance) },
+          { metric: "Saldo Início do Mês", value: formatCurrency(prevFundsBalance) },
           { metric: "Clientes", value: String(d.totalCustomers) },
           { metric: "Produtos", value: String(d.totalProducts) },
         ],
@@ -126,6 +133,88 @@ export default function RelatorioPage() {
     downloadCsv(csv, `relatorio-${new Date().toISOString().slice(0, 10)}`);
   }
 
+  function handlePrint() {
+    const win = window.open("", "_blank");
+    if (!win || !data) return;
+    const tone = (v: number, positive = true) => (positive ? (v >= 0 ? "green" : "red") : "neutral");
+
+    win.document.write(
+      buildReportHtml({
+        title: "Relatório de Gestão",
+        subtitle: "Visão geral do desempenho do negócio",
+        company,
+        sections: [
+          {
+            heading: "Indicadores Gerais",
+            metrics: [
+              { label: "Receita Total", value: formatCurrency(d.totalRevenue), tone: "green" },
+              { label: "Total de Vendas", value: String(d.totalSales) },
+              { label: "Vendas de Hoje", value: formatCurrency(d.todaySales) },
+              { label: "Despesas Totais", value: formatCurrency(d.totalExpenses), tone: "red" },
+              { label: "Lucro Líquido", value: formatCurrency(netProfit), tone: tone(netProfit) },
+              { label: "Margem de Lucro", value: `${profitMargin.toFixed(1)}%` },
+              { label: "Faturas Pendentes", value: `${d.pendingInvoices} (${formatCurrency(d.pendingInvoicesTotal)})` },
+              { label: "Clientes", value: String(d.totalCustomers) },
+              { label: "Produtos", value: String(d.totalProducts) },
+            ],
+          },
+          {
+            heading: "Fundo de Caixa da Empresa",
+            metrics: [
+              { label: "Saldo Actual", value: formatCurrency(d.balance), tone: tone(d.balance) },
+              { label: "Início do Mês", value: formatCurrency(prevFundsBalance) },
+              { label: "Entradas no Mês", value: formatCurrency(d.monthIncome), tone: "green" },
+              { label: "Saídas no Mês", value: formatCurrency(d.monthExpense), tone: "red" },
+            ],
+          },
+          ...(d.monthlySales?.length ? [{
+            heading: "Vendas por Mês (últimos 6 meses)",
+            table: {
+              headers: ["Mês", "Vendas (Kz)", "N.º Vendas"],
+              rows: d.monthlySales.map((m) => [m.month, formatCurrency(m.total), String(m.count)]),
+            },
+          }] : []),
+          ...(d.recentSales.length ? [{
+            heading: "Últimas Vendas",
+            table: {
+              headers: ["Data", "Cliente", "Total"],
+              rows: d.recentSales.map((s) => [formatDate(s.date), s.customer?.name || "—", formatCurrency(s.total)]),
+            },
+          }] : []),
+          ...(d.recentExpenses.length ? [{
+            heading: "Últimas Despesas",
+            table: {
+              headers: ["Descrição", "Categoria", "Data", "Valor"],
+              rows: d.recentExpenses.map((e) => [e.description, e.category || "—", formatDate(e.date), formatCurrency(e.amount)]),
+            },
+          }] : []),
+          ...(d.topProducts.length ? [{
+            heading: "Top Produtos",
+            table: {
+              headers: ["Produto", "Quantidade", "Total"],
+              rows: d.topProducts.map((p) => [p.name, String(p.quantity), formatCurrency(p.total)]),
+            },
+          }] : []),
+          ...(analytics && analytics.items.length ? [{
+            heading: "Produtos e Serviços mais Rentáveis",
+            table: {
+              headers: ["Produto/Serviço", "Tipo", "N.º Vezes", "Quantidade", "Receita", "N.º Clientes"],
+              rows: analytics.items.map((i) => [i.name, i.kind, String(i.times), String(i.quantity), formatCurrency(i.revenue), String(i.customerCount)]),
+            },
+          }] : []),
+          ...(analytics && analytics.customers.length ? [{
+            heading: "Clientes de Maior Valor",
+            table: {
+              headers: ["Cliente", "Total Gasto", "Compras", "Itens Distintos"],
+              rows: analytics.customers.map((c) => [c.label, formatCurrency(c.spent), String(c.orders), String(c.itemCount)]),
+            },
+          }] : []),
+        ],
+      })
+    );
+    win.document.close();
+  }
+
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 no-print">
@@ -137,7 +226,7 @@ export default function RelatorioPage() {
           <button onClick={exportCsv} className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-ib-muted hover:bg-gray-50 transition-colors">
             <FileDown className="w-4 h-4" /> Exportar CSV
           </button>
-          <button onClick={() => window.print()} className="inline-flex items-center gap-2 px-4 py-2.5 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+          <button onClick={handlePrint} className="inline-flex items-center gap-2 px-4 py-2.5 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
             <Printer className="w-4 h-4" /> Imprimir
           </button>
         </div>
@@ -147,9 +236,30 @@ export default function RelatorioPage() {
         <SummaryCard icon={DollarSign} label="Receita Total" value={formatCurrency(data.totalRevenue)} color="green" sub={`${formatCurrency(data.todaySales)} hoje`} />
         <SummaryCard icon={TrendingDown} label="Despesas" value={formatCurrency(data.totalExpenses)} color="red" sub={`${formatCurrency(data.monthExpenses)} este mês`} />
         <SummaryCard icon={TrendingUp} label="Lucro Líquido" value={formatCurrency(netProfit)} color={netProfit >= 0 ? "blue" : "red"} sub={`${profitMargin.toFixed(1)}% margem`} />
-        <SummaryCard icon={Wallet} label="Saldo de Fundos" value={formatCurrency(data.balance)} color={data.balance >= 0 ? "purple" : "red"} sub="Valor em conta" />
-        <SummaryCard icon={TrendingUp} label="Entradas" value={formatCurrency(data.totalIncome)} color="green" sub="Faturas pagas" />
-        <SummaryCard icon={TrendingDown} label="Saídas" value={formatCurrency(data.totalExpense)} color="red" sub="Pagamentos efectuados" />
+        <div className="bg-white rounded-xl border border-gray-200 p-5 print:break-inside-avoid">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-9 h-9 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center"><Wallet className="w-4 h-4" /></div>
+            <span className="text-xs text-ib-muted uppercase tracking-wider font-medium">Caixa da Empresa</span>
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-ib-muted">Saldo actual</span>
+              <span className="text-sm font-bold text-gray-900">{formatCurrency(data.balance)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-ib-muted">Início do mês</span>
+              <span className="text-sm text-gray-700">{formatCurrency(prevFundsBalance)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-green-600 font-medium">+ Entradas</span>
+              <span className="text-sm font-semibold text-green-600">{formatCurrency(data.monthIncome)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-red-500 font-medium">- Saídas</span>
+              <span className="text-sm font-semibold text-red-500">{formatCurrency(data.monthExpense)}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <ChartsWidget data={data} />
