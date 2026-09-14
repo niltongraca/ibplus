@@ -102,6 +102,11 @@ function companyMeta(company: ExportCompanyInfo | null): string {
   return lines.join(" &nbsp;·&nbsp; ");
 }
 
+function logoHtml(company: ExportCompanyInfo | null): string {
+  if (!company?.logo) return "";
+  return `<img class="doc-logo" src="${esc(company.logo)}" alt="${esc(company.name || "Logótipo")}" />`;
+}
+
 function companyAddress(company: ExportCompanyInfo | null): string {
   if (!company?.address) return "";
   return `<div class="company-meta">${esc(company.address)}</div>`;
@@ -181,6 +186,7 @@ export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompa
   .sheet { max-width: 860px; margin: 0 auto; }
   .letterhead { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
   .brand { min-width: 0; }
+  .doc-logo { display: block; max-height: 44px; width: auto; max-width: 180px; object-fit: contain; margin-bottom: 6px; }
   .company-name { font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -.2px; }
   .company-meta { font-size: 11.5px; color: #64748b; margin-top: 3px; }
   .company-line { font-size: 11.5px; color: #64748b; margin-top: 3px; }
@@ -232,6 +238,7 @@ export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompa
     <div class="letterhead">
       <div class="brand">
         <div>
+          ${logoHtml(company)}
           <div class="company-name">${esc(brand)}</div>
           ${companyMeta(company) ? `<div class="company-line">${companyMeta(company)}</div>` : ""}
           ${companyAddress(company)}

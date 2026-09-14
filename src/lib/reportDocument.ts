@@ -52,6 +52,11 @@ function companyMeta(company: ReportCompanyInfo | null): string {
   return lines.join(" &nbsp;·&nbsp; ");
 }
 
+function logoHtml(company: ReportCompanyInfo | null): string {
+  if (!company?.logo) return "";
+  return `<img class="doc-logo" src="${esc(company.logo)}" alt="${esc(company.name || "Logótipo")}" />`;
+}
+
 function renderMetrics(metrics: ReportMetric[]): string {
   return `
         <div class="metric-grid">
@@ -114,6 +119,7 @@ export function buildReportHtml(opts: ReportDocumentOptions): string {
   .sheet { max-width: 860px; margin: 0 auto; }
   .letterhead { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
   .brand { min-width: 0; }
+  .doc-logo { display: block; max-height: 40px; width: auto; max-width: 160px; object-fit: contain; margin-bottom: 6px; }
   .company-name { font-size: 19px; font-weight: 800; color: #0f172a; letter-spacing: -.2px; }
   .company-meta { font-size: 11px; color: #64748b; margin-top: 3px; }
   .company-address { font-size: 11px; color: #64748b; margin-top: 2px; }
@@ -162,6 +168,7 @@ export function buildReportHtml(opts: ReportDocumentOptions): string {
     <div class="letterhead">
       <div class="brand">
         <div>
+          ${logoHtml(company)}
           <div class="company-name">${esc(brand)}</div>
           ${companyMeta(company) ? `<div class="company-meta">${companyMeta(company)}</div>` : ""}
           ${company?.address ? `<div class="company-address">${esc(company.address)}</div>` : ""}

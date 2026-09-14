@@ -89,6 +89,11 @@ export function InvoiceTemplate({ data, type, typeLabel, company }: InvoiceTempl
       <div className="bg-gradient-to-r from-[#0a1628] via-[#0f1f3d] to-[#1a2a4a] px-8 py-6 print:px-6 print:py-4">
         <div className="flex justify-between items-start">
           <div className="flex items-start gap-4">
+            {company?.logo && (
+              <div className="flex items-center justify-center w-16 h-16 rounded-xl bg-white p-1.5 shrink-0">
+                <img src={company.logo} alt={`${company?.name || "Empresa"} logo`} className="w-full h-full object-contain" />
+              </div>
+            )}
             <div>
               <h2 className="text-xl font-bold text-white tracking-tight">{company?.name || "IBPlus+"}</h2>
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">

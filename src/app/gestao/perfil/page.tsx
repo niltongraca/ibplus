@@ -282,6 +282,11 @@ export default function PerfilPage() {
                 <input type="text" value={company.phone} onChange={(e) => updateCompany("phone", e.target.value)} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
               </div>
             </div>
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-ib-primary mb-2">Logótipo da Empresa</label>
+              <FileUpload value={company.logo} onChange={(url) => updateCompany("logo", url)} label="Carregar Logótipo" />
+              <p className="text-xs text-ib-muted mt-2">O logótipo aparece nos orçamentos, faturas e relatórios.</p>
+            </div>
           </div>
 
           <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -298,7 +303,7 @@ export default function PerfilPage() {
               <textarea value={company.sobreNos} onChange={(e) => updateCompany("sobreNos", e.target.value)} rows={4} placeholder="História, missão, valores..." className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40 resize-none" />
             </div>
             <div className="flex justify-end mt-4">
-              <button onClick={() => saveCompany({ name: company.name, nif: company.nif, email: company.email, phone: company.phone, descricaoLoja: company.descricaoLoja, sobreNos: company.sobreNos })} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+              <button onClick={() => saveCompany({ name: company.name, nif: company.nif, email: company.email, phone: company.phone, descricaoLoja: company.descricaoLoja, sobreNos: company.sobreNos, logo: company.logo })} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
                 <Save className="w-4 h-4" /> Salvar Loja
               </button>
             </div>

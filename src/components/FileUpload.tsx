@@ -9,9 +9,57 @@ interface FileUploadProps {
   onChange: (url: string) => void;
   accept?: string;
   label?: string;
+  maxDimension?: number;
 }
 
-export function FileUpload({ value, onChange, accept = "image/*", label = "Upload" }: FileUploadProps) {
+const DEFAULT_MAX_DIMENSION = 1024;
+
+function hasTransparency(file: File): boolean {
+  const t = file.type || "";
+  return t === "image/png" || t === "image/webp" || t === "image/gif";
+}
+
+async function resizeImage(file: File, maxDimension: number): Promise<File | string> {
+  if (!file.type.startsWith("image/")) return file;
+
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("Falha ao ler a imagem."));
+      img.src = url;
+    });
+
+    const { naturalWidth: w, naturalHeight: h } = img;
+    const scale = Math.min(1, maxDimension / Math.max(w, h));
+    if (scale >= 1 && !hasTransparency(file)) {
+      return file;
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(w * scale);
+    canvas.height = Math.round(h * scale);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+
+    if (hasTransparency(file)) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    const mime = file.type === "image/webp" || file.type === "image/png" || file.type === "image/gif"
+      ? "image/png"
+      : "image/jpeg";
+    const quality = mime === "image/png" ? undefined : 0.85;
+    const dataUrl = canvas.toDataURL(mime, quality);
+    return dataUrl;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+export function FileUpload({ value, onChange, accept = "image/*", label = "Upload", maxDimension = DEFAULT_MAX_DIMENSION }: FileUploadProps) {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -20,10 +68,15 @@ export function FileUpload({ value, onChange, accept = "image/*", label = "Uploa
     if (!file) return;
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const data = await apiFetch<{ url?: string }>("/api/upload", { method: "POST", body: formData });
-      if (data.url) onChange(data.url);
+      const processed = await resizeImage(file, maxDimension);
+      if (typeof processed === "string") {
+        onChange(processed);
+      } else {
+        const formData = new FormData();
+        formData.append("file", processed);
+        const data = await apiFetch<{ url?: string }>("/api/upload", { method: "POST", body: formData });
+        if (data.url) onChange(data.url);
+      }
     } catch {
       // silent
     } finally {

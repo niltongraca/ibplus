@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import { join, extname } from "path";
 import { getAuthUser } from "@/lib/auth";
 import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 
@@ -31,7 +29,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Ficheiro demasiado grande (máx. 5MB)." }, { status: 400 });
     }
 
-    const ext = extname(file.name).toLowerCase();
+    const extMatch = file.name.match(/\.([A-Za-z0-9]+)$/);
+    const ext = extMatch ? `.${extMatch[1].toLowerCase()}` : "";
     const allowedType = ALLOWED_EXTENSIONS[ext];
 
     if (!allowedType) {
@@ -42,18 +41,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Tipo de ficheiro inválido." }, { status: 400 });
     }
 
-    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
     const buffer = Buffer.from(await file.arrayBuffer());
-
     if (!buffer.length) {
       return NextResponse.json({ error: "Ficheiro vazio." }, { status: 400 });
     }
 
-    const uploadDir = join(process.cwd(), "public", "uploads");
-    await mkdir(uploadDir, { recursive: true });
-    await writeFile(join(uploadDir, fileName), buffer);
+    const mime = file.type || allowedType;
+    const url = `data:${mime};base64,${buffer.toString("base64")}`;
 
-    return NextResponse.json({ url: `/uploads/${fileName}` });
+    return NextResponse.json({ url });
   } catch {
     return NextResponse.json({ error: "Erro ao fazer upload." }, { status: 500 });
   }
