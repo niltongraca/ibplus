@@ -19,7 +19,7 @@ export async function GET() {
         totalExpenses: 0, monthExpenses: 0, pendingQuotes: 0, pendingQuotesTotal: 0,
         activeEmployees: 0, vacationPending: 0, averageSaleValue: 0,
         conversionRate: 0, totalOpportunities: 0, wonOpportunities: 0,
-        recentExpenses: [], topProducts: [], totalIncome: 0, totalExpense: 0, balance: 0,
+        recentExpenses: [], topProducts: [], totalIncome: 0, totalExpense: 0, monthIncome: 0, monthExpense: 0, balance: 0,
       });
     }
 
@@ -39,7 +39,7 @@ export async function GET() {
       totalExpensesAgg, monthExpensesAgg, pendingQuotesAgg,
       activeEmployeesCount, vacationPendingCount,
       totalOppsAgg, wonOppsAgg, recentExpenses,
-      topProductsData, incomeAgg, expenseAgg,
+      topProductsData, incomeAgg, expenseAgg, monthIncomeAgg, monthExpenseAgg,
     ] = await Promise.all([
       prisma.sale.aggregate({ where: { companyId: user.companyId, status: { not: "cancelled" } }, _sum: { total: true } }),
       prisma.sale.aggregate({ where: { companyId: user.companyId, status: { not: "cancelled" }, date: { gte: today } }, _sum: { total: true } }),
@@ -108,6 +108,8 @@ export async function GET() {
       }),
       prisma.transaction.aggregate({ where: { companyId: user.companyId, type: "income" }, _sum: { amount: true } }),
       prisma.transaction.aggregate({ where: { companyId: user.companyId, type: "expense" }, _sum: { amount: true } }),
+      prisma.transaction.aggregate({ where: { companyId: user.companyId, type: "income", date: { gte: thisMonth } }, _sum: { amount: true } }),
+      prisma.transaction.aggregate({ where: { companyId: user.companyId, type: "expense", date: { gte: thisMonth } }, _sum: { amount: true } }),
     ]);
 
     const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
@@ -205,6 +207,8 @@ export async function GET() {
       topProducts,
       totalIncome: toNumber(incomeAgg._sum.amount),
       totalExpense: toNumber(expenseAgg._sum.amount),
+      monthIncome: toNumber(monthIncomeAgg._sum.amount),
+      monthExpense: toNumber(monthExpenseAgg._sum.amount),
       balance: toNumber(incomeAgg._sum.amount) - toNumber(expenseAgg._sum.amount),
     });
   } catch {
