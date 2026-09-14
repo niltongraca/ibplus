@@ -28,6 +28,7 @@ export async function POST(request: Request) {
         token,
         email: email || null,
         role: role || "user",
+        accountType: currentUser.accountType as "EMPRESA" | "ONG" | "ASSOCIACAO" | "EDUCACAO" | "COOPERATIVA",
         expiresAt,
       },
     });

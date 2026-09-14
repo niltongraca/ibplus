@@ -11,6 +11,20 @@ import type { LucideIcon } from "lucide-react";
 type FormData = Record<string, string>;
 type UpdateField = (key: string, value: string) => void;
 
+interface InviteCargo {
+  id: string;
+  name: string;
+  description?: string | null;
+  level: string;
+  isDefault: boolean;
+}
+
+interface InviteInfo {
+  company?: { name: string; logo?: string | null };
+  accountType?: string;
+  cargos?: InviteCargo[];
+}
+
 const ACCOUNT_TYPES = [
   { value: "EMPREENDEDOR", label: "Empreendedor", desc: "Ideal para quem trabalha por conta própria.", icon: User },
   { value: "EMPRESA", label: "Empresa", desc: "Ideal para empresas com uma ou mais equipas.", icon: Building2 },
@@ -67,7 +81,8 @@ function CadastroPage() {
   const inviteToken = searchParams.get("invite");
   const [step, setStep] = useState(inviteToken ? 1 : 0);
   const [accountType, setAccountType] = useState<string | null>(null);
-  const [inviteInfo, setInviteInfo] = useState<string | null>(null);
+  const [inviteData, setInviteData] = useState<InviteInfo | null>(null);
+  const [inviteError, setInviteError] = useState("");
   const [form, setForm] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -75,6 +90,25 @@ function CadastroPage() {
   const [success, setSuccess] = useState(false);
   const { register } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!inviteToken) return;
+    fetch(`/api/company/invite/info?token=${encodeURIComponent(inviteToken)}`)
+      .then(async (res) => {
+        if (!res.ok) {
+          const d = await res.json().catch(() => ({}));
+          throw new Error(d.error || "Convite inválido.");
+        }
+        return res.json();
+      })
+      .then((d: InviteInfo) => {
+        setInviteData(d);
+        if (d.accountType) setAccountType(d.accountType);
+      })
+      .catch((err: unknown) => {
+        setInviteError(err instanceof Error ? err.message : "Convite inválido.");
+      });
+  }, [inviteToken]);
 
   function updateField(key: string, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -87,11 +121,19 @@ function CadastroPage() {
   }
 
   const steps = accountType ? STEP_LABELS[accountType] || [] : [];
-  const totalSteps = steps.length;
+  const isInviteFlow = Boolean(inviteToken);
+  const totalSteps = isInviteFlow ? 1 : steps.length;
 
   function canProceed(): boolean {
     const t = accountType;
-    if (step === 1) return !!(form.nome && form.email && form.password && (t === "EMPRESA" || t === "ONG" || form.confirmPassword));
+    if (step === 1) {
+      if (!(form.nome && form.email && form.password)) return false;
+      if (isInviteFlow) return true;
+      if (t === "EMPREENDEDOR") return !!form.confirmPassword;
+      if (t !== "EMPREENDEDOR" && t !== "EMPRESA" && t !== "ONG" && !form.confirmPassword) return false;
+      if (t !== "EMPREENDEDOR" && !form.cargoName) return false;
+      return true;
+    }
     if (step === totalSteps) return true;
     if (t === "EMPRESA" && step === 2) return !!(form.nomeEmpresa);
     return true;
@@ -102,18 +144,30 @@ function CadastroPage() {
   }
 
   function prevStep() {
+    if (isInviteFlow) return;
     if (step > 1) setStep((s) => s - 1);
     else { setAccountType(null); setStep(0); }
   }
 
   async function handleSubmit() {
     setError("");
-    if (accountType !== "EMPRESA" && form.password !== form.confirmPassword) {
+    if (accountType !== "EMPRESA" && !isInviteFlow && form.password !== form.confirmPassword) {
       setError("As senhas não coincidem."); return;
+    }
+    if (isInviteFlow) {
+      const cargo = inviteData?.cargos?.find((c) => c.id === form.cargoId);
+      if (cargo) {
+        form.cargoId = cargo.id;
+      } else if (form.cargoName && form.cargoName.trim()) {
+        form.cargoName = form.cargoName.trim();
+      }
     }
     setLoading(true);
     const payload: Record<string, string> = { ...form, ...(accountType ? { accountType } : {}) };
     if (inviteToken) payload.invite = inviteToken;
+    if (isInviteFlow) {
+      payload.accountType = inviteData?.accountType || accountType || "EMPRESA";
+    }
     const result = await register(payload);
     setLoading(false);
     if (result.success) {
@@ -157,7 +211,9 @@ function CadastroPage() {
               <Link2 className="w-5 h-5 text-ib-accent mt-0.5 shrink-0" />
               <div>
                 <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Convite de Acesso</p>
-                <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Você foi convidado a aceder a uma conta existente. Preencha os seus dados para criar o seu acesso.</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                  {inviteError ? inviteError : inviteData?.company ? `Você foi convidado(a) para aceder a "${inviteData.company.name}". Preencha os seus dados para criar o seu acesso.` : "A carregar informações do convite..."}
+                </p>
               </div>
             </div>
           )}
@@ -245,7 +301,44 @@ function CadastroPage() {
                           placeholder="Repita a senha" required minLength={6} />
                       </div>
                     )}
+                    {!isInviteFlow && accountType && accountType !== "EMPREENDEDOR" && (
+                      <div className="sm:col-span-2">
+                        <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>
+                          Seu cargo na organização
+                          <span style={{ color: "var(--color-ib-danger)" }}>*</span>
+                        </label>
+                        <input value={form.cargoName || ""} onChange={(e) => updateField("cargoName", e.target.value)}
+                          className="glass-input w-full px-3 py-2.5 text-sm" style={{ color: "var(--text-primary)" }}
+                          placeholder="Ex.: Sócio-fundador, Director Geral" required />
+                      </div>
+                    )}
                   </div>
+
+                  {isInviteFlow && (
+                    <div className="pt-4" style={{ borderTop: "1px solid var(--border-color)" }}>
+                      <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>
+                        {inviteData?.company ? `Seu cargo em ${inviteData.company.name}` : "Seu cargo na organização"}
+                        {inviteData?.cargos?.length ? "" : <span style={{ color: "var(--text-muted)" }} className="font-normal"> (opcional)</span>}
+                      </label>
+                      {inviteData?.cargos?.length ? (
+                        <select value={form.cargoId || inviteData.cargos.find((c) => c.isDefault)?.id || ""} onChange={(e) => updateField("cargoId", e.target.value)}
+                          className="glass-input w-full px-3 py-2.5 text-sm" style={{ color: "var(--text-primary)" }}>
+                          {inviteData.cargos.map((c) => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input value={form.cargoName || ""} onChange={(e) => updateField("cargoName", e.target.value)}
+                          className="glass-input w-full px-3 py-2.5 text-sm" style={{ color: "var(--text-primary)" }}
+                          placeholder="Ex.: Gestor de Vendas" />
+                      )}
+                      {inviteData?.cargos?.length ? (
+                        <p className="text-xs mt-1.5" style={{ color: "var(--text-muted)" }}>Sugestões de cargos registados pela empresa. Pode alterar depois em Funcionários.</p>
+                      ) : (
+                        <p className="text-xs mt-1.5" style={{ color: "var(--text-muted)" }}>A empresa ainda não registou cargos. Indique o seu cargo ou deixe em branco.</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 

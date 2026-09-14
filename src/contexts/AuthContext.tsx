@@ -13,6 +13,7 @@ interface User {
   plan?: string;
   companyId?: string | null;
   role: string;
+  isOwner?: boolean;
 }
 
 interface AuthContextType {

@@ -24,6 +24,7 @@ export async function GET(request: Request) {
     prisma.employee.findMany({
       where,
       orderBy: { name: "asc" },
+      include: { cargo: { select: { id: true, name: true, level: true } } },
       ...(all ? {} : { skip, take: limit }),
     }),
     prisma.employee.count({ where }),
@@ -62,6 +63,15 @@ export async function POST(request: Request) {
       if (isNaN(hireDate.getTime())) return NextResponse.json({ error: "A data de admissão não é válida." }, { status: 400 });
     }
 
+    let cargoId: string | null = null;
+    if (body.cargoId) {
+      const cargo = await prisma.cargo.findFirst({
+        where: { id: String(body.cargoId), companyId: user.companyId, active: true },
+      });
+      if (!cargo) return NextResponse.json({ error: "Cargo inválido." }, { status: 400 });
+      cargoId = cargo.id;
+    }
+
     const employee = await prisma.employee.create({
       data: {
         companyId: user.companyId,
@@ -69,6 +79,7 @@ export async function POST(request: Request) {
         email: email || null,
         phone: body.phone ? String(body.phone).trim() : null,
         position: body.position ? String(body.position).trim() : null,
+        cargoId,
         salary,
         hireDate,
         active: body.active === false ? false : true,

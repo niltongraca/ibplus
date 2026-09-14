@@ -42,6 +42,7 @@ model User {
   companyProfile  CompanyProfile?
   ngoProfile      NGOProfile?
   educationProfile EducationProfile?
+  employees       Employee[]
 
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -168,15 +169,16 @@ model Company {
   campaigns           Campaign[]
   employees           Employee[]
   students            Student[]
-  opportunities       Opportunity[]
+opportunities       Opportunity[]
   invites             Invite[]
   quotes              Quote[]
   notifications       Notification[]
   auditLogs           AuditLog[]
   transactions        Transaction[]
   reports             Report[]
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  cargos              Cargo[]
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
 }
 
 model Student {
@@ -479,14 +481,36 @@ model Campaign {
   @@index([companyId])
 }
 
+model Cargo {
+  id          String     @id @default(cuid())
+  companyId   String
+  company     Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  // owner | manager | collaborator | viewer
+  level       String     @default("collaborator")
+  isDefault   Boolean    @default(false)
+  active      Boolean    @default(true)
+  employees   Employee[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([companyId])
+}
+
 model Employee {
   id         String      @id @default(cuid())
   companyId  String
   company    Company     @relation(fields: [companyId], references: [id])
+  userId     String?     @unique
+  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  cargoId    String?
+  cargo      Cargo?      @relation(fields: [cargoId], references: [id], onDelete: SetNull)
   name       String
   email      String?
   phone      String?
   position   String?
+  isOwner    Boolean     @default(false)
   salary     Decimal      @default(0) @db.Decimal(18, 2)
   hireDate   DateTime?
   active     Boolean     @default(true)
@@ -571,15 +595,16 @@ model ResourcePermission {
 }
 
 model Invite {
-  id        String   @id @default(cuid())
-  companyId String
-  company   Company  @relation(fields: [companyId], references: [id])
-  token     String   @unique
-  email     String?
-  role      String   @default("user")
-  used      Boolean  @default(false)
-  createdAt DateTime @default(now())
-  expiresAt DateTime
+  id          String      @id @default(cuid())
+  companyId   String
+  company     Company     @relation(fields: [companyId], references: [id])
+  token       String      @unique
+  email       String?
+  role        String      @default("user")
+  accountType AccountType
+  used        Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  expiresAt   DateTime
 
   @@index([companyId])
 }

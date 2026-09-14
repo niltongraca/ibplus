@@ -35,14 +35,19 @@ export async function getAuthUser() {
 
   const user = await prisma.user.findUnique({
     where: { id: payload.userId },
-    select: { id: true, name: true, email: true, phone: true, avatar: true, accountType: true, plan: true, companyId: true, role: true, tokenVersion: true },
+    select: {
+      id: true, name: true, email: true, phone: true, avatar: true, accountType: true, plan: true, companyId: true, role: true, tokenVersion: true,
+      employees: { select: { isOwner: true }, take: 1 },
+    },
   });
 
   if (!user) return null;
+
+  const { employees, ...rest } = user;
 
   if (payload.tokenVersion !== user.tokenVersion) {
     return null;
   }
 
-  return user;
+  return { ...rest, isOwner: employees[0]?.isOwner ?? false };
 }

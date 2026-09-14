@@ -13,7 +13,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const { id } = await params;
   const employee = await prisma.employee.findFirst({
     where: { id, companyId: user.companyId },
-    include: { attendances: { orderBy: { date: "desc" }, take: 10 }, vacations: { orderBy: { startDate: "desc" } } },
+    include: { cargo: { select: { id: true, name: true, level: true } }, attendances: { orderBy: { date: "desc" }, take: 10 }, vacations: { orderBy: { startDate: "desc" } } },
   });
 
   if (!employee) return NextResponse.json({ error: "Funcionário não encontrado." }, { status: 404 });
@@ -58,6 +58,17 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
   }
   if (body.active !== undefined) data.active = body.active === true;
+  if (body.cargoId !== undefined) {
+    if (body.cargoId) {
+      const cargo = await prisma.cargo.findFirst({
+        where: { id: String(body.cargoId), companyId: user.companyId, active: true },
+      });
+      if (!cargo) return NextResponse.json({ error: "Cargo inválido." }, { status: 400 });
+      data.cargoId = cargo.id;
+    } else {
+      data.cargoId = null;
+    }
+  }
 
   const result = await prisma.employee.updateMany({ where: { id, companyId: user.companyId }, data });
   if (!result.count) return NextResponse.json({ error: "Funcionário não encontrado." }, { status: 404 });

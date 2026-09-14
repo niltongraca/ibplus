@@ -10,12 +10,59 @@ import { parseDateOnly } from "@/lib/utils";
 
 const accountTypeEnum = z.enum(["EMPREENDEDOR", "EMPRESA", "ONG", "ASSOCIACAO", "EDUCACAO", "COOPERATIVA"]);
 
+interface RegisterPayload {
+  accountType: z.infer<typeof accountTypeEnum>;
+  email: string;
+  password: string;
+  telefone?: string;
+  nome: string;
+  cargoName?: string;
+  cargoDescription?: string;
+  cargoId?: string;
+  nomeEmpresa?: string;
+  nif?: string;
+  registoComercial?: string;
+  anoFundacao?: string;
+  numColaboradores?: string;
+  descricao?: string;
+  missao?: string;
+  visao?: string;
+  valores?: string;
+  pais?: string;
+  provincia?: string;
+  municipio?: string;
+  bairro?: string;
+  endereco?: string;
+  gpsLocation?: string;
+  ramoActividade?: string;
+  categoria?: string;
+  website?: string;
+  facebook?: string;
+  instagram?: string;
+  linkedin?: string;
+  nomeInstituicao?: string;
+  tipoInstituicao?: string;
+  cursos?: string;
+  nomeComercial?: string;
+  bi?: string;
+  dataNascimento?: string;
+  sexo?: string;
+  areaActividade?: string;
+  profissao?: string;
+  servicosDescricao?: string;
+  redesSociais?: string;
+  areaActuacao?: string;
+}
+
 const baseSchema = z.object({
   accountType: accountTypeEnum,
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
   telefone: z.string().optional(),
   nome: z.string().min(1, "O nome é obrigatório"),
+  cargoName: z.string().optional(),
+  cargoDescription: z.string().optional(),
+  cargoId: z.string().optional(),
 });
 
 const empresaSchema = baseSchema.extend({
@@ -75,10 +122,6 @@ const educacaoSchema = baseSchema.extend({
   endereco: z.string().optional(),
 });
 
-const inviteSchema = z.object({
-  invite: z.string().optional(),
-});
-
 const otherSchema = baseSchema.extend({
   accountType: z.enum(["EMPREENDEDOR", "ASSOCIACAO", "COOPERATIVA"]),
   nomeComercial: z.string().optional(),
@@ -121,13 +164,39 @@ export async function POST(request: Request) {
 
     const inviteToken = body.invite || null;
 
-    const parsed = registerSchema.safeParse(body);
-    if (!parsed.success) {
-      const firstError = parsed.error.errors[0];
-      return NextResponse.json({ error: firstError.message }, { status: 400 });
+    let parsed: RegisterPayload;
+
+    if (inviteToken) {
+      const inviteParse = baseSchema.safeParse(body);
+      if (!inviteParse.success) {
+        const firstError = inviteParse.error.errors[0];
+        return NextResponse.json({ error: firstError.message }, { status: 400 });
+      }
+      parsed = inviteParse.data as RegisterPayload;
+    } else {
+      const registerParse = registerSchema.safeParse(body);
+      if (!registerParse.success) {
+        const firstError = registerParse.error.errors[0];
+        return NextResponse.json({ error: firstError.message }, { status: 400 });
+      }
+      parsed = registerParse.data as RegisterPayload;
     }
 
-    const data = parsed.data;
+    const data = { ...parsed };
+
+    if (inviteToken) {
+      const existingInvite = await prisma.invite.findUnique({
+        where: { token: inviteToken },
+        select: { accountType: true },
+      });
+      if (existingInvite?.accountType) {
+        data.accountType = existingInvite.accountType;
+      }
+    }
+
+    if (!inviteToken && data.accountType !== "EMPREENDEDOR" && !data.cargoName) {
+      return NextResponse.json({ error: "Indique o seu cargo na organização." }, { status: 400 });
+    }
 
     const existing = await prisma.user.findUnique({ where: { email: data.email } });
     if (existing) {
@@ -138,6 +207,8 @@ export async function POST(request: Request) {
 
     const user = await prisma.$transaction(async (tx) => {
       let companyId: string;
+      let ownerCargoId: string | undefined;
+      let invited: boolean;
 
       if (inviteToken) {
         const invite = await tx.invite.findUnique({ where: { token: inviteToken } });
@@ -145,13 +216,45 @@ export async function POST(request: Request) {
         if (invite.used) throw new Error("Este convite já foi utilizado.");
         if (invite.expiresAt < new Date()) throw new Error("Este convite expirou.");
         companyId = invite.companyId;
+        invited = true;
         await tx.invite.update({ where: { id: invite.id }, data: { used: true } });
+
+        const defaultCargo = await tx.cargo.findFirst({
+          where: { companyId, active: true, isDefault: true },
+        });
+        if (defaultCargo) ownerCargoId = defaultCargo.id;
       } else {
         const companyName = data.accountType === "EMPRESA" ? data.nomeEmpresa! : `${data.nome} (${data.accountType})`;
         const company = await tx.company.create({
           data: { name: companyName, nif: data.nif, phone: data.telefone, address: data.endereco },
         });
         companyId = company.id;
+        invited = false;
+      }
+
+      let cargoId: string | null;
+
+      if (inviteToken) {
+        cargoId = data.cargoId || ownerCargoId || null;
+        if (cargoId) {
+          const cargoExists = await tx.cargo.findFirst({
+            where: { id: cargoId, companyId, active: true },
+          });
+          if (!cargoExists) throw new Error("Cargo selecionado inválido.");
+        }
+      } else if (data.accountType !== "EMPREENDEDOR") {
+        const cargo = await tx.cargo.create({
+          data: {
+            companyId,
+            name: data.cargoName!,
+            description: data.cargoDescription || null,
+            level: "owner",
+            isDefault: true,
+          },
+        });
+        cargoId = cargo.id;
+      } else {
+        cargoId = ownerCargoId || null;
       }
 
       const profileData: Prisma.ProfileUncheckedCreateWithoutUserInput = {
@@ -191,7 +294,7 @@ export async function POST(request: Request) {
         profile: { create: profileData },
       };
 
-      if (data.accountType === "EMPRESA") {
+      if (!invited && data.accountType === "EMPRESA") {
         const ed = data as z.infer<typeof empresaSchema>;
         createData.companyProfile = {
           create: {
@@ -208,7 +311,7 @@ export async function POST(request: Request) {
         };
       }
 
-      if (data.accountType === "ONG") {
+      if (!invited && data.accountType === "ONG") {
         const od = data as z.infer<typeof ongSchema>;
         createData.ngoProfile = {
           create: {
@@ -220,7 +323,7 @@ export async function POST(request: Request) {
         };
       }
 
-      if (data.accountType === "EDUCACAO") {
+      if (!invited && data.accountType === "EDUCACAO") {
         const ed = data as z.infer<typeof educacaoSchema>;
         createData.educationProfile = {
           create: {
@@ -232,10 +335,27 @@ export async function POST(request: Request) {
         };
       }
 
-      return tx.user.create({
+      const createdUser = await tx.user.create({
         data: createData,
         select: { id: true, name: true, email: true, phone: true, accountType: true, plan: true, role: true, companyId: true, tokenVersion: true },
       });
+
+      if (companyId && data.accountType !== "EMPREENDEDOR") {
+        await tx.employee.create({
+          data: {
+            companyId,
+            userId: createdUser.id,
+            name: data.nome,
+            email: data.email,
+            phone: data.telefone,
+            position: data.cargoName || data.cargoDescription || null,
+            cargoId,
+            isOwner: !invited,
+          },
+        });
+      }
+
+      return { ...createdUser, isOwner: !invited && companyId !== null && data.accountType !== "EMPREENDEDOR" };
     });
 
     const mail = welcomeEmail(user.name, user.accountType);
@@ -258,7 +378,7 @@ export async function POST(request: Request) {
     return response;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "";
-    if (message.includes("Link") || message.includes("convite") || message.includes("expirou")) {
+    if (message.includes("Link") || message.includes("convite") || message.includes("expirou") || message.includes("Cargo")) {
       return NextResponse.json({ error: message }, { status: 400 });
     }
     return NextResponse.json({ error: "Erro interno do servidor." }, { status: 500 });
