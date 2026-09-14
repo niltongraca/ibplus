@@ -38,20 +38,8 @@ function esc(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
-function initials(name: string): string {
-  const words = name.split(/\s+/).filter(Boolean).slice(0, 2);
-  return words.map((w) => w[0]?.toUpperCase() ?? "").join("") || "IB";
-}
-
 function fmtLongDate(d: Date): string {
   return d.toLocaleDateString("pt-PT", { day: "numeric", month: "long", year: "numeric" });
-}
-
-function brandLogo(company: ReportCompanyInfo | null): string {
-  if (company?.logo) {
-    return `<img class="logo" src="${esc(company.logo)}" alt="${esc(company.name || "")}" />`;
-  }
-  return `<div class="logo-fallback">${esc(initials(company?.name || "IBPlus"))}</div>`;
 }
 
 function companyMeta(company: ReportCompanyInfo | null): string {
@@ -105,7 +93,7 @@ export function buildReportHtml(opts: ReportDocumentOptions): string {
   const brand = company?.name || "IBPlus+";
   const periodLabel = opts.period ? `<p class="period">${esc(opts.period)}</p>` : "";
   const sectionHtml = opts.sections.map(renderSection).join("");
-  const footnote = opts.footnote || "Documento elaborado com o apoio do IBPlus+";
+  const footnote = opts.footnote || "Documento gerado na plataforma IBPlus+";
 
   return `<!DOCTYPE html>
 <html lang="pt">
@@ -125,10 +113,7 @@ export function buildReportHtml(opts: ReportDocumentOptions): string {
   }
   .sheet { max-width: 860px; margin: 0 auto; }
   .letterhead { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
-  .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
-  .logo { width: 50px; height: 50px; object-fit: contain; }
-  .logo-fallback { width: 50px; height: 50px; border-radius: 10px; background: #0f172a; color: #fff;
-    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; }
+  .brand { min-width: 0; }
   .company-name { font-size: 19px; font-weight: 800; color: #0f172a; letter-spacing: -.2px; }
   .company-meta { font-size: 11px; color: #64748b; margin-top: 3px; }
   .company-address { font-size: 11px; color: #64748b; margin-top: 2px; }
@@ -176,7 +161,6 @@ export function buildReportHtml(opts: ReportDocumentOptions): string {
   <div class="sheet">
     <div class="letterhead">
       <div class="brand">
-        ${brandLogo(company)}
         <div>
           <div class="company-name">${esc(brand)}</div>
           ${companyMeta(company) ? `<div class="company-meta">${companyMeta(company)}</div>` : ""}

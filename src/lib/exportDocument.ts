@@ -92,18 +92,6 @@ function fmtDate(value: string | null): string {
   return d.toLocaleDateString("pt-AO");
 }
 
-function initials(name: string): string {
-  const words = name.split(/\s+/).filter(Boolean).slice(0, 2);
-  return words.map((w) => w[0]?.toUpperCase() ?? "").join("") || "IB";
-}
-
-function brandLogo(company: ExportCompanyInfo | null): string {
-  if (company?.logo) {
-    return `<img class="logo" src="${esc(company.logo)}" alt="${esc(company.name || "")}" />`;
-  }
-  return `<div class="logo-fallback">${esc(initials(company?.name || "IBPlus"))}</div>`;
-}
-
 function companyMeta(company: ExportCompanyInfo | null): string {
   if (!company) return "";
   const lines = [
@@ -119,16 +107,8 @@ function companyAddress(company: ExportCompanyInfo | null): string {
   return `<div class="company-meta">${esc(company.address)}</div>`;
 }
 
-function docFooter(company: ExportCompanyInfo | null): string {
-  if (!company) return "IBPlus+ &nbsp;·&nbsp; Plataforma de Gestão Empresarial";
-  const bits = [
-    esc(company.name),
-    company.nif ? `NIF: ${esc(company.nif)}` : "",
-    company.address ? esc(company.address) : "",
-    company.phone ? esc(company.phone) : "",
-    company.email ? esc(company.email) : "",
-  ].filter(Boolean);
-  return bits.join(" &nbsp;·&nbsp; ");
+function docFooter(_company: ExportCompanyInfo | null): string {
+  return "Documento gerado na plataforma <b>IBPlus+</b>";
 }
 
 export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompanyInfo | null): string {
@@ -200,10 +180,7 @@ export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompa
   }
   .sheet { max-width: 860px; margin: 0 auto; }
   .letterhead { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
-  .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
-  .logo { width: 52px; height: 52px; object-fit: contain; }
-  .logo-fallback { width: 52px; height: 52px; border-radius: 10px; background: #0f172a; color: #fff;
-    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; }
+  .brand { min-width: 0; }
   .company-name { font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -.2px; }
   .company-meta { font-size: 11.5px; color: #64748b; margin-top: 3px; }
   .company-line { font-size: 11.5px; color: #64748b; margin-top: 3px; }
@@ -254,7 +231,6 @@ export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompa
   <div class="sheet">
     <div class="letterhead">
       <div class="brand">
-        ${brandLogo(company)}
         <div>
           <div class="company-name">${esc(brand)}</div>
           ${companyMeta(company) ? `<div class="company-line">${companyMeta(company)}</div>` : ""}

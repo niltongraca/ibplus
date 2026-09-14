@@ -90,16 +90,8 @@ export function InvoiceTemplate({ data, type, typeLabel, company }: InvoiceTempl
         <div className="flex justify-between items-start">
           <div className="flex items-start gap-4">
             <div>
-              <div className="flex items-center gap-2">
-                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 border border-white/15 font-bold text-white">IB</span>
-                <h2 className="text-xl font-bold text-white tracking-tight">
-                  IBPlus<sup className="text-blue-300 font-bold">+</sup>
-                </h2>
-              </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
-                {company?.name && (
-                  <p className="text-xs text-blue-300/80">Emitido por {company.name}</p>
-                )}
+              <h2 className="text-xl font-bold text-white tracking-tight">{company?.name || "IBPlus+"}</h2>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
                 {company?.nif && (
                   <p className="text-xs text-blue-300/70">NIF: {company.nif}</p>
                 )}
@@ -243,7 +235,7 @@ export function InvoiceTemplate({ data, type, typeLabel, company }: InvoiceTempl
         )}
 
         <div className="border-t border-gray-100 pt-4 mt-6 flex justify-between items-center text-xs text-gray-400">
-          <span>Documento gerado por IBPlus+{company?.name ? ` por conta de ${company.name}` : ""}</span>
+          <span>Documento gerado na plataforma IBPlus+</span>
           <span>{type} {data.number}</span>
         </div>
       </div>
