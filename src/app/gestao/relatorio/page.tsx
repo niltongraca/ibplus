@@ -147,7 +147,9 @@ export default function RelatorioPage() {
         <SummaryCard icon={DollarSign} label="Receita Total" value={formatCurrency(data.totalRevenue)} color="green" sub={`${formatCurrency(data.todaySales)} hoje`} />
         <SummaryCard icon={TrendingDown} label="Despesas" value={formatCurrency(data.totalExpenses)} color="red" sub={`${formatCurrency(data.monthExpenses)} este mês`} />
         <SummaryCard icon={TrendingUp} label="Lucro Líquido" value={formatCurrency(netProfit)} color={netProfit >= 0 ? "blue" : "red"} sub={`${profitMargin.toFixed(1)}% margem`} />
-        <SummaryCard icon={Wallet} label="Saldo de Fundos" value={formatCurrency(data.balance)} color={data.balance >= 0 ? "purple" : "red"} sub="Entradas vs Saídas" />
+        <SummaryCard icon={Wallet} label="Saldo de Fundos" value={formatCurrency(data.balance)} color={data.balance >= 0 ? "purple" : "red"} sub="Valor em conta" />
+        <SummaryCard icon={TrendingUp} label="Entradas" value={formatCurrency(data.totalIncome)} color="green" sub="Faturas pagas" />
+        <SummaryCard icon={TrendingDown} label="Saídas" value={formatCurrency(data.totalExpense)} color="red" sub="Pagamentos efectuados" />
       </div>
 
       <ChartsWidget data={data} />
