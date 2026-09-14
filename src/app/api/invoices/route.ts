@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       if (isNaN(dueDate.getTime())) return NextResponse.json({ error: "A data de vencimento não é válida." }, { status: 400 });
     }
 
-    const items: Array<{ description?: unknown; quantity?: unknown; unitPrice?: unknown }> = Array.isArray(body.items) ? body.items : [];
+    const items: Array<{ description?: unknown; quantity?: unknown; unitPrice?: unknown; kind?: unknown }> = Array.isArray(body.items) ? body.items : [];
     if (!items.length) return NextResponse.json({ error: "A fatura precisa de pelo menos um item." }, { status: 400 });
 
     const normalizedItems = items.map((i) => {
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
       if (!description) throw new Error("A descrição de cada item é obrigatória.");
       if (!Number.isInteger(quantity) || quantity <= 0) throw new Error("A quantidade deve ser um número inteiro positivo.");
       if (!Number.isFinite(unitPrice) || unitPrice < 0) throw new Error("O preço unitário não pode ser negativo.");
-      return { description, quantity, unitPrice, total: quantity * unitPrice };
+      return { description, quantity, unitPrice, total: quantity * unitPrice, kind: i.kind === "service" ? "service" : "product" };
     });
 
     const subtotal = normalizedItems.reduce((sum, i) => sum + i.total, 0);
@@ -115,7 +115,7 @@ export async function POST(request: Request) {
         status,
         dueDate,
         notes,
-        items: { create: normalizedItems },
+        items: { create: normalizedItems.map(({ kind: _kind, ...rest }) => rest) },
       },
       include: { items: true },
     });

@@ -71,7 +71,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   // Full/partial items replacement + recompute totals
   if (Array.isArray(body.items)) {
-    const rawItems: Array<{ description?: unknown; quantity?: unknown; unitPrice?: unknown }> = body.items;
+    const rawItems: Array<{ description?: unknown; quantity?: unknown; unitPrice?: unknown; kind?: unknown }> = body.items;
     if (!rawItems.length) return NextResponse.json({ error: "A fatura precisa de pelo menos um item." }, { status: 400 });
     const normalizedItems = rawItems.map((i) => {
       const description = i.description ? String(i.description).trim() : "";
@@ -80,11 +80,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       if (!description) throw new Error("A descrição de cada item é obrigatória.");
       if (!Number.isInteger(quantity) || quantity <= 0) throw new Error("A quantidade deve ser um número inteiro positivo.");
       if (!Number.isFinite(unitPrice) || unitPrice < 0) throw new Error("O preço unitário não pode ser negativo.");
-      return { description, quantity, unitPrice, total: quantity * unitPrice };
+      return { description, quantity, unitPrice, total: quantity * unitPrice, kind: i.kind === "service" ? "service" : "product" };
     });
     const subtotal = normalizedItems.reduce((s, i) => s + i.total, 0);
     data.subtotal = subtotal;
-    data.items = { deleteMany: {}, create: normalizedItems };
+    data.items = { deleteMany: {}, create: normalizedItems.map(({ kind: _kind, ...rest }) => rest) };
 
     if (body.discountValue !== undefined || body.discountType !== undefined) {
       const discountType = body.discountType === "percentage" ? "percentage" : (body.discountType ?? existing.discountType);

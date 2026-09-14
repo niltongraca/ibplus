@@ -22,7 +22,7 @@ export async function findOrCreateCustomer(companyId: string, name: string, db: 
 
 export async function ensureItemsInCatalog(
   companyId: string,
-  items: { description: string; unitPrice: number }[],
+  items: { description: string; unitPrice: number; kind?: string }[],
   db: CatalogClient = prisma
 ): Promise<void> {
   const [products, services] = await Promise.all([
@@ -34,20 +34,28 @@ export async function ensureItemsInCatalog(
   for (const p of products) known.add(p.name.trim().toLowerCase());
   for (const s of services) known.add(s.name.trim().toLowerCase());
 
-  const pending = new Map<string, { name: string; price: number }>();
+  const pending = new Map<string, { name: string; price: number; kind: "product" | "service" }>();
   for (const item of items) {
     const name = typeof item.description === "string" ? item.description.trim() : "";
     if (!name) continue;
     const key = name.toLowerCase();
     if (!known.has(key) && !pending.has(key)) {
-      pending.set(key, { name, price: Number(item.unitPrice) || 0 });
+      const kind = item.kind === "service" ? "service" : "product";
+      pending.set(key, { name, price: Number(item.unitPrice) || 0, kind });
     }
   }
 
-  for (const { name, price } of pending.values()) {
-    const product = await db.product.create({
-      data: { companyId, name, price, stock: 0, minStock: 0 },
-    });
-    await logAction("create", "product", product.id, `Produto "${name}" criado automaticamente na faturação`);
+  for (const { name, price, kind } of pending.values()) {
+    if (kind === "service") {
+      const service = await db.service.create({
+        data: { companyId, name, price },
+      });
+      await logAction("create", "service", service.id, `Serviço "${name}" criado automaticamente na faturação`);
+    } else {
+      const product = await db.product.create({
+        data: { companyId, name, price, stock: 0, minStock: 0 },
+      });
+      await logAction("create", "product", product.id, `Produto "${name}" criado automaticamente na faturação`);
+    }
   }
 }

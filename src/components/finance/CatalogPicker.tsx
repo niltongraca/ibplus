@@ -20,7 +20,7 @@ export interface CatalogService {
 interface CatalogPickerProps {
   products: CatalogProduct[];
   services: CatalogService[];
-  onSelect: (entry: { name: string; price: number }) => void;
+  onSelect: (entry: { name: string; price: number; kind: "product" | "service" }) => void;
 }
 
 export function CatalogPicker({ products, services, onSelect }: CatalogPickerProps) {
@@ -44,8 +44,8 @@ export function CatalogPicker({ products, services, onSelect }: CatalogPickerPro
 
   const hasItems = products.length > 0 || services.length > 0;
 
-  function pick(name: string, price: number) {
-    onSelect({ name, price });
+  function pick(name: string, price: number, kind: "product" | "service") {
+    onSelect({ name, price, kind });
     setOpen(false);
   }
 
@@ -73,7 +73,7 @@ export function CatalogPicker({ products, services, onSelect }: CatalogPickerPro
                 <button
                   key={s.id}
                   type="button"
-                  onClick={() => pick(s.name, s.price)}
+                  onClick={() => pick(s.name, s.price, "service")}
                   className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-ib-muted hover:bg-gray-50 hover:text-ib-primary"
                 >
                   <Wrench className="w-4 h-4 shrink-0 text-gray-400" />
@@ -93,7 +93,7 @@ export function CatalogPicker({ products, services, onSelect }: CatalogPickerPro
                 <button
                   key={p.id}
                   type="button"
-                  onClick={() => pick(p.name, p.price)}
+                  onClick={() => pick(p.name, p.price, "product")}
                   className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-ib-muted hover:bg-gray-50 hover:text-ib-primary"
                 >
                   <Package className="w-4 h-4 shrink-0 text-gray-400" />

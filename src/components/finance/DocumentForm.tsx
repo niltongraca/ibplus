@@ -12,6 +12,7 @@ interface LineItem {
   description: string;
   quantity: number;
   unitPrice: number;
+  kind?: "product" | "service";
 }
 
 interface Customer {
@@ -94,7 +95,7 @@ export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; 
   const [paymentMethod, setPaymentMethod] = useState("");
   const [bankDetails, setBankDetails] = useState("");
 
-  const [items, setItems] = useState<LineItem[]>([{ description: "", quantity: 1, unitPrice: 0 }]);
+  const [items, setItems] = useState<LineItem[]>([{ description: "", quantity: 1, unitPrice: 0, kind: "product" }]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [existingStatus, setExistingStatus] = useState("");
@@ -147,7 +148,7 @@ export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; 
       .finally(() => setLoading(false));
   }, [id, isInvoice, router, backUrl]);
 
-  const addItem = () => setItems([...items, { description: "", quantity: 1, unitPrice: 0 }]);
+  const addItem = () => setItems([...items, { description: "", quantity: 1, unitPrice: 0, kind: "product" }]);
   const removeItem = (i: number) => {
     if (items.length <= 1) return;
     setItems(items.filter((_, idx) => idx !== i));
@@ -158,8 +159,8 @@ export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; 
     setItems(updated);
   };
 
-  const addFromCatalog = (entry: { name: string; price: number }) => {
-    setItems([...items, { description: entry.name, quantity: 1, unitPrice: entry.price }]);
+  const addFromCatalog = (entry: { name: string; price: number; kind?: "product" | "service" }) => {
+    setItems([...items, { description: entry.name, quantity: 1, unitPrice: entry.price, kind: entry.kind || "product" }]);
   };
 
   const handleCustomerChange = (value: string) => {
@@ -173,6 +174,8 @@ export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; 
   };
 
   const subtotal = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
+  const productNames = new Set(products.map((p) => p.name.trim().toLowerCase()));
+  const serviceNames = new Set(services.map((s) => s.name.trim().toLowerCase()));
   const discount = discountType === "percentage" ? (subtotal * Math.min(100, discountValue)) / 100 : Math.min(subtotal, discountValue);
   const total = Math.max(0, subtotal - discount);
   const installmentValue = installments > 0 ? total / installments : total;
@@ -332,10 +335,11 @@ export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; 
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[560px]">
+              <table className="w-full text-sm min-w-[640px]">
                 <thead>
                   <tr className="border-b border-gray-100 text-ib-muted text-xs uppercase tracking-wider">
                     <th className="text-left p-3 font-medium w-2/5">Descrição</th>
+                    <th className="text-center p-3 font-medium w-28">Tipo</th>
                     <th className="text-center p-3 font-medium w-16">Qtd</th>
                     <th className="text-right p-3 font-medium w-32">Preço Unit.</th>
                     <th className="text-right p-3 font-medium w-32">Total</th>
@@ -347,6 +351,30 @@ export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; 
                     <tr key={i} className="border-b border-gray-50">
                       <td className="p-1">
                         <input type="text" value={item.description} onChange={(e) => updateItem(i, "description", e.target.value)} placeholder="Descrição" className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" required />
+                      </td>
+                      <td className="p-1">
+                        {(() => {
+                          const key = item.description.trim().toLowerCase();
+                          const inProducts = key ? productNames.has(key) : false;
+                          const inServices = key ? serviceNames.has(key) : false;
+                          if (inProducts) {
+                            return <span className="inline-flex items-center px-2 py-1 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">Produto</span>;
+                          }
+                          if (inServices) {
+                            return <span className="inline-flex items-center px-2 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium">Serviço</span>;
+                          }
+                          return (
+                            <select
+                              value={item.kind || "product"}
+                              onChange={(e) => updateItem(i, "kind", e.target.value as "product" | "service")}
+                              className="w-full px-2 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40"
+                              title="Produto ou serviço (não encontrado no catálogo)"
+                            >
+                              <option value="product">Produto</option>
+                              <option value="service">Serviço</option>
+                            </select>
+                          );
+                        })()}
                       </td>
                       <td className="p-1">
                         <input type="number" min={1} value={item.quantity} onChange={(e) => updateItem(i, "quantity", parseInt(e.target.value) || 0)} className="w-16 px-2 py-2 border border-gray-200 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-ib-accent/40" required />
