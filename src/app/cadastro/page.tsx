@@ -172,7 +172,18 @@ function CadastroPage() {
     setLoading(false);
     if (result.success) {
       setSuccess(true);
-      setTimeout(() => router.push("/gestao/dashboard"), 1500);
+      setTimeout(async () => {
+        let target = "/gestao/dashboard";
+        try {
+          const steps = await fetch("/api/account/steps").then((r) => r.json());
+          if (steps && typeof steps.pending === "number" && steps.pending > 0) {
+            target = "/gestao/configuracao";
+          }
+        } catch {
+          // ignore
+        }
+        router.push(target);
+      }, 1500);
     } else {
       setError(result.error || "Erro ao criar conta.");
     }

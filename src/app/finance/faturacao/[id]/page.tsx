@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, FileDown, Printer, Trash2, Save, RotateCcw, CheckCircle, Wallet, Pencil } from "lucide-react";
+import { ArrowLeft, FileDown, Printer, Trash2, Save, RotateCcw, CheckCircle, Wallet, Pencil, Mail } from "lucide-react";
 import Link from "next/link";
 import { useConfirm } from "@/components/ConfirmModal";
 import { InvoiceTemplate } from "@/components/invoice/InvoiceTemplate";
@@ -50,6 +50,7 @@ export default function FaturaDetailPage() {
   const [company, setCompany] = useState<{ name: string; nif?: string | null; email?: string | null; phone?: string | null; address?: string | null; logo?: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [sending, setSending] = useState(false);
   const [status, setStatus] = useState("pending");
   const [paidInput, setPaidInput] = useState(0);
 
@@ -100,6 +101,27 @@ export default function FaturaDetailPage() {
     if (!(await confirm({ title: "Eliminar fatura", message: "Tem a certeza que deseja eliminar esta fatura?", variant: "danger" }))) return;
     await fetch(`/api/invoices/${id}`, { method: "DELETE" });
     router.push("/finance/faturacao");
+  }
+
+  async function handleSendEmail() {
+    if (!invoice || sending) return;
+    const target = invoice.customerEmail?.trim() || window.prompt("Email do cliente para enviar a fatura:")?.trim() || "";
+    if (!target) return;
+    setSending(true);
+    try {
+      const res = await fetch("/api/documents/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "FATURA", id: invoice.id, to: target }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      alert(`Fatura enviada por email para ${data.to || target}.`);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Erro ao enviar o email.");
+    } finally {
+      setSending(false);
+    }
   }
 
   function handleExportPDF() {
@@ -164,6 +186,9 @@ export default function FaturaDetailPage() {
           </button>
           <button onClick={handleExportPDF} className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg text-sm text-ib-muted hover:bg-gray-50">
             <Printer className="w-4 h-4" /> Imprimir
+          </button>
+          <button onClick={handleSendEmail} disabled={sending} className="flex items-center gap-1.5 px-3 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+            <Mail className="w-4 h-4" /> {sending ? "A enviar..." : "Enviar por email"}
           </button>
           {invoice.status !== "paid" && (
             <button onClick={() => saveStatus("paid")} disabled={saving} className="flex items-center gap-1.5 px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">

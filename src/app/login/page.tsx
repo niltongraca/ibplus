@@ -27,8 +27,20 @@ function LoginForm() {
     if (result.success) {
       const { user: u } = await fetch("/api/auth/me").then((r) => r.json());
       const defaultRoute = u?.role === "admin" ? "/admin" : "/gestao/dashboard";
-      const redirect = searchParams?.get("redirect") || defaultRoute;
-      router.push(redirect);
+      const redirect = searchParams?.get("redirect");
+
+      let target = redirect || defaultRoute;
+      if (!redirect && u && u.role !== "admin") {
+        try {
+          const steps = await fetch("/api/account/steps").then((r) => r.json());
+          if (steps && typeof steps.pending === "number" && steps.pending > 0) {
+            target = "/gestao/configuracao";
+          }
+        } catch {
+          // ignore
+        }
+      }
+      router.push(target);
     } else {
       setError(result.error || "Erro ao fazer login.");
     }

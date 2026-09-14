@@ -75,8 +75,7 @@ export const ACCOUNT_STEPS: AccountStep[] = [
     icon: "phone",
     tab: "contactos",
     done: (c) =>
-      Boolean(c.user.phone || c.user.avatar === undefined) ||
-      Boolean(c.profile?.telefone || c.company?.phone || c.company?.whatsappStore || c.user.phone),
+      Boolean(c.user.phone || c.profile?.telefone || c.company?.phone || c.company?.whatsappStore),
   },
   {
     key: "bio",

@@ -160,10 +160,24 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
         <ArrowLeft className="w-4 h-4" /> Voltar à Praça
       </Link>
 
-      <div className="glass-card p-8 mb-8">
+      <div className="glass-card overflow-hidden mb-8">
+        {user?.coverPhoto && (
+          <div className="w-full h-32 sm:h-44">
+            <img src={user.coverPhoto} alt="Capa da empresa" className="w-full h-full object-cover" />
+          </div>
+        )}
+        <div className="p-8">
         <div className="flex items-start gap-4 mb-6">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "rgba(37, 99, 235, 0.1)" }}>
-            {user?.name ? <User className="w-8 h-8 text-ib-accent" /> : <Store className="w-8 h-8 text-ib-accent" />}
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ backgroundColor: "rgba(37, 99, 235, 0.1)" }}>
+            {company.logo ? (
+              <img src={company.logo} alt={`${company.name} logo`} className="w-full h-full object-contain p-1" />
+            ) : user?.avatar ? (
+              <img src={user.avatar} alt={user?.name || "Avatar"} className="w-full h-full object-cover" />
+            ) : user?.name ? (
+              <User className="w-8 h-8 text-ib-accent" />
+            ) : (
+              <Store className="w-8 h-8 text-ib-accent" />
+            )}
           </div>
           <div className="flex-1">
             <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>{company.name}</h1>
@@ -218,6 +232,7 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
             ))}
           </div>
         )}
+        </div>
       </div>
 
       <div className="flex items-center justify-between mb-6">

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, FileDown, Printer, Trash2, CheckCircle, RotateCcw, FileText, Pencil } from "lucide-react";
+import { ArrowLeft, FileDown, Printer, Trash2, CheckCircle, RotateCcw, FileText, Pencil, Mail } from "lucide-react";
 import Link from "next/link";
 import { useConfirm } from "@/components/ConfirmModal";
 import { InvoiceTemplate } from "@/components/invoice/InvoiceTemplate";
@@ -48,6 +48,7 @@ export default function OrcamentoDetailPage() {
   const [company, setCompany] = useState<{ name: string; nif?: string | null; email?: string | null; phone?: string | null; address?: string | null; logo?: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [sending, setSending] = useState(false);
   const [invoiceCreated, setInvoiceCreated] = useState(false);
 
   useEffect(() => {
@@ -87,6 +88,27 @@ export default function OrcamentoDetailPage() {
     if (!(await confirm({ title: "Eliminar orçamento", message: "Tem a certeza que deseja eliminar este orçamento?", variant: "danger" }))) return;
     await fetch(`/api/quotes/${id}`, { method: "DELETE" });
     router.push("/finance/orcamentos");
+  }
+
+  async function handleSendEmail() {
+    if (!quote || sending) return;
+    const target = quote.customerEmail?.trim() || window.prompt("Email do cliente para enviar o orçamento:")?.trim() || "";
+    if (!target) return;
+    setSending(true);
+    try {
+      const res = await fetch("/api/documents/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "ORÇAMENTO", id: quote.id, to: target }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      alert(`Orçamento enviado por email para ${data.to || target}.`);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Erro ao enviar o email.");
+    } finally {
+      setSending(false);
+    }
   }
 
   function handleExportPDF() {
@@ -148,6 +170,9 @@ export default function OrcamentoDetailPage() {
           </button>
           <button onClick={handleExportPDF} className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg text-sm text-ib-muted hover:bg-gray-50">
             <Printer className="w-4 h-4" /> Imprimir
+          </button>
+          <button onClick={handleSendEmail} disabled={sending} className="flex items-center gap-1.5 px-3 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+            <Mail className="w-4 h-4" /> {sending ? "A enviar..." : "Enviar por email"}
           </button>
           {quote.status !== "approved" && (
             <button onClick={() => changeStatus("approved")} disabled={saving} className="flex items-center gap-1.5 px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">

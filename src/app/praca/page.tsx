@@ -57,8 +57,12 @@ export default async function PracaPage() {
                 className="glass-card p-6 hover:shadow-lg transition-all group"
               >
                 <div className="flex items-start justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: "rgba(37, 99, 235, 0.1)" }}>
-                    <Store className="w-6 h-6 text-ib-accent" />
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden" style={{ backgroundColor: "rgba(37, 99, 235, 0.1)" }}>
+                    {company.logo ? (
+                      <img src={company.logo} alt={`${company.name} logo`} className="w-full h-full object-contain p-0.5" />
+                    ) : (
+                      <Store className="w-6 h-6 text-ib-accent" />
+                    )}
                   </div>
                   <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ backgroundColor: "rgba(37, 99, 235, 0.1)", color: "var(--color-ib-accent)" }}>
                     {company._count.products} produtos
