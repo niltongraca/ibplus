@@ -8,7 +8,7 @@ async function nextDocumentNumber(
   prefix: "FAT" | "ORC",
   model: "invoice" | "quote"
 ): Promise<string> {
-  await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`${ADVISORY_LOCK_TAG}:${prefix}:${companyId}`}, 0))`;
+  await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`${ADVISORY_LOCK_TAG}:${prefix}:${companyId}`}, 0))::text`;
   const count =
     model === "invoice"
       ? await tx.invoice.count({ where: { companyId } })
