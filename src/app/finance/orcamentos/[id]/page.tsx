@@ -146,7 +146,7 @@ export default function OrcamentoDetailPage() {
           <button onClick={handleExportPDF} className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg text-sm text-ib-muted hover:bg-gray-50">
             <FileDown className="w-4 h-4" /> Exportar
           </button>
-          <button onClick={() => window.print()} className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg text-sm text-ib-muted hover:bg-gray-50">
+          <button onClick={handleExportPDF} className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg text-sm text-ib-muted hover:bg-gray-50">
             <Printer className="w-4 h-4" /> Imprimir
           </button>
           {quote.status !== "approved" && (

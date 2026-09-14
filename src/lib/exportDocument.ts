@@ -92,6 +92,45 @@ function fmtDate(value: string | null): string {
   return d.toLocaleDateString("pt-AO");
 }
 
+function initials(name: string): string {
+  const words = name.split(/\s+/).filter(Boolean).slice(0, 2);
+  return words.map((w) => w[0]?.toUpperCase() ?? "").join("") || "IB";
+}
+
+function brandLogo(company: ExportCompanyInfo | null): string {
+  if (company?.logo) {
+    return `<img class="logo" src="${esc(company.logo)}" alt="${esc(company.name || "")}" />`;
+  }
+  return `<div class="logo-fallback">${esc(initials(company?.name || "IBPlus"))}</div>`;
+}
+
+function companyMeta(company: ExportCompanyInfo | null): string {
+  if (!company) return "";
+  const lines = [
+    company.nif ? `NIF: ${esc(company.nif)}` : "",
+    company.phone ? esc(company.phone) : "",
+    company.email ? esc(company.email) : "",
+  ].filter(Boolean);
+  return lines.join(" &nbsp;·&nbsp; ");
+}
+
+function companyAddress(company: ExportCompanyInfo | null): string {
+  if (!company?.address) return "";
+  return `<div class="company-meta">${esc(company.address)}</div>`;
+}
+
+function docFooter(company: ExportCompanyInfo | null): string {
+  if (!company) return "IBPlus+ &nbsp;·&nbsp; Plataforma de Gestão Empresarial";
+  const bits = [
+    esc(company.name),
+    company.nif ? `NIF: ${esc(company.nif)}` : "",
+    company.address ? esc(company.address) : "",
+    company.phone ? esc(company.phone) : "",
+    company.email ? esc(company.email) : "",
+  ].filter(Boolean);
+  return bits.join(" &nbsp;·&nbsp; ");
+}
+
 export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompanyInfo | null): string {
   const status: StatusStyle = statusMap[data.status] || { label: data.status, bg: "#f3f4f6", color: "#6b7280", border: "#e5e7eb" };
   const currency = data.currency || "AOA";
@@ -100,17 +139,7 @@ export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompa
   const installments = data.installments ?? 1;
   const paidAmount = data.paidAmount ?? 0;
   const remaining = Math.max(0, data.total - paidAmount);
-
-  const logoHtml = `<div class="logo-fallback">IB</div>`;
-
-  const companyLine = [
-    company?.name ? `Emitido por ${esc(company.name)}` : "",
-    company?.nif ? `NIF: ${esc(company.nif)}` : "",
-    company?.email ? esc(company.email) : "",
-    company?.phone ? esc(company.phone) : "",
-  ].filter(Boolean).join(" &nbsp;·&nbsp; ");
-
-  const addressLine = company?.address ? `<p class="address">${esc(company.address)}</p>` : "";
+  const brand = company?.name || "IBPlus+";
 
   const itemsRows = data.items.map((item, idx) => `
       <tr class="${idx % 2 ? "alt" : ""}">
@@ -127,27 +156,27 @@ export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompa
   const customerExtra = [
     data.customerPhone ? `<p>${esc(data.customerPhone)}</p>` : "",
     data.customerEmail ? `<p>${esc(data.customerEmail)}</p>` : "",
-    data.customerNif ? `<p><b>NIF:</b> ${esc(data.customerNif)}</p>` : "",
+    data.customerNif ? `<p>NIF: ${esc(data.customerNif)}</p>` : "",
   ].join("");
 
   const summaryRows = `
-    <div class="sum-row"><span>Subtotal</span><span>${money(subtotal, currency)}</span></div>
-    ${discount > 0 ? `<div class="sum-row discount"><span>Desconto${data.discountType === "percentage" && data.discountValue ? ` (${data.discountValue}%)` : ""}</span><span>- ${money(discount, currency)}</span></div>` : ""}
-    ${installments > 1 ? `<div class="sum-row"><span>Prestações</span><span>${installments} × ${money(data.total / installments, currency)}</span></div>` : ""}
-    ${data.type === "FATURA" && paidAmount > 0 ? `<div class="sum-row paid"><span>Pago</span><span>${money(paidAmount, currency)}</span></div>` : ""}
-    ${data.type === "FATURA" && paidAmount > 0 ? `<div class="sum-row debt"><span>Em dívida</span><span>${money(remaining, currency)}</span></div>` : ""}`;
+    <div class="tot-row"><span>Subtotal</span><span>${money(subtotal, currency)}</span></div>
+    ${discount > 0 ? `<div class="tot-row discount"><span>Desconto${data.discountType === "percentage" && data.discountValue ? ` (${data.discountValue}%)` : ""}</span><span>- ${money(discount, currency)}</span></div>` : ""}
+    ${installments > 1 ? `<div class="tot-row"><span>Prestações</span><span>${installments} × ${money(data.total / installments, currency)}</span></div>` : ""}
+    ${data.type === "FATURA" && paidAmount > 0 ? `<div class="tot-row paid"><span>Pago</span><span>${money(paidAmount, currency)}</span></div>` : ""}
+    ${data.type === "FATURA" && paidAmount > 0 ? `<div class="tot-row debt"><span>Em dívida</span><span>${money(remaining, currency)}</span></div>` : ""}`;
 
   const bankHtml = data.bankDetails
     ? `
-      <div class="bank">
-        <h4>Coordenadas bancárias</h4>
+      <div class="block">
+        <h4>Coordenadas Bancárias</h4>
         <p>${esc(data.bankDetails)}</p>
       </div>`
     : "";
 
   const notesHtml = data.notes
     ? `
-      <div class="notes">
+      <div class="block">
         <h4>Observações</h4>
         <p>${esc(data.notes)}</p>
       </div>`
@@ -161,90 +190,60 @@ export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompa
 <title>${esc(data.type)} ${esc(data.number)}</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  @page { size: A4; margin: 0; }
+  html, body { background: #fff; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: #eef1f6; color: #1a2a4a; line-height: 1.5;
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1f2937; line-height: 1.45; font-size: 13px;
+    padding: 16mm 18mm;
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
-  .sheet {
-    max-width: 860px; margin: 24px auto; background: #fff;
-    border-radius: 16px; overflow: hidden;
-    box-shadow: 0 12px 40px rgba(10,22,40,.12);
-  }
-  .header {
-    background: linear-gradient(120deg, #0a1628 0%, #0f1f3d 55%, #1a2a4a 100%);
-    padding: 28px 36px; display: flex; justify-content: space-between; align-items: center; gap: 16px;
-  }
+  .sheet { max-width: 860px; margin: 0 auto; }
+  .letterhead { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
   .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
-  .logo { height: 56px; width: 56px; object-fit: contain; border-radius: 12px;
-    background: rgba(255,255,255,.12); padding: 6px; border: 1px solid rgba(255,255,255,.15); }
-  .logo-fallback { height: 56px; width: 56px; border-radius: 12px; display: flex; align-items: center;
-    justify-content: center; font-size: 26px; font-weight: 800; color: #fff;
-    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.15); }
-  .company-name { font-size: 19px; font-weight: 800; color: #fff; letter-spacing: -.2px; }
-  .company-name .sup { color: #93c5fd; font-size: 14px; font-weight: 800; }
-  .company-line { font-size: 11px; color: #9db3cf; margin-top: 4px; }
-  .address { font-size: 11px; color: #7d93b5; margin-top: 2px; }
-  .doc-title { text-align: right; }
-  .doc-type { font-size: 30px; font-weight: 900; color: #fff; letter-spacing: 3px; }
-  .doc-number { font-size: 13px; color: #9db3cf; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; margin-top: 2px; }
-  .status { display: inline-block; margin-top: 10px; font-size: 11px; font-weight: 700; letter-spacing: .5px;
-    padding: 4px 12px; border-radius: 999px; background: ${status.bg}; color: ${status.color};
-    border: 1px solid ${status.border}; }
-  .body { padding: 32px 36px 28px; }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
-  .card { background: #f8fafc; border: 1px solid #eef1f6; border-radius: 12px; padding: 16px 18px; }
-  .card h4 { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: #94a3b8; margin-bottom: 10px; }
-  .card p { font-size: 13px; color: #334155; }
-  .card p b { color: #0f172a; font-weight: 600; }
-  .card .customer { font-size: 14px; font-weight: 700; color: #0f172a; }
-  table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #eef1f6; border-radius: 12px; overflow: hidden; margin-bottom: 24px; }
-  thead th { background: linear-gradient(120deg, #0a1628 0%, #1a2a4a 100%); color: #fff; text-align: left;
-    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 12px 14px; }
-  thead th.num { text-align: right; }
-  tbody td { padding: 11px 14px; font-size: 13px; border-top: 1px solid #f1f5f9; vertical-align: top; }
-  tbody tr.alt td { background: #f8fafc; }
-  td.desc { color: #0f172a; font-weight: 500; }
-  td.num { text-align: right; color: #475569; white-space: nowrap; }
-  td.strong { font-weight: 700; color: #0f172a; }
-  td.empty { text-align: center; color: #94a3b8; padding: 20px; }
-  .total-wrap { display: flex; justify-content: flex-end; margin-bottom: 20px; }
-  .total-card { min-width: 260px; background: linear-gradient(135deg, #0a1628 0%, #1a2a4a 100%);
-    border-radius: 12px; padding: 16px 20px; color: #fff; text-align: right; }
-  .total-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: #9db3cf; margin-bottom: 4px; }
-  .total-value { font-size: 24px; font-weight: 800; letter-spacing: -.3px; }
-  .summary { display: flex; flex-direction: column; align-items: flex-end; margin-bottom: 20px; }
-  .sum-row { display: flex; justify-content: space-between; gap: 28px; font-size: 13px; color: #475569; padding: 3px 0; }
-  .sum-row span:last-child { color: #0f172a; font-weight: 600; }
-  .sum-row.discount span:last-child { color: #dc2626; }
-  .sum-row.paid span:last-child { color: #059669; }
-  .sum-row.debt span:last-child { color: #b91c1c; }
-  .sum-row.total { border-top: 1px solid #eef1f6; margin-top: 4px; padding-top: 10px; font-size: 15px; }
-  .sum-row.total span:last-child { font-weight: 800; font-size: 19px; }
-  .bank { border: 1px solid #dbeafe; background: #eff6ff; border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; }
-  .bank h4 { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: #64748b; margin-bottom: 4px; }
-  .bank p { font-size: 13px; color: #334155; white-space: pre-wrap; }
+  .logo { width: 52px; height: 52px; object-fit: contain; }
+  .logo-fallback { width: 52px; height: 52px; border-radius: 10px; background: #0f172a; color: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; }
+  .company-name { font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -.2px; }
+  .company-meta { font-size: 11.5px; color: #64748b; margin-top: 3px; }
+  .company-line { font-size: 11.5px; color: #64748b; margin-top: 3px; }
+  .doc-title { text-align: right; min-width: 0; }
+  .doc-type { font-size: 25px; font-weight: 800; letter-spacing: 2px; color: #0f172a; text-transform: uppercase; }
+  .doc-number { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: #475569; font-size: 13px; margin-top: 2px; }
+  .status { display: inline-block; margin-top: 8px; font-size: 10px; font-weight: 700; letter-spacing: .6px;
+    padding: 3px 10px; border-radius: 999px; background: ${status.bg}; color: ${status.color}; border: 1px solid ${status.border}; }
+  .rule { border: none; border-top: 2px solid #0f172a; margin: 18px 0 22px; }
+  .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-bottom: 22px; }
+  .party-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 700; margin-bottom: 6px; }
+  .parties p { margin: 2px 0; font-size: 12.5px; color: #374151; }
+  .parties p b { color: #0f172a; font-weight: 600; }
+  .parties .customer { font-size: 14px; font-weight: 700; color: #0f172a; }
   .capitalize { text-transform: capitalize; }
-  .notes { border-top: 1px solid #eef1f6; padding-top: 16px; margin-bottom: 20px; }
-  .notes h4 { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: #94a3b8; margin-bottom: 6px; }
-  .notes p { font-size: 13px; color: #475569; white-space: pre-wrap; }
-  .footer { border-top: 1px solid #eef1f6; padding-top: 14px; display: flex; justify-content: space-between;
-    align-items: center; font-size: 11px; color: #94a3b8; }
-  .generated { position: fixed; top: 16px; right: 16px; z-index: 50; }
-  @media (max-width: 640px) {
-    .sheet { margin: 0; border-radius: 0; box-shadow: none; min-height: 100vh; }
-    .header { padding: 20px; }
-    .body { padding: 22px 16px 24px; }
-    .grid { grid-template-columns: 1fr; gap: 12px; }
-    .doc-type { font-size: 24px; }
-    .total-card { width: 100%; }
-    thead th { padding: 10px 8px; }
-    tbody td { padding: 9px 8px; font-size: 12px; }
-  }
+  table.items { width: 100%; border-collapse: collapse; margin: 22px 0 10px; }
+  table.items thead th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .8px;
+    color: #64748b; font-weight: 700; padding: 8px 10px; border-top: 2px solid #0f172a; border-bottom: 1px solid #cbd5e1; background: #f8fafc; }
+  table.items thead th.num { text-align: right; }
+  table.items tbody td { padding: 9px 10px; border-bottom: 1px solid #e5e7eb; font-size: 12.5px; vertical-align: top; }
+  table.items tr.alt td { background: #fafafa; }
+  table.items td.desc { color: #0f172a; font-weight: 500; }
+  table.items td.num { text-align: right; color: #475569; white-space: nowrap; }
+  table.items td.strong { font-weight: 700; color: #0f172a; }
+  table.items td.empty { text-align: center; color: #94a3b8; padding: 18px; }
+  .totals { display: flex; justify-content: flex-end; margin: 12px 0 18px; }
+  .totals-box { width: 300px; }
+  .tot-row { display: flex; justify-content: space-between; gap: 24px; padding: 3px 0; font-size: 12.5px; color: #475569; }
+  .tot-row span:last-child { color: #0f172a; font-weight: 600; }
+  .tot-row.discount span:last-child { color: #b91c1c; }
+  .tot-row.paid span:last-child { color: #047857; }
+  .tot-row.debt span:last-child { color: #b91c1c; }
+  .tot-row.grand { border-top: 2px solid #0f172a; margin-top: 6px; padding-top: 10px; font-size: 14px; }
+  .tot-row.grand span:last-child { font-size: 18px; font-weight: 800; }
+  .block { margin-bottom: 16px; }
+  .block h4 { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 4px; }
+  .block p { font-size: 12.5px; color: #374151; white-space: pre-wrap; }
+  .footer { margin-top: 30px; padding-top: 12px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 10.5px; color: #94a3b8; line-height: 1.6; }
   @media print {
-    body { background: #fff; }
-    .sheet { margin: 0; border-radius: 0; box-shadow: none; max-width: none; }
-    @page { margin: 12mm; }
+    body { padding: 16mm 18mm; }
   }
 </style>
 </head>
@@ -253,57 +252,55 @@ export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompa
     setTimeout(function () { window.print(); }, 250);
   <\/script>
   <div class="sheet">
-    <div class="header">
+    <div class="letterhead">
       <div class="brand">
-        ${logoHtml}
+        ${brandLogo(company)}
         <div>
-          <div class="company-name">IBPlus<sup class="sup">+</sup></div>
-          ${companyLine ? `<div class="company-line">${companyLine}</div>` : ""}
-          ${addressLine}
+          <div class="company-name">${esc(brand)}</div>
+          ${companyMeta(company) ? `<div class="company-line">${companyMeta(company)}</div>` : ""}
+          ${companyAddress(company)}
         </div>
       </div>
       <div class="doc-title">
         <div class="doc-type">${esc(data.type)}</div>
-        <div class="doc-number">${esc(data.number)}</div>
+        <div class="doc-number">Nº ${esc(data.number)}</div>
         <span class="status">${esc(status.label)}</span>
       </div>
     </div>
-    <div class="body">
-      <div class="grid">
-        <div class="card">
-          <h4>Datas</h4>
-          <p><b>Emissão:</b> ${fmtDate(data.date)}</p>
-          <p><b>${esc(data.secondaryDateLabel)}:</b> ${fmtDate(data.secondaryDate)}</p>
-          ${data.paymentMethod ? `<p class="capitalize"><b>Pagamento:</b> ${esc(data.paymentMethod)}</p>` : ""}
-        </div>
-        <div class="card">
-          <h4>Cliente</h4>
-          <p class="customer">${esc(data.customer || "—")}</p>
-          ${customerExtra}
-        </div>
+    <hr class="rule" />
+    <div class="parties">
+      <div>
+        <div class="party-label">Informação de Emissão</div>
+        <p><b>Data de emissão:</b> ${fmtDate(data.date)}</p>
+        <p><b>${esc(data.secondaryDateLabel)}:</b> ${fmtDate(data.secondaryDate)}</p>
+        ${data.paymentMethod ? `<p><b>Pagamento:</b> <span class="capitalize">${esc(data.paymentMethod)}</span></p>` : ""}
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Descrição</th>
-            <th class="num" style="width:70px;">Qtd</th>
-            <th class="num" style="width:130px;">Preço Unit.</th>
-            <th class="num" style="width:130px;">Total</th>
-          </tr>
-        </thead>
-        <tbody>${itemsRows}${emptyRows}</tbody>
-      </table>
-      ${summaryRows && `<div class="summary">
-        ${summaryRows}
-        <div class="sum-row total"><span>Total</span><span>${money(data.total, currency)}</span></div>
-      </div>`}
-      ${bankHtml}
-      ${notesHtml}
-      <div class="footer">
-        <span>Documento gerado por IBPlus+${company?.name ? ` por conta de ${esc(company.name)}` : ""}</span>
-        <span>${esc(data.type)} ${esc(data.number)}</span>
+      <div>
+        <div class="party-label">Cliente</div>
+        <p class="customer">${esc(data.customer || "—")}</p>
+        ${customerExtra}
       </div>
     </div>
+    <table class="items">
+      <thead>
+        <tr>
+          <th>Descrição</th>
+          <th class="num" style="width:64px;">Qtd</th>
+          <th class="num" style="width:120px;">Preço Unit.</th>
+          <th class="num" style="width:120px;">Total</th>
+        </tr>
+      </thead>
+      <tbody>${itemsRows}${emptyRows}</tbody>
+    </table>
+    <div class="totals">
+      <div class="totals-box">
+        ${summaryRows}
+        <div class="tot-row grand"><span>Total ${esc(data.typeLabel)}</span><span>${money(data.total, currency)}</span></div>
+      </div>
+    </div>
+    ${bankHtml}
+    ${notesHtml}
+    <div class="footer">${docFooter(company)}</div>
   </div>
 </body>
 </html>`;
