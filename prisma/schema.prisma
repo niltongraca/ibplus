@@ -28,6 +28,7 @@ model User {
   password     String
   phone        String?
   avatar       String?
+  coverPhoto   String?
   accountType  AccountType @default(EMPREENDEDOR)
   role         String      @default("user")
   plan         PlanType    @default(FREE)
@@ -677,15 +678,26 @@ model Report {
 }
 
 model Notification {
-  id        String   @id @default(cuid())
-  companyId String
-  company   Company  @relation(fields: [companyId], references: [id])
-  type      String
-  title     String
-  message   String?
-  link      String?
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  companyId      String
+  company        Company  @relation(fields: [companyId], references: [id])
+  type           String
+  title          String
+  message        String?
+  link           String?
+  requiresUpdate Boolean  @default(false)
+  read           Boolean  @default(false)
+  createdAt      DateTime @default(now())
 
   @@index([companyId])
+}
+
+model Announcement {
+  id             String   @id @default(cuid())
+  title          String
+  message        String?
+  link           String?
+  requiresUpdate Boolean  @default(false)
+  createdBy      String?
+  createdAt      DateTime @default(now())
 }

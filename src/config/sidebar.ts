@@ -20,6 +20,7 @@ import {
   FileCheck,
   HandCoins,
   ShieldCheck,
+  ClipboardCheck,
   type LucideIcon,
 } from "lucide-react";
 import type { FeatureKey } from "./permissions";
@@ -43,6 +44,7 @@ const CONFIG = "Configurações";
 
 const dashboardItem: SidebarItem = { label: "Dashboard", icon: LayoutDashboard, href: "/gestao/dashboard", feature: "dashboard" };
 const perfilItem: SidebarItem = { label: "Perfil", icon: Settings, href: "/gestao/perfil" };
+const configuracaoItem: SidebarItem = { label: "Completar Conta", icon: ClipboardCheck, href: "/gestao/configuracao" };
 const relatorioItem: SidebarItem = { label: "Relatório", icon: BarChart3, href: "/gestao/relatorio", feature: "relatorios" };
 const permissoesItem: SidebarItem = { label: "Permissões", icon: ShieldCheck, href: "/rh/permissoes", feature: "rh", ownerOnly: true };
 
@@ -64,7 +66,7 @@ const SIDEBAR_CONFIG: Record<string, SidebarGroup[]> = {
         { label: "Resumo Financeiro", icon: BarChart3, href: "/gestao/fluxo-caixa", feature: "fluxo-caixa" },
       ],
     },
-    { name: CONFIG, items: [perfilItem] },
+    { name: CONFIG, items: [perfilItem, configuracaoItem] },
   ],
 
   EMPRESA: [
@@ -117,7 +119,7 @@ const SIDEBAR_CONFIG: Record<string, SidebarGroup[]> = {
         { label: "Campanhas", icon: Megaphone, href: "/marketing/campanhas", feature: "marketing" },
       ],
     },
-    { name: CONFIG, items: [perfilItem] },
+    { name: CONFIG, items: [perfilItem, configuracaoItem] },
   ],
 
   ONG: [
@@ -142,7 +144,7 @@ const SIDEBAR_CONFIG: Record<string, SidebarGroup[]> = {
         { label: "Resumo Financeiro", icon: BarChart3, href: "/gestao/fluxo-caixa", feature: "fluxo-caixa" },
       ],
     },
-    { name: CONFIG, items: [perfilItem] },
+    { name: CONFIG, items: [perfilItem, configuracaoItem] },
   ],
 
   ASSOCIACAO: [
@@ -160,7 +162,7 @@ const SIDEBAR_CONFIG: Record<string, SidebarGroup[]> = {
         { label: "Resumo Financeiro", icon: BarChart3, href: "/gestao/fluxo-caixa", feature: "fluxo-caixa" },
       ],
     },
-    { name: CONFIG, items: [perfilItem] },
+    { name: CONFIG, items: [perfilItem, configuracaoItem] },
   ],
 
   EDUCACAO: [
@@ -178,7 +180,7 @@ const SIDEBAR_CONFIG: Record<string, SidebarGroup[]> = {
         { label: "Resumo Financeiro", icon: BarChart3, href: "/gestao/fluxo-caixa", feature: "fluxo-caixa" },
       ],
     },
-    { name: CONFIG, items: [perfilItem] },
+    { name: CONFIG, items: [perfilItem, configuracaoItem] },
   ],
 
   COOPERATIVA: [
@@ -198,7 +200,7 @@ const SIDEBAR_CONFIG: Record<string, SidebarGroup[]> = {
         { label: "Resumo Financeiro", icon: BarChart3, href: "/gestao/fluxo-caixa", feature: "fluxo-caixa" },
       ],
     },
-    { name: CONFIG, items: [perfilItem] },
+    { name: CONFIG, items: [perfilItem, configuracaoItem] },
   ],
 };
 

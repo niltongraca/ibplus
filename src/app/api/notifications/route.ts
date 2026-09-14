@@ -24,9 +24,9 @@ export async function POST(request: Request) {
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   try {
-    const { type, title, message, link } = await request.json();
+    const { type, title, message, link, requiresUpdate } = await request.json();
     const notification = await prisma.notification.create({
-      data: { companyId: user.companyId, type, title, message, link },
+      data: { companyId: user.companyId, type, title, message, link, requiresUpdate: Boolean(requiresUpdate) },
     });
     return NextResponse.json({ notification }, { status: 201 });
   } catch {

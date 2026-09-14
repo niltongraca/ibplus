@@ -18,6 +18,10 @@ export async function PUT(request: Request) {
     const avatar = typeof body.avatar === "string" ? body.avatar.trim() : "";
     updateData.avatar = avatar || "";
   }
+  if (body.coverPhoto !== undefined) {
+    const coverPhoto = typeof body.coverPhoto === "string" ? body.coverPhoto.trim() : "";
+    updateData.coverPhoto = coverPhoto || "";
+  }
   if (body.phone !== undefined) {
     updateData.phone = typeof body.phone === "string" ? body.phone.trim() : "";
   }

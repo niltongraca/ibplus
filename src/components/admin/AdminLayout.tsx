@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Users, Building2, Wrench, Activity, Shield, LogOut, Home, ChevronLeft, ChevronRight, Globe, ArrowLeftFromLine, Settings, ToggleLeft, KeyRound, BookOpen } from "lucide-react";
+import { LayoutDashboard, Users, Building2, Wrench, Activity, Shield, LogOut, Home, ChevronLeft, ChevronRight, Globe, ArrowLeftFromLine, Settings, ToggleLeft, KeyRound, BookOpen, Megaphone } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 
@@ -15,6 +15,7 @@ const adminNav = [
   { label: "Permissões", icon: KeyRound, href: "/admin/permissoes", desc: "Controlar acesso por tipo de conta" },
   { label: "Serviços", icon: Wrench, href: "/admin/servicos", desc: "Serviços da plataforma" },
   { label: "Conteúdos", icon: BookOpen, href: "/admin/conteudos", desc: "Vídeos, artigos, ebooks e posts" },
+  { label: "Anúncios", icon: Megaphone, href: "/admin/anuncios", desc: "Avisos e novas funções" },
   { label: "Logs", icon: Activity, href: "/admin/logs", desc: "Registo de actividades" },
 ];
 

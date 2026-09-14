@@ -9,6 +9,7 @@ export const ROUTE_PERMISSIONS: Record<string, string[]> = {
   "/gestao/fluxo-caixa": ["EMPREENDEDOR", "EMPRESA", "ONG", "ASSOCIACAO", "EDUCACAO", "COOPERATIVA"],
   "/gestao/stock": ["EMPRESA", "COOPERATIVA"],
   "/gestao/perfil": ["EMPREENDEDOR", "EMPRESA", "ONG", "ASSOCIACAO", "EDUCACAO", "COOPERATIVA"],
+  "/gestao/configuracao": ["EMPREENDEDOR", "EMPRESA", "ONG", "ASSOCIACAO", "EDUCACAO", "COOPERATIVA"],
   "/finance/orcamentos": ["EMPRESA"],
   "/finance/faturacao": ["EMPRESA"],
   "/finance/cobrancas": ["EMPRESA"],
@@ -21,6 +22,7 @@ export const ROUTE_PERMISSIONS: Record<string, string[]> = {
   "/admin/recursos": ["admin"],
   "/admin/permissoes": ["admin"],
   "/admin/conteudos": ["admin"],
+  "/admin/anuncios": ["admin"],
 };
 
 export const PUBLIC_ROUTES = ["/", "/login", "/cadastro", "/onboarding", "/praca", "/sobre", "/rede", "/unauthorized"];

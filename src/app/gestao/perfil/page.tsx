@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/Toast";
 import {
@@ -33,7 +34,9 @@ export default function PerfilPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
-  const [activeTab, setActiveTab] = useState("perfil");
+  const searchParams = useSearchParams();
+  const tabParam = typeof searchParams.get("tab") === "string" ? searchParams.get("tab") : null;
+  const [activeTab, setActiveTab] = useState(tabParam || "perfil");
 
   const [profile, setProfile] = useState({ name: "", email: "", phone: "" });
   const [company, setCompany] = useState<CompanyData>({

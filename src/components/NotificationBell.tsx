@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Bell, CheckCheck, Info, AlertTriangle, ShoppingCart, Users, Package, TrendingUp } from "lucide-react";
+import { Bell, CheckCheck, Info, AlertTriangle, ShoppingCart, Users, Package, TrendingUp, Megaphone, ListChecks, ArrowRight } from "lucide-react";
 import { NotificationBadge } from "@/components/ui/transitions/NotificationBadge";
 import { apiFetch } from "@/lib/api";
 
@@ -12,6 +12,7 @@ interface Notification {
   title: string;
   message: string | null;
   link: string | null;
+  requiresUpdate: boolean;
   read: boolean;
   createdAt: string;
 }
@@ -23,6 +24,8 @@ const typeIcons: Record<string, React.ReactNode> = {
   customer: <Users className="w-4 h-4 text-purple-500" />,
   stock: <Package className="w-4 h-4 text-red-500" />,
   insight: <TrendingUp className="w-4 h-4 text-cyan-500" />,
+  system: <Megaphone className="w-4 h-4 text-ib-accent" />,
+  update: <ListChecks className="w-4 h-4 text-amber-500" />,
 };
 
 function timeAgo(dateStr: string) {
@@ -109,15 +112,20 @@ export default function NotificationBell() {
                 <div
                   key={n.id}
                   className="flex items-start gap-3 px-4 py-3 border-b transition-colors cursor-pointer"
-                  style={{ borderColor: "var(--border-color)", backgroundColor: !n.read ? "rgba(37,99,235,0.05)" : "transparent" }}
+                  style={{ borderColor: "var(--border-color)", backgroundColor: !n.read ? (n.requiresUpdate ? "rgba(245,158,11,0.06)" : "rgba(37,99,235,0.05)") : "transparent" }}
                   onClick={() => { markRead(n.id); if (n.link) window.location.href = n.link; }}
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "var(--bg-secondary)"}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = !n.read ? "rgba(37,99,235,0.05)" : "transparent"}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = !n.read ? (n.requiresUpdate ? "rgba(245,158,11,0.06)" : "rgba(37,99,235,0.05)") : "transparent"}
                 >
                   <div className="mt-0.5 shrink-0">{typeIcons[n.type] || typeIcons.info}</div>
                   <div className="min-w-0 flex-1">
                     <p className={`text-sm ${!n.read ? "font-semibold" : ""}`} style={{ color: "var(--text-primary)" }}>{n.title}</p>
                     {n.message && <p className="text-xs mt-0.5 line-clamp-2" style={{ color: "var(--text-muted)" }}>{n.message}</p>}
+                    {n.requiresUpdate && (
+                      <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-medium text-amber-600">
+                        <ListChecks className="w-3 h-3" /> Passos para actualizar a conta
+                      </span>
+                    )}
                     <p className="text-[10px] mt-1" style={{ color: "var(--text-muted)" }}>{timeAgo(n.createdAt)}</p>
                   </div>
                   {!n.read && <div className="w-2 h-2 rounded-full bg-ib-accent shrink-0 mt-1.5" />}

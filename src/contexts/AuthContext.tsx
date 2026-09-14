@@ -9,6 +9,7 @@ interface User {
   email: string;
   phone?: string | null;
   avatar?: string | null;
+  coverPhoto?: string | null;
   accountType?: string;
   plan?: string;
   companyId?: string | null;
