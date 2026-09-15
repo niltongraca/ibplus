@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { signToken } from "@/lib/auth";
+import { ensureCompanyOwner } from "@/lib/ownership";
 import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 
 export async function POST(request: Request) {
@@ -26,19 +27,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email ou senha inválidos." }, { status: 401 });
     }
 
-    const employee = user.companyId
-      ? await prisma.employee.findFirst({
-          where: { userId: user.id },
-          select: { isOwner: true, cargo: { select: { level: true } } },
-        })
-      : null;
-
-    const cargoLevel = employee?.cargo?.level ?? null;
+    const ownerInfo = await ensureCompanyOwner(user);
+    const cargoLevel = ownerInfo.cargoLevel;
 
     const token = signToken({ userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType, plan: user.plan, tokenVersion: user.tokenVersion, cargoLevel });
 
     const response = NextResponse.json({
-      user: { id: user.id, name: user.name, email: user.email, phone: user.phone, avatar: user.avatar, coverPhoto: user.coverPhoto, accountType: user.accountType, plan: user.plan, companyId: user.companyId, role: user.role, isOwner: employee?.isOwner ?? false, cargoLevel },
+      user: { id: user.id, name: user.name, email: user.email, phone: user.phone, avatar: user.avatar, coverPhoto: user.coverPhoto, accountType: user.accountType, plan: user.plan, companyId: user.companyId, role: user.role, isOwner: ownerInfo.isOwner, cargoLevel },
     });
 
     response.cookies.set("ibplus_session", token, {

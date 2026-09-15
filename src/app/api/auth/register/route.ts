@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { signToken } from "@/lib/auth";
+import { ensureCompanyOwner } from "@/lib/ownership";
 import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 import { sendEmail, welcomeEmail } from "@/lib/email";
 import { parseDateOnly } from "@/lib/utils";
@@ -205,7 +206,7 @@ export async function POST(request: Request) {
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
-    const user = await prisma.$transaction(async (tx) => {
+    const created = await prisma.$transaction(async (tx) => {
       let companyId: string;
       let ownerCargoId: string | undefined;
       let invited: boolean;
@@ -363,6 +364,16 @@ export async function POST(request: Request) {
 
       return { ...createdUser, isOwner: !invited && companyId !== null && data.accountType !== "EMPREENDEDOR", cargoLevel };
     });
+
+    // Qualquer utilizador que registe/possua uma empresa passa a dono automaticamente
+    const ownerInfo = await ensureCompanyOwner({
+      id: created.id,
+      name: created.name,
+      email: created.email,
+      phone: created.phone,
+      companyId: created.companyId,
+    });
+    const user = { ...created, isOwner: ownerInfo.isOwner, cargoLevel: ownerInfo.cargoLevel };
 
     const mail = welcomeEmail(user.name, user.accountType);
     await sendEmail(user.email, mail.subject, mail.html);
