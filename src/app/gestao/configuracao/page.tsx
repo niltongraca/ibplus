@@ -6,8 +6,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
 import {
   ListChecks, CheckCircle2, Circle, ArrowRight, User, Image as ImageIcon,
-  Phone, BookOpen, MapPin, Clock, FileText, ClipboardCheck
+  Phone, BookOpen, MapPin, Clock, FileText, ClipboardCheck, Settings
 } from "lucide-react";
+import { CargosManager } from "@/components/rh/CargosManager";
+import { SubCompaniesManager } from "@/components/company/SubCompaniesManager";
+import { AcquisitionSection } from "@/components/company/AcquisitionSection";
 
 interface StepItem {
   key: string;
@@ -105,6 +108,22 @@ export default function ConfiguracaoPage() {
           necessários para actualizar a sua conta.
         </span>
       </div>
+
+      {user?.isOwner && (
+        <div className="mt-10">
+          <div className="flex items-center gap-2 mb-4">
+            <Settings className="w-5 h-5 text-ib-accent" />
+            <h2 className="text-xl font-bold text-ib-primary">Configurações da Empresa</h2>
+          </div>
+          <p className="text-sm text-ib-muted -mt-2 mb-5">
+            Gestão de cargos, subempresas/organizações e código de aquisição. Os cargos registados aqui são as sugestões
+            apresentadas aos convidados no cadastro.
+          </p>
+          <CargosManager />
+          <SubCompaniesManager />
+          <AcquisitionSection />
+        </div>
+      )}
     </div>
   );
 }

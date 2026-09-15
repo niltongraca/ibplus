@@ -39,7 +39,7 @@ export async function getAuthUser() {
     where: { id: payload.userId },
     select: {
       id: true, name: true, email: true, phone: true, avatar: true, coverPhoto: true, accountType: true, plan: true, companyId: true, role: true, tokenVersion: true,
-      employees: { select: { isOwner: true, cargo: { select: { level: true } } }, take: 1 },
+      employees: { select: { isOwner: true, cargo: { select: { level: true } } }, take: 1, orderBy: { isOwner: "desc" } },
     },
   });
 

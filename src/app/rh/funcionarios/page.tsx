@@ -9,11 +9,13 @@ import { useToast } from "@/components/Toast";
 import { useConfirm } from "@/components/ConfirmModal";
 import Pagination from "@/components/Pagination";
 import { useAuth } from "@/contexts/AuthContext";
+import { CargosManager, type Cargo } from "@/components/rh/CargosManager";
 
 interface Employee {
   id: string;
   name: string;
   email: string | null;
+  phone: string | null;
   position: string | null;
   salary: number;
   active: boolean;
@@ -21,24 +23,7 @@ interface Employee {
   cargo?: { id: string; name: string; level: string } | null;
 }
 
-interface Cargo {
-  id: string;
-  name: string;
-  description?: string | null;
-  level: string;
-  isDefault: boolean;
-  active: boolean;
-  _count?: { employees: number };
-}
-
-const LEVEL_LABELS: Record<string, string> = {
-  owner: "Dono",
-  manager: "Gestor",
-  collaborator: "Colaborador",
-  viewer: "Só-visualização",
-};
-
-const CARGO_LEVELS = ["owner", "manager", "collaborator", "viewer"] as const;
+const EMPTY_FORM = { name: "", email: "", phone: "", position: "", salary: 0, hireDate: "", cargoId: "", active: true };
 
 export default function FuncionariosPage() {
   const { user } = useAuth();
@@ -48,7 +33,8 @@ export default function FuncionariosPage() {
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
   const [cargos, setCargos] = useState<Cargo[]>([]);
-  const [formData, setFormData] = useState({ name: "", email: "", position: "", salary: 0, phone: "", hireDate: "", cargoId: "" });
+  const [editing, setEditing] = useState<Employee | null>(null);
+  const [formData, setFormData] = useState({ ...EMPTY_FORM });
   const { data: employees, setData: setEmployees, loading, page, setPage, totalPages } = useList<Employee>(
     "/api/employees",
     "employees",
@@ -74,7 +60,30 @@ export default function FuncionariosPage() {
     loadCargos();
   }, [loadCargos]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  function openCreate() {
+    setEditing(null);
+    setFormError("");
+    setFormData({ ...EMPTY_FORM });
+    setShowForm(true);
+  }
+
+  function openEdit(e: Employee) {
+    setEditing(e);
+    setFormError("");
+    setFormData({
+      name: e.name,
+      email: e.email || "",
+      phone: e.phone || "",
+      position: e.position || "",
+      salary: Number(e.salary) || 0,
+      hireDate: "",
+      cargoId: e.cargo?.id || "",
+      active: e.active,
+    });
+    setShowForm(true);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setFormError("");
     if (!formData.name.trim()) return setFormError("O nome é obrigatório.");
@@ -82,31 +91,40 @@ export default function FuncionariosPage() {
 
     setSaving(true);
     try {
-      const res = await fetch("/api/employees", {
-        method: "POST",
+      const payload = {
+        name: formData.name.trim(),
+        email: formData.email.trim() || null,
+        phone: formData.phone.trim() || null,
+        position: formData.position.trim() || null,
+        salary: Number(formData.salary) || 0,
+        hireDate: formData.hireDate ? new Date(formData.hireDate).toISOString() : null,
+        cargoId: formData.cargoId || undefined,
+        ...(editing ? { active: formData.active } : {}),
+      };
+      const res = await fetch(editing ? `/api/employees/${editing.id}` : "/api/employees", {
+        method: editing ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          email: formData.email.trim() || null,
-          hireDate: formData.hireDate ? new Date(formData.hireDate).toISOString() : null,
-          cargoId: formData.cargoId || undefined,
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
-        setFormError(data?.error || "Erro ao criar funcionário.");
+        setFormError(data?.error || (editing ? "Erro ao atualizar funcionário." : "Erro ao criar funcionário."));
         return;
       }
-      setEmployees((prev) => [...prev, data.employee]);
+      if (editing) {
+        setEmployees((prev) => prev.map((e) => (e.id === editing.id ? { ...e, ...payload } : e)));
+        toast("Funcionário atualizado com sucesso.");
+      } else {
+        setEmployees((prev) => [...prev, data.employee]);
+        toast("Funcionário criado com sucesso.");
+      }
       setShowForm(false);
-      setFormData({ name: "", email: "", position: "", salary: 0, phone: "", hireDate: "", cargoId: "" });
-      toast("Funcionário criado com sucesso.");
     } catch {
       setFormError("Erro de ligação. Tenta novamente.");
     } finally {
       setSaving(false);
     }
-  };
+  }
 
   const handleDelete = async (id: string) => {
     if (!(await confirm({ title: "Eliminar funcionário", message: "Tem a certeza que deseja eliminar este funcionário?", variant: "danger" }))) return;
@@ -123,6 +141,15 @@ export default function FuncionariosPage() {
       toast("Erro ao eliminar funcionário.", "error");
     }
   };
+
+  function cargoOptionsFor(e: Employee | null): Cargo[] {
+    const list = cargos.filter((c) => c.active === undefined || c.active);
+    if (e?.isOwner) {
+      const ownerCargos = list.filter((c) => c.level === "owner");
+      return ownerCargos.length ? ownerCargos : list;
+    }
+    return list;
+  }
 
   function cargoBadge(e: Employee) {
     if (e.isOwner) {
@@ -145,14 +172,12 @@ export default function FuncionariosPage() {
           <h1 className="text-2xl font-bold text-ib-primary">Funcionários</h1>
           <p className="text-ib-muted text-sm">Gestão da equipa, cargos e acessos</p>
         </div>
-        <button onClick={() => setShowForm(true)} className="flex items-center gap-2 bg-ib-accent hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium">
+        <button onClick={openCreate} className="flex items-center gap-2 bg-ib-accent hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium">
           <Plus className="w-4 h-4" /> Novo Funcionário
         </button>
       </div>
 
-      {isOwner && (
-        <CargosManager cargos={cargos} onChange={loadCargos} />
-      )}
+      {isOwner && <CargosManager />}
 
       <div className="bg-white rounded-xl border border-gray-200">
         <div className="p-4 border-b border-gray-100 flex items-center justify-between">
@@ -165,6 +190,10 @@ export default function FuncionariosPage() {
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40"
             />
+          </div>
+          <div className="flex items-center gap-1.5 text-sm text-ib-muted">
+            <Shield className="w-4 h-4 text-ib-accent" />
+            <span>Os cargos definem as permissões de cada membro da equipa.</span>
           </div>
         </div>
 
@@ -179,10 +208,15 @@ export default function FuncionariosPage() {
                 {e.active ? "Activo" : "Inactivo"}
               </span>
             )},
-            { key: "actions", header: "Acções", hide: "mobile", className: "text-center", render: (e: Employee) => (
-              <button onClick={() => handleDelete(e.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
-                <Trash2 className="w-4 h-4" />
-              </button>
+            { key: "actions", header: "Acções", hide: "tablet", className: "text-center", render: (e: Employee) => (
+              <div className="flex items-center justify-center gap-1">
+                <button onClick={() => openEdit(e)} className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
+                  <Pencil className="w-4 h-4" />
+                </button>
+                <button onClick={() => handleDelete(e.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             )},
           ]}
           data={employees}
@@ -197,11 +231,21 @@ export default function FuncionariosPage() {
                   <p className="font-semibold text-ib-primary">{e.name}</p>
                   <div className="flex items-center gap-2 mt-1">{cargoBadge(e)}</div>
                 </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => openEdit(e)} className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg" title="Editar">
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => handleDelete(e.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg" title="Eliminar">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center justify-between mt-2">
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${e.active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
                   {e.active ? "Activo" : "Inactivo"}
                 </span>
+                <p className="font-semibold text-ib-primary">{formatCurrency(e.salary)}</p>
               </div>
-              <p className="font-semibold text-ib-primary">{formatCurrency(e.salary)}</p>
             </div>
           )}
         />
@@ -212,7 +256,7 @@ export default function FuncionariosPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowForm(false)}>
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-ib-primary">Novo Funcionário</h2>
+              <h2 className="text-lg font-bold text-ib-primary">{editing ? "Editar Funcionário" : "Novo Funcionário"}</h2>
               <button onClick={() => setShowForm(false)} className="p-1 text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />
               </button>
@@ -235,25 +279,40 @@ export default function FuncionariosPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-ib-primary mb-1">Cargo</label>
-                {cargos.length > 0 ? (
-                  <select value={formData.cargoId || ""} onChange={(e) => setFormData({ ...formData, cargoId: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40">
-                    <option value="">Sem cargo</option>
-                    {cargos.filter((c) => c.active).map((c) => (
-                      <option key={c.id} value={c.id}>{c.name} ({LEVEL_LABELS[c.level] || c.level})</option>
-                    ))}
-                  </select>
-                ) : (
-                  <input type="text" value={formData.position} onChange={(e) => setFormData({ ...formData, position: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
-                )}
+                <select value={formData.cargoId || ""} onChange={(e) => setFormData({ ...formData, cargoId: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40">
+                  <option value="">Sem cargo</option>
+                  {cargoOptionsFor(editing).map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-ib-muted mt-1.5">
+                  {editing?.isOwner
+                    ? "O dono mantém sempre o nível de acesso total. Pode associar outros cargos de nível Dono."
+                    : "Os convidados recebem sugestões dos cargos ao registarem-se com o código de convite."}
+                </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-ib-primary mb-1">Salário (KZ)</label>
-                <input type="number" min="0" value={formData.salary} onChange={(e) => setFormData({ ...formData, salary: Number(e.target.value) })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+                <label className="block text-sm font-medium text-ib-primary mb-1">Posição (texto livre)</label>
+                <input type="text" value={formData.position} onChange={(e) => setFormData({ ...formData, position: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" placeholder="Ex.: Director de Vendas" />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-ib-primary mb-1">Data de Admissão</label>
-                <input type="date" value={formData.hireDate} onChange={(e) => setFormData({ ...formData, hireDate: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-ib-primary mb-1">Salário (KZ)</label>
+                  <input type="number" min="0" value={formData.salary} onChange={(e) => setFormData({ ...formData, salary: Number(e.target.value) })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-ib-primary mb-1">Data de Admissão</label>
+                  <input type="date" value={formData.hireDate} onChange={(e) => setFormData({ ...formData, hireDate: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+                </div>
               </div>
+              {editing && (
+                <div>
+                  <label className="flex items-center gap-2 text-sm text-ib-primary font-medium">
+                    <input type="checkbox" checked={formData.active !== false} onChange={(e) => setFormData({ ...formData, active: e.target.checked })} className="rounded" />
+                    Funcionário activo
+                  </label>
+                </div>
+              )}
               <button type="submit" disabled={saving} className="w-full bg-ib-accent hover:bg-blue-700 disabled:opacity-50 text-white py-2.5 rounded-lg text-sm font-medium">
                 {saving ? "A salvar..." : "Salvar"}
               </button>
@@ -261,154 +320,6 @@ export default function FuncionariosPage() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function CargosManager({ cargos, onChange }: { cargos: Cargo[]; onChange: () => void }) {
-  const { toast } = useToast();
-  const { confirm } = useConfirm();
-  const [showAdd, setShowAdd] = useState(false);
-  const [editing, setEditing] = useState<Cargo | null>(null);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [level, setLevel] = useState<string>("collaborator");
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-
-  function reset() {
-    setName("");
-    setDescription("");
-    setLevel("collaborator");
-    setError("");
-    setEditing(null);
-    setShowAdd(false);
-  }
-
-  function startEdit(c: Cargo) {
-    setEditing(c);
-    setName(c.name);
-    setDescription(c.description || "");
-    setLevel(c.level);
-    setError("");
-  }
-
-  async function save() {
-    setError("");
-    if (!name.trim()) {
-      setError("O nome do cargo é obrigatório.");
-      return;
-    }
-    setSaving(true);
-    try {
-      const res = await fetch(editing ? `/api/company/cargos/${editing.id}` : "/api/company/cargos", {
-        method: editing ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), description: description.trim() || undefined, level }),
-      });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) {
-        setError(data?.error || "Erro ao guardar cargo.");
-        return;
-      }
-      toast(editing ? "Cargo atualizado." : "Cargo criado.");
-      reset();
-      onChange();
-    } catch {
-      setError("Erro de ligação.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function remove(c: Cargo) {
-    if (!(await confirm({ title: "Remover cargo", message: `Deseja remover o cargo "${c.name}"?`, variant: "danger" }))) return;
-    try {
-      const res = await fetch(`/api/company/cargos/${c.id}`, { method: "DELETE" });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) {
-        toast(data?.error || "Erro ao remover cargo.", "error");
-        return;
-      }
-      toast(data?.message || "Cargo removido.");
-      onChange();
-    } catch {
-      toast("Erro ao remover cargo.", "error");
-    }
-  }
-
-  return (
-    <div className="bg-white rounded-xl border border-gray-200 mb-6">
-      <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Shield className="w-4 h-4 text-ib-accent" />
-          <h2 className="font-semibold text-ib-primary">Cargos da organização</h2>
-        </div>
-        <button onClick={() => { reset(); setShowAdd(true); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-ib-accent hover:bg-blue-700 text-white rounded-lg text-xs font-medium">
-          <Plus className="w-3.5 h-3.5" /> Novo Cargo
-        </button>
-      </div>
-      <div className="p-4">
-        {(showAdd || editing) && (
-          <div className="mb-4 p-4 rounded-lg bg-gray-50 border border-gray-100 space-y-3">
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-ib-primary mb-1">Nome *</label>
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-ib-primary mb-1">Nível</label>
-                <select value={level} onChange={(e) => setLevel(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40">
-                  <option value="collaborator">Colaborador</option>
-                  <option value="manager">Gestor</option>
-                  <option value="viewer">Só-visualização</option>
-                  <option value="owner">Dono</option>
-                </select>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-ib-primary mb-1">Descrição</label>
-              <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
-            </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
-            <div className="flex gap-2">
-              <button onClick={save} disabled={saving} className="px-4 py-2 bg-ib-accent hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium">
-                {saving ? "A guardar..." : "Guardar"}
-              </button>
-              <button onClick={reset} className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Cancelar</button>
-            </div>
-          </div>
-        )}
-        {cargos.length === 0 ? (
-          <p className="text-sm text-ib-muted">Ainda não há cargos registados. Crie cargos para a sua equipa — os convidados recebem sugestões destes cargos ao registar-se.</p>
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {cargos.map((c) => (
-              <div key={c.id} className={`p-3 rounded-lg border ${c.active ? "border-gray-200" : "border-red-100 bg-red-50/40"}`}>
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="text-sm font-medium text-ib-primary">{c.name} {c.isDefault && <span className="text-xs text-ib-muted font-normal">(padrão)</span>}</p>
-                    <p className="text-xs text-ib-muted mt-0.5">{LEVEL_LABELS[c.level] || c.level}{c._count?.employees ? ` · ${c._count.employees} func.` : ""}</p>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    {c.name !== "Dono" && (
-                      <button onClick={() => startEdit(c)} className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded" title="Editar">
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                    {c.name !== "Dono" && !c.isDefault && (
-                      <button onClick={() => remove(c)} className="p-1 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded" title="Remover">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-                {!c.active && <p className="text-xs text-red-600 mt-1">Desativado</p>}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   );
 }

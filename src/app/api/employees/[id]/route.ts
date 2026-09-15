@@ -67,8 +67,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         where: { id: String(body.cargoId), companyId: user.companyId, active: true },
       });
       if (!cargo) return NextResponse.json({ error: "Cargo inválido." }, { status: 400 });
+      if (existing.isOwner && cargo.level !== "owner") {
+        return NextResponse.json({ error: "O dono da organização só pode ter cargos de nível Dono." }, { status: 400 });
+      }
       data.cargoId = cargo.id;
     } else {
+      if (existing.isOwner) {
+        return NextResponse.json({ error: "O dono da organização deve ter um cargo de nível Dono." }, { status: 400 });
+      }
       data.cargoId = null;
     }
   }

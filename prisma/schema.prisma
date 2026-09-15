@@ -181,6 +181,25 @@ opportunities       Opportunity[]
   cargoPermissions    CargoPermission[]
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
+  acquisitionCode     String?     @unique
+  subCompanies        SubCompany[] @relation("SubCompanies")
+}
+
+model SubCompany {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     Company  @relation("SubCompanies", fields: [companyId], references: [id], onDelete: Cascade)
+  name        String
+  // SUBEMPRESA | ORGANIZACAO | FILIAL | SUCURSAL
+  type        String   @default("SUBEMPRESA")
+  sector      String?
+  address     String?
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([companyId])
 }
 
 model Student {
