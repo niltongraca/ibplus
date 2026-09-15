@@ -231,7 +231,10 @@ function CadastroPage() {
           {step === 0 ? (
             <div>
               <h2 className="text-xl font-bold text-center mb-2" style={{ color: "var(--text-primary)" }}>Que tipo de conta pretende criar?</h2>
-              <p className="text-sm text-center mb-8" style={{ color: "var(--text-muted)" }}>Escolha o perfil que melhor se adequa a si</p>
+              <p className="text-sm text-center mb-2" style={{ color: "var(--text-muted)" }}>Escolha o perfil que melhor se adequa a si</p>
+              <p className="text-xs text-center mb-8 px-4" style={{ color: "var(--text-muted)" }}>
+                Ao criar esta conta, ficará como <strong style={{ color: "var(--text-primary)" }}>dono</strong> da organização — com acesso total à gestão de cargos, permissões e organizações.
+              </p>
               <div className="grid sm:grid-cols-2 gap-4">
                 {ACCOUNT_TYPES.map((t) => (
                   <button key={t.value} onClick={() => selectType(t.value)}

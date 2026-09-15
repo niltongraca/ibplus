@@ -10,6 +10,8 @@ export const ROUTE_PERMISSIONS: Record<string, string[]> = {
   "/gestao/stock": ["EMPRESA", "COOPERATIVA"],
   "/gestao/perfil": ["EMPREENDEDOR", "EMPRESA", "ONG", "ASSOCIACAO", "EDUCACAO", "COOPERATIVA"],
   "/gestao/configuracao": ["EMPREENDEDOR", "EMPRESA", "ONG", "ASSOCIACAO", "EDUCACAO", "COOPERATIVA"],
+  "/gestao/cargos": ["EMPRESA", "EMPREENDEDOR", "ONG", "ASSOCIACAO", "EDUCACAO", "COOPERATIVA"],
+  "/gestao/organizacoes": ["EMPRESA", "EMPREENDEDOR", "ONG", "ASSOCIACAO", "EDUCACAO", "COOPERATIVA"],
   "/finance/orcamentos": ["EMPRESA"],
   "/finance/faturacao": ["EMPRESA"],
   "/finance/cobrancas": ["EMPRESA"],
