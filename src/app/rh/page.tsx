@@ -1,11 +1,13 @@
 import Link from "next/link";
-import { Users, DollarSign, Calendar, Clock } from "lucide-react";
+import { Users, DollarSign, Calendar, Clock, BadgeCheck, ShieldCheck } from "lucide-react";
 
 const links = [
   { label: "Funcionários", href: "/rh/funcionarios", description: "Gestão da equipa", icon: Users, color: "bg-blue-50 text-blue-600" },
   { label: "Salários", href: "/rh/salarios", description: "Remunerações", icon: DollarSign, color: "bg-green-50 text-green-600" },
   { label: "Férias", href: "/rh/ferias", description: "Gestão de férias", icon: Calendar, color: "bg-purple-50 text-purple-600" },
   { label: "Presenças", href: "/rh/presencas", description: "Controlo de horário", icon: Clock, color: "bg-orange-50 text-orange-600" },
+  { label: "Cargos", href: "/gestao/cargos", description: "Definição de cargos", icon: BadgeCheck, color: "bg-indigo-50 text-indigo-600" },
+  { label: "Permissões", href: "/rh/permissoes", description: "Acesso por cargo", icon: ShieldCheck, color: "bg-red-50 text-red-600" },
 ];
 
 export default function RhPage() {
