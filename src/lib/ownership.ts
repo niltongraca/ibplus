@@ -39,7 +39,7 @@ export async function ensureCompanyOwner(
     data: { companyId: user.companyId, name: "Dono", level: "owner", isDefault: false },
   }));
 
-  await prisma.employee.create({
+  await prisma.employee.createMany({
     data: {
       companyId: user.companyId,
       userId: user.id,
@@ -51,6 +51,7 @@ export async function ensureCompanyOwner(
       isOwner: true,
       active: true,
     },
+    skipDuplicates: true, // idempotente: ignora se já existe um funcionário idêntico
   });
 
   return { isOwner: true, cargoLevel: "owner" };

@@ -540,6 +540,7 @@ model Employee {
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 
+  @@unique([companyId, userId])
   @@index([companyId])
 }
 
