@@ -83,12 +83,14 @@ function denied(message = "Não tem permissão para aceder a esta área."): Next
 
 /**
  * Requer que o utilizador tenha a feature na matriz efetiva da empresa.
- * Retorna null se autorizado (ou se for solista/admin), senão uma NextResponse 403.
+ * Retorna null se autorizado (ou se for solista/admin).
+ * Contas antigas sem cargo atribuído não são restringidas (igual ao middleware,
+ * que também não as restringe); a restrição aplica-se só a quem tem cargo.
  */
 export async function requireFeature(user: AuthUser, feature: FeatureKey): Promise<NextResponse | null> {
   if (user.role === "admin" || !user.companyId) return null;
-  const level = asLevel(user.cargoLevel);
-  const access = await getCompanyFeatureAccess(user.companyId, level);
+  if (!user.cargoLevel) return null;
+  const access = await getCompanyFeatureAccess(user.companyId, user.cargoLevel);
   if (!access[feature]) return denied();
   return null;
 }
