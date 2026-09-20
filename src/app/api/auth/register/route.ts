@@ -378,7 +378,7 @@ export async function POST(request: Request) {
     const mail = welcomeEmail(user.name, user.accountType);
     await sendEmail(user.email, mail.subject, mail.html);
 
-    const token = signToken({
+    const token = await signToken({
       userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType, plan: user.plan, tokenVersion: user.tokenVersion, cargoLevel: user.cargoLevel,
     });
 

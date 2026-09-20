@@ -1,11 +1,17 @@
-import jwt from "jsonwebtoken";
+// Auth JWT unificada em **jose** (HS256, mesmo secret que o middleware).
+// Antes: auth.ts usava jsonwebtoken e middleware.ts usava jose → duas libs e
+// dois caminhos de validação que podiam divergir. Agora só existe jose, com a
+// mesma chave (TextEncoder sobre JWT_SECRET) e o mesmo algoritmo em ambos os
+// runtimes (Node e Edge). Tokens emitidos antes da migração (jsonwebtoken,
+// HS256, mesmo secret) continuam a ser verificados — sem logout forçado.
+import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
 import { getJwtSecret } from "./secrets";
 import { ensureCompanyOwner } from "./ownership";
 import type { CargoLevel } from "@/config/permissions";
 
-interface JwtPayload {
+export interface JwtPayload {
   userId: string;
   companyId: string | null;
   email: string;
@@ -16,13 +22,24 @@ interface JwtPayload {
   cargoLevel: string | null;
 }
 
-export function signToken(payload: JwtPayload): string {
-  return jwt.sign(payload, getJwtSecret(), { expiresIn: "7d" });
+const TOKEN_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 dias (alinhado com o cookie)
+
+function jwtKey(): Uint8Array {
+  return new TextEncoder().encode(getJwtSecret());
 }
 
-export function verifyToken(token: string): JwtPayload | null {
+export async function signToken(payload: JwtPayload): Promise<string> {
+  return new SignJWT({ ...payload })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(TOKEN_MAX_AGE_SECONDS)
+    .sign(jwtKey());
+}
+
+export async function verifyToken(token: string): Promise<JwtPayload | null> {
   try {
-    return jwt.verify(token, getJwtSecret()) as JwtPayload;
+    const { payload } = await jwtVerify(token, jwtKey());
+    return payload as unknown as JwtPayload;
   } catch {
     return null;
   }
@@ -33,7 +50,7 @@ export async function getAuthUser() {
   const token = cookieStore.get("ibplus_session")?.value;
   if (!token) return null;
 
-  const payload = verifyToken(token);
+  const payload = await verifyToken(token);
   if (!payload) return null;
 
   const user = await prisma.user.findUnique({

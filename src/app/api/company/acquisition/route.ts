@@ -121,7 +121,7 @@ export async function POST(request: Request) {
     await logAction("update", "company", target.id, `Empresa adquirida por ${currentUser.name} (código usado)`);
 
     // Nova sessão apontando para a empresa adquirida
-    const token = signToken({
+    const token = await signToken({
       userId: currentUser.id,
       companyId: target.id,
       email: currentUser.email,

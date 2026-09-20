@@ -4,6 +4,7 @@ import { jwtVerify } from "jose";
 import { ROUTE_PERMISSIONS, PUBLIC_ROUTES } from "@/config/rbacRoutes";
 import { CARGO_LEVELS, DEFAULT_FEATURE_PERMISSIONS, ROUTE_FEATURE_MAP, type CargoLevel } from "@/config/permissions";
 import { CSRF_COOKIE, CSRF_HEADER, csrfCookieOptions, evaluateCsrf, generateCsrfToken } from "@/lib/csrf";
+import { getJwtSecret } from "@/lib/secrets";
 
 // Endpoints /api/* intencionalmente SEM sessão JWT: auth de baixo nível
 // (login/register/forgot/reset), informação pública (content/plans/praca/contact/
@@ -31,17 +32,14 @@ function isApiPublic(pathname: string): boolean {
 
 async function verifyTokenEdge(token: string): Promise<Record<string, any> | null> {
   try {
+    // getJwtSecret() (secrets.ts) falha-rápido se faltar JWT_SECRET — o catch
+    // converte isso em "não autenticado" (fail-closed, sem segredo vazio).
     const secret = getJwtSecret();
-    if (!secret) return null;
     const { payload } = await jwtVerify(token, new TextEncoder().encode(secret));
     return payload as Record<string, any>;
   } catch {
     return null;
   }
-}
-
-function getJwtSecret(): string {
-  return process.env.JWT_SECRET || "";
 }
 
 function matchRoute(pathname: string, routes: Record<string, string[]>): string | null {

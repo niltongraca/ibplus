@@ -19,14 +19,14 @@
 
 ## [ALTO]
 
-9. `src/lib/auth.ts` (jose/jsonwebtoken + secrets) — duplicação. `auth.ts` usa `jsonwebtoken`, `middleware.ts` usa `jose` → validação/secret podem divergir. Padronizar numa lib.
-10. `src/middleware.ts:18-20` — `getJwtSecret()` retorna `""` em vez de `throw` (duplica-se mas sem fail-fast). Usar `secrets.ts`.
+9. ~~`src/lib/auth.ts` (jose/jsonwebtoken + secrets) — duplicação. `auth.ts` usa `jsonwebtoken`, `middleware.ts` usa `jose` → validação/secret podem divergir. Padronizar numa lib.~~ **✔ RESOLVIDO (2026-09-20)**: `auth.ts` reescrito em **jose** (HS256, mesmo `JWT_SECRET` que o middleware — tokens antigos continuam válidos). `signToken`/`verifyToken` tornaram-se async; 6 call sites atualizados (login/register/me/logout/acquisition + `getAuthUser`). Middleware passou a usar `getJwtSecret()` de `secrets.ts` (remove o getter local duplicado). **`jsonwebtoken` + `@types/jsonwebtoken` removidos** do `package.json` e `package-lock.json` (edição manual do lock, validada como JSON e sem referências restantes).
+10. ~~`src/middleware.ts:18-20` — `getJwtSecret()` retorna `""` em vez de `throw` (duplica-se mas sem fail-fast). Usar `secrets.ts`.~~ **✔ RESOLVIDO (2026-09-20)** — o middleware agora importa `getJwtSecret()` de `src/lib/secrets.ts` (fail-fast); o `try/catch` do `verifyTokenEdge` converte a falha em "não autenticado" (fail-closed, sem segredo vazio).
 11. `src/lib/ownership.ts:54` — `skipDuplicates` no `create`, mas para **novas subempresas/cargos/permissoes** sem constraint unique não há guarda idempotente equivalente (race em concorrência); considerar `@@unique` como no Employee (já feito) e `skipDuplicates` por entidade.
 12. ~~`src/lib/rateLimit.ts:1` — rate limit **in-memory (`Map`)**; em serverless (Vercel/Neon) cada cold start reinicia → inútil em escala. Correcção: Upstash/Vercel KV.~~ **✔ RESOLVIDO (2026-09-20)**: `checkRateLimit` agora é async e usa **backend persistente via Upstash/Vercel KV** quando configurado (`KV_REST_API_URL/TOKEN` ou `UPSTASH_REDIS_REST_*`) — cliente REST mínimo em `fetch` puro (`src/lib/kv.ts`, zero dependências novas); janela INCR+EXPIRE com `retryAfter` = TTL restante. Sem KV configurado (dev/local) degrada para o Map em memória; falha de rede no KV também degrada graciosamente. 10 rotas atualizadas (`await checkRateLimit(...)`): auth login/register/forgot/reset/password, contact, invite, praca, praca/[id], upload.
 13. `src/app/cadastro/page.tsx` — senha `minLength=6` (abaixo do OWASP 8), sem confirmar senha na conta EMPRESA, erros num único banner sem campo específico, botões `type="button"` fora de `<form>` (validação nativa nunca corre).
 14. `src/app/recuperar-senha/page.tsx:61-70` — **token de reset exposto no ecrã** ("Token (dev):") em produção. Remover.
 15. `src/middleware.ts:42` vs `next.config.ts` — `X-Frame-Options DENY` vs `SAMEORIGIN` **conflitantes**. Padronizar.
-16. Sem `loading.tsx`/`error.tsx` (0 ocorrências) e **sem breadcrumbs** — falhas de percepção de estado e navegação.
+16. ~~Sem `loading.tsx`/`error.tsx` (0 ocorrências)~~ **✔ RESOLVIDO (2026-09-20)**: componentes partilhados `PageLoading`/`PageError` (`src/components/ui/boundaries/`) e ficheiros `loading.tsx`+`error.tsx` na raiz e em 10 módulos (admin, crm, educacao, finance, gestao, ia, marketing, rede, rh, store) — 22 ficheiros novos; `PageError` com `role="alert"`, retry via `reset()` e detalhe só em dev. **Breadcrumbs continuam em aberto** (UX).
 17. `src/app/praca/page.tsx:20` — `findMany` directo no Server Component **sem `revalidateTag`/`unstable_cache`** → DB hit por request. Correcção: `revalidate = 60`/cache.
 18. `<img>` de produto sem `width/height` em ~5 locais (`praca/page.tsx:166`, `gestao/vendas/page.tsx`, `InvoiceTemplate.tsx:94`, `FileUpload.tsx:92`) → CLS. Usar `next/image`.
 
@@ -37,7 +37,7 @@
 21. `Toast` sem `role="status"`/`aria-live` — leitores de ecrã não anunciam. `aria-label`/`title` presentes mas `aria-label` ausente noutros.
 22. `src/app/rh/funcionarios/page.tsx:213` — ícones de acção ~28px (touch <44px). `Sidebar` e header cumprem 44px.
 23. Metrics system (CWV) ausente — sem `core/web-vitals` listener, sem relatório de CWV. Adicionar em `app/layout` com rotas de grupo.
-24. CSP usa `unsafe-inline`/`unsafe-eval` no `next.config`; perfumaria com **duas libs JWT**; ~~`eslint.ignoreDuringBuilds: true` (build deixa passar lint)~~ **✔ RESOLVIDO (2026-09-20)** — `ignoreDuringBuilds` removido e `npm run lint` migrado de `next lint` (deprecated) para o CLI `eslint .`; `next build` volta a falhar com erros de lint.
+24. CSP usa `unsafe-inline`/`unsafe-eval` no `next.config`; ~~perfumaria com **duas libs JWT**~~ **✔ jose única (2026-09-20, ver #9)**; ~~`eslint.ignoreDuringBuilds: true` (build deixa passar lint)~~ **✔ RESOLVIDO (2026-09-20)** — `ignoreDuringBuilds` removido e `npm run lint` migrado de `next lint` (deprecated) para o CLI `eslint .`; `next build` volta a falhar com erros de lint.
 25. `src/lib/audit.ts:11` — `logAction()` re-executa `getAuthUser()` (nova query BD) por mutação; aceitar `userId`/`companyId` como args (menos roundtrips).
 26. Seed/backfill `prisma/seed.ts` fora de `tsconfig include` (não typecheck); `scripts/check-duplicates.ts`, `register-migration` one-offs commitados com `tsx` — aceitável, mas sem `prisma.config.ts` proper de `migrate` (Neon manual). Padronizar via `prisma migrate`.
 

@@ -16,10 +16,10 @@ export async function GET() {
 
     const cookieStore = await cookies();
     const token = cookieStore.get("ibplus_session")?.value;
-    const payload = token ? verifyToken(token) : null;
+    const payload = token ? await verifyToken(token) : null;
 
     if (user.companyId && (payload?.cargoLevel ?? null) !== user.cargoLevel) {
-      const fresh = signToken({
+      const fresh = await signToken({
         userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType, plan: user.plan, tokenVersion: user.tokenVersion, cargoLevel: user.cargoLevel,
       });
       response.cookies.set("ibplus_session", fresh, {

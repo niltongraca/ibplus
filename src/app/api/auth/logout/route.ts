@@ -10,7 +10,7 @@ export async function POST() {
     const token = cookieStore.get("ibplus_session")?.value;
 
     if (token) {
-      const payload = verifyToken(token);
+      const payload = await verifyToken(token);
       if (payload?.userId) {
         await prisma.user.update({
           where: { id: payload.userId },
