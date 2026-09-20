@@ -11,7 +11,7 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
-  const check = checkRateLimit(`forgot:${ip}`, "strict");
+  const check = await checkRateLimit(`forgot:${ip}`, "strict");
   if (!check.allowed) return rateLimitResponse(check.retryAfter!);
   try {
     const body = await request.json();

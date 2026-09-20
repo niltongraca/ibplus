@@ -14,7 +14,7 @@ const ALLOWED_EXTENSIONS: Record<string, string> = {
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
-  const check = checkRateLimit(`upload:${ip}`, "medium");
+  const check = await checkRateLimit(`upload:${ip}`, "medium");
   if (!check.allowed) return rateLimitResponse(check.retryAfter!);
 
   const user = await getAuthUser();

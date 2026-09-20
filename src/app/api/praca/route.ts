@@ -6,7 +6,7 @@ import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit"
 export async function GET(request: Request) {
   // Endpoint público: protege contra scraping-abuso e devolve apenas dados públicos.
   const ip = getClientIp(request);
-  const check = checkRateLimit(`praca:${ip}`, "relaxed");
+  const check = await checkRateLimit(`praca:${ip}`, "relaxed");
   if (!check.allowed) return rateLimitResponse(check.retryAfter!);
 
   const companies = await prisma.company.findMany({

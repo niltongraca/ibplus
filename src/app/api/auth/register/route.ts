@@ -157,7 +157,7 @@ const registerSchema = z.discriminatedUnion("accountType", [
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
-  const check = checkRateLimit(`register:${ip}`, "strict");
+  const check = await checkRateLimit(`register:${ip}`, "strict");
   if (!check.allowed) return rateLimitResponse(check.retryAfter!);
 
   try {

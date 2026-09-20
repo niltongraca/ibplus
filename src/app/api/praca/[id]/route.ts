@@ -5,7 +5,7 @@ import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit"
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const ip = getClientIp(request);
-  const check = checkRateLimit(`praca:${ip}`, "relaxed");
+  const check = await checkRateLimit(`praca:${ip}`, "relaxed");
   if (!check.allowed) return rateLimitResponse(check.retryAfter!);
 
   const { id } = await params;

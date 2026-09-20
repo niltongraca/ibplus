@@ -9,7 +9,7 @@ import { loginSchema } from "@/lib/validations/auth";
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
-  const check = checkRateLimit(`login:${ip}`, "strict");
+  const check = await checkRateLimit(`login:${ip}`, "strict");
   if (!check.allowed) return rateLimitResponse(check.retryAfter!);
 
   try {

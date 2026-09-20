@@ -11,7 +11,7 @@ export async function PUT(request: Request) {
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   const ip = getClientIp(request);
-  const check = checkRateLimit(`password:${user.id}:${ip}`, "medium");
+  const check = await checkRateLimit(`password:${user.id}:${ip}`, "medium");
   if (!check.allowed) return rateLimitResponse(check.retryAfter!);
 
   const parsed = await parseBody(request, changePasswordSchema);

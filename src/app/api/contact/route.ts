@@ -16,7 +16,7 @@ function escapeHtml(input: string): string {
 export async function POST(req: NextRequest) {
   try {
     const ip = getClientIp(req);
-    const check = checkRateLimit(`contact:${ip}`, "medium");
+    const check = await checkRateLimit(`contact:${ip}`, "medium");
     if (!check.allowed) return rateLimitResponse(check.retryAfter!);
 
     const parsed = await parseBody(req, contactSchema);

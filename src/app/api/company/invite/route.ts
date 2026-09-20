@@ -10,7 +10,7 @@ import { inviteCreateSchema } from "@/lib/validations/company";
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
-  const check = checkRateLimit(`invite:${ip}`, "medium");
+  const check = await checkRateLimit(`invite:${ip}`, "medium");
   if (!check.allowed) return rateLimitResponse(check.retryAfter!);
 
   const currentUser = await getAuthUser();

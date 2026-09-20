@@ -1,8 +1,14 @@
+import { getKvClient, type KvClient } from "./kv";
+
+// Rate limit com backend persistente (Upstash/Vercel KV) quando configurado —
+// em serverless o Map em memória reinicia a cada cold start e é inútil em
+// escala. Sem KV configurado (dev/local), usa o Map em memória (fallback).
+
 const rateMap = new Map<string, { count: number; resetAt: number }>();
 const CLEANUP_INTERVAL_MS = 5 * 60_000;
 let lastCleanupAt = Date.now();
 
-interface RateLimitConfig {
+export interface RateLimitConfig {
   maxRequests: number;
   windowMs: number;
 }
@@ -38,12 +44,29 @@ function purgeExpiredEntries(): void {
   }
 }
 
-export function checkRateLimit(
+export type RateLimitCheck = { allowed: boolean; retryAfter?: number };
+
+export async function checkRateLimit(
   key: string,
   tier: keyof typeof DEFAULTS = "relaxed"
-): { allowed: boolean; retryAfter?: number } {
-  purgeExpiredEntries();
+): Promise<RateLimitCheck> {
   const config = DEFAULTS[tier];
+  const kv = getKvClient();
+  if (kv) {
+    try {
+      return await checkRateLimitKv(kv, key, config);
+    } catch {
+      // KV indisponível (rede/erro) — degradação graciosa para memória.
+    }
+  }
+  return checkRateLimitMemory(key, config);
+}
+
+function checkRateLimitMemory(
+  key: string,
+  config: RateLimitConfig
+): RateLimitCheck {
+  purgeExpiredEntries();
   const now = Date.now();
   const entry = rateMap.get(key);
 
@@ -59,6 +82,41 @@ export function checkRateLimit(
 
   entry.count++;
   return { allowed: true };
+}
+
+// Janela deslizante simples sobre Redis: INCR + EXPIRE (renova a janela a cada
+// pedido, como o Map em memória). Quando o limite é excedido, o retryAfter é o
+// TTL restante da chave.
+async function checkRateLimitKv(
+  kv: KvClient,
+  key: string,
+  config: RateLimitConfig
+): Promise<RateLimitCheck> {
+  const windowSec = Math.ceil(config.windowMs / 1000);
+
+  const [incrResult] = await kv.pipeline([
+    ["INCR", key],
+    ["EXPIRE", key, String(windowSec)],
+  ]);
+  const count = normalizeResult(incrResult);
+
+  if (typeof count === "number" && count <= config.maxRequests) {
+    return { allowed: true };
+  }
+
+  const [ttlResult] = await kv.pipeline([["TTL", key]]);
+  const ttl = normalizeResult(ttlResult);
+  const retryAfter =
+    typeof ttl === "number" && ttl > 0 ? ttl : Math.max(1, windowSec);
+  return { allowed: false, retryAfter };
+}
+
+// Aceita respostas no formato `[resultado]` ou `[{ result: resultado }]`.
+function normalizeResult(value: unknown): unknown {
+  if (value && typeof value === "object" && "result" in value) {
+    return (value as { result: unknown }).result;
+  }
+  return value;
 }
 
 export function rateLimitResponse(retryAfter: number) {
