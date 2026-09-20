@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/auth";
+import { CSRF_COOKIE, csrfCookieOptions } from "@/lib/csrf";
 
 export async function POST() {
   try {
@@ -29,5 +30,6 @@ export async function POST() {
     path: "/",
     maxAge: 0,
   });
+  response.cookies.set(CSRF_COOKIE, "", { ...csrfCookieOptions(), maxAge: 0 });
   return response;
 }

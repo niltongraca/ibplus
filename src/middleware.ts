@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 import { ROUTE_PERMISSIONS, PUBLIC_ROUTES } from "@/config/rbacRoutes";
 import { CARGO_LEVELS, DEFAULT_FEATURE_PERMISSIONS, ROUTE_FEATURE_MAP, type CargoLevel } from "@/config/permissions";
+import { CSRF_COOKIE, CSRF_HEADER, csrfCookieOptions, evaluateCsrf, generateCsrfToken } from "@/lib/csrf";
 
 // Endpoints /api/* intencionalmente SEM sessão JWT: auth de baixo nível
 // (login/register/forgot/reset), informação pública (content/plans/praca/contact/
@@ -68,6 +69,13 @@ export async function middleware(request: NextRequest) {
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
 
+  // CSRF double-submit: garante que o cookie ibplus_csrf existe em qualquer
+  // resposta (páginas e APIs). O valor é lido pelo JS (httpOnly:false) e
+  // enviado como header nas mutações — validado mais abaixo para /api/*.
+  if (!request.cookies.get(CSRF_COOKIE)?.value) {
+    response.cookies.set(CSRF_COOKIE, generateCsrfToken(), csrfCookieOptions());
+  }
+
   if (process.env.NODE_ENV === "production") {
     response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
   }
@@ -94,6 +102,27 @@ export async function middleware(request: NextRequest) {
         );
         addSecurityHeaders(unauthorized);
         return unauthorized;
+      }
+
+      // CSRF double-submit em mutações: o header x-csrf-token tem de igualar
+      // o cookie semeado acima. Sessões legadas sem cookie de CSRF passam uma
+      // vez (o cookie é semeado na resposta) — a partir daí o gate é estrito.
+      const method = request.method.toUpperCase();
+      if (method === "POST" || method === "PUT" || method === "PATCH" || method === "DELETE") {
+        const csrfCookie = request.cookies.get(CSRF_COOKIE)?.value;
+        const csrfHeader = request.headers.get(CSRF_HEADER);
+        const decision = evaluateCsrf(csrfCookie, csrfHeader);
+        if (decision === "seed") {
+          response.cookies.set(CSRF_COOKIE, generateCsrfToken(), csrfCookieOptions());
+        } else if (decision === "reject") {
+          const forbidden = NextResponse.json(
+            { error: "Sessão inválida (CSRF)." },
+            { status: 403 }
+          );
+          forbidden.cookies.delete(CSRF_COOKIE);
+          addSecurityHeaders(forbidden);
+          return forbidden;
+        }
       }
     }
     return response;
