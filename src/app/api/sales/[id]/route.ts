@@ -5,6 +5,8 @@ import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
 import { requireFeature, requireWrite, requireDelete } from "@/lib/permissions";
+import { parseBody } from "@/lib/validations/helpers";
+import { saleUpdateSchema } from "@/lib/validations/finance";
 
 function serializeSale(s: { total?: unknown; items: unknown[] } & Record<string, unknown>) {
   return {
@@ -46,7 +48,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const existing = await prisma.sale.findFirst({ where: { id, companyId: user.companyId }, include: { items: true } });
   if (!existing) return NextResponse.json({ error: "Venda não encontrada." }, { status: 404 });
 
-  const body = await request.json();
+  const parsed = await parseBody(request, saleUpdateSchema);
+  if ("error" in parsed) return parsed.error;
+  const body = parsed.data;
 
   if (existing.status === "cancelled") {
     return NextResponse.json({ error: "A venda está cancelada e não pode ser editada." }, { status: 400 });
@@ -59,14 +63,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   try {
     if (body.items) {
-      if (!Array.isArray(body.items) || body.items.length === 0) {
-        return NextResponse.json({ error: "A venda deve conter pelo menos um item." }, { status: 400 });
-      }
-
-      const normalized: { productId: string; quantity: number }[] = body.items.map((i: { productId: string; quantity: number }) => {
-        if (!i.productId || !Number.isInteger(i.quantity) || i.quantity <= 0) throw new Error("INVALID_ITEM");
-        return { productId: i.productId, quantity: i.quantity };
-      });
+      const normalized: { productId: string; quantity: number }[] = body.items.map((i) => ({
+        productId: i.productId,
+        quantity: i.quantity,
+      }));
 
       const productIds: string[] = [...new Set(normalized.map((i) => i.productId))];
       const products = await prisma.product.findMany({ where: { id: { in: productIds }, companyId: user.companyId } });

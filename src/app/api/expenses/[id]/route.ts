@@ -7,6 +7,8 @@ import { recordExpensePayment, revertExpensePayment } from "@/lib/finance";
 import { toNumber } from "@/lib/money";
 import { parseDateOnly } from "@/lib/utils";
 import { requireFeature, requireWrite, requireDelete } from "@/lib/permissions";
+import { parseBody } from "@/lib/validations/helpers";
+import { expenseUpdateSchema } from "@/lib/validations/finance";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -29,30 +31,28 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const companyId = user.companyId;
 
   const { id } = await params;
-  const data = await request.json();
+  const parsed = await parseBody(request, expenseUpdateSchema);
+  if ("error" in parsed) return parsed.error;
+  const body = parsed.data;
   const existing = await prisma.expense.findFirst({ where: { id, companyId } });
   if (!existing) return NextResponse.json({ error: "Despesa não encontrada." }, { status: 404 });
 
   const update: Prisma.ExpenseUncheckedUpdateInput = {};
 
-  if (data.description !== undefined) {
-    const desc = String(data.description).trim();
-    if (!desc) return NextResponse.json({ error: "A descrição não pode ficar vazia." }, { status: 400 });
-    update.description = desc;
+  if (body.description !== undefined) {
+    update.description = body.description;
   }
-  if (data.amount !== undefined) {
-    const amount = Number(data.amount);
-    if (!Number.isFinite(amount) || amount <= 0) return NextResponse.json({ error: "O valor deve ser um número positivo." }, { status: 400 });
-    update.amount = amount;
+  if (body.amount !== undefined) {
+    update.amount = body.amount;
   }
-  if (data.category !== undefined) update.category = data.category || "outros";
-  if (data.date !== undefined) {
-    const date = parseDateOnly(data.date) ?? new Date(data.date);
+  if (body.category !== undefined) update.category = body.category || "outros";
+  if (body.date !== undefined && body.date) {
+    const date = parseDateOnly(body.date) ?? new Date(body.date);
     if (isNaN(date.getTime())) return NextResponse.json({ error: "A data não é válida." }, { status: 400 });
     update.date = date;
   }
-  if (data.paid !== undefined) update.paid = data.paid === true;
-  if (data.notes !== undefined) update.notes = data.notes ? String(data.notes).trim() : null;
+  if (body.paid !== undefined) update.paid = body.paid === true;
+  if (body.notes !== undefined) update.notes = body.notes || null;
 
   const updated = await prisma.$transaction(async (tx) => {
     const result = await tx.expense.updateMany({ where: { id, companyId }, data: update });

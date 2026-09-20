@@ -4,6 +4,8 @@ import { getAuthUser } from "@/lib/auth";
 import { parsePagination, buildSearch } from "@/lib/utils";
 import { toNumber } from "@/lib/money";
 import { requireFeature, requireWrite } from "@/lib/permissions";
+import { parseBody } from "@/lib/validations/helpers";
+import { purchaseCreateSchema } from "@/lib/validations/finance";
 
 export async function GET(request: Request) {
   const user = await getAuthUser();
@@ -49,21 +51,18 @@ export async function POST(request: Request) {
   const denied = await requireWrite(user, "compras"); if (denied) return denied;
 
   try {
-    const body = await request.json();
-    const items = body.items as { productId: string; quantity: number; unitPrice?: number }[] | undefined;
-    const supplier = body.supplier ? String(body.supplier).trim() : null;
-    const notes = body.notes ? String(body.notes).trim() : null;
+    const parsed = await parseBody(request, purchaseCreateSchema);
+    if ("error" in parsed) return parsed.error;
+    const body = parsed.data;
+    const items = body.items;
+    const supplier = body.supplier || null;
+    const notes = body.notes || null;
 
-    if (!Array.isArray(items) || items.length === 0) {
-      return NextResponse.json({ error: "A compra deve conter pelo menos um item." }, { status: 400 });
-    }
-
-    const normalized = items.map((i) => {
-      if (!i.productId || !Number.isInteger(i.quantity) || i.quantity <= 0) throw new Error("INVALID_ITEM");
-      const unitPrice = i.unitPrice === undefined ? null : Number(i.unitPrice);
-      if (unitPrice !== null && (!Number.isFinite(unitPrice) || unitPrice < 0)) throw new Error("INVALID_PRICE");
-      return { productId: i.productId, quantity: i.quantity, unitPrice: unitPrice ?? 0 };
-    });
+    const normalized = items.map((i) => ({
+      productId: i.productId,
+      quantity: i.quantity,
+      unitPrice: i.unitPrice ?? 0,
+    }));
 
     const productIds = [...new Set(normalized.map((i) => i.productId))];
     const products = await prisma.product.findMany({ where: { id: { in: productIds }, companyId: user.companyId } });

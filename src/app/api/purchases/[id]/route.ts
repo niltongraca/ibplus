@@ -4,6 +4,8 @@ import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
 import { requireFeature, requireWrite, requireDelete } from "@/lib/permissions";
+import { parseBody } from "@/lib/validations/helpers";
+import { purchaseUpdateSchema } from "@/lib/validations/finance";
 
 function serializePurchase(p: { total?: unknown; items: unknown[] } & Record<string, unknown>) {
   return {
@@ -37,7 +39,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const denied = await requireWrite(user, "compras"); if (denied) return denied;
 
   const { id } = await params;
-  const data = await request.json();
+  const parsed = await parseBody(request, purchaseUpdateSchema);
+  if ("error" in parsed) return parsed.error;
+  const data = parsed.data;
 
   const existing = await prisma.purchase.findFirst({
     where: { id, companyId: user.companyId },
@@ -62,15 +66,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
 
   try {
-    const items = data.items as { productId: string; quantity: number; unitPrice?: number }[];
-    if (!Array.isArray(items) || items.length === 0) {
-      return NextResponse.json({ error: "A compra deve conter pelo menos um item." }, { status: 400 });
-    }
-
-    const normalized: { productId: string; quantity: number; unitPrice: number }[] = items.map((i) => {
-      if (!i.productId || !Number.isInteger(i.quantity) || i.quantity <= 0) throw new Error("INVALID_ITEM");
-      return { productId: i.productId, quantity: i.quantity, unitPrice: i.unitPrice ?? 0 };
-    });
+    const items = data.items;
+    const normalized: { productId: string; quantity: number; unitPrice: number }[] = items.map((i) => ({
+      productId: i.productId,
+      quantity: i.quantity,
+      unitPrice: i.unitPrice ?? 0,
+    }));
 
     const productIds = [...new Set(normalized.map((i) => i.productId))];
     const products = await prisma.product.findMany({ where: { id: { in: productIds }, companyId: user.companyId } });

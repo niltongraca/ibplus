@@ -7,6 +7,8 @@ import { nextInvoiceNumber } from "@/lib/sequence";
 import { toNumber } from "@/lib/money";
 import { parseDateOnly } from "@/lib/utils";
 import { requireFeature, requireWrite, requireDelete } from "@/lib/permissions";
+import { parseBody } from "@/lib/validations/helpers";
+import { quoteUpdateSchema } from "@/lib/validations/finance";
 
 function serializeQuote(q: { subtotal?: unknown; discountValue?: unknown; discount?: unknown; total?: unknown; items: unknown[] } & Record<string, unknown>) {
   return {
@@ -50,18 +52,17 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   });
   if (!quote) return NextResponse.json({ error: "Orçamento não encontrado." }, { status: 404 });
 
-  const body = await request.json();
-  if (body.items !== undefined && body.items !== null && !Array.isArray(body.items)) {
-    return NextResponse.json({ error: "Os itens devem ser uma lista." }, { status: 400 });
-  }
+  const parsed = await parseBody(request, quoteUpdateSchema);
+  if ("error" in parsed) return parsed.error;
+  const body = parsed.data;
 
   const data: Prisma.QuoteUpdateInput = {};
 
-  if (body.customer !== undefined) data.customer = body.customer ? String(body.customer).trim() : null;
-  if (body.customerEmail !== undefined) data.customerEmail = body.customerEmail ? String(body.customerEmail).trim() : null;
-  if (body.customerPhone !== undefined) data.customerPhone = body.customerPhone ? String(body.customerPhone).trim() : null;
-  if (body.customerNif !== undefined) data.customerNif = body.customerNif ? String(body.customerNif).trim() : null;
-  if (body.notes !== undefined) data.notes = body.notes ? String(body.notes).trim() : null;
+  if (body.customer !== undefined) data.customer = body.customer || null;
+  if (body.customerEmail !== undefined) data.customerEmail = body.customerEmail || null;
+  if (body.customerPhone !== undefined) data.customerPhone = body.customerPhone || null;
+  if (body.customerNif !== undefined) data.customerNif = body.customerNif || null;
+  if (body.notes !== undefined) data.notes = body.notes || null;
   if (body.validUntil !== undefined) {
     if (body.validUntil) {
       const validUntil = parseDateOnly(body.validUntil) ?? new Date(body.validUntil);
@@ -71,37 +72,29 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       data.validUntil = null;
     }
   }
-  if (body.installments !== undefined) data.installments = Math.max(1, Math.floor(Number(body.installments)) || 1);
-  if (body.currency !== undefined) data.currency = body.currency ? String(body.currency).trim() : "AOA";
-  if (body.paymentMethod !== undefined) data.paymentMethod = body.paymentMethod ? String(body.paymentMethod).trim() : null;
-  if (body.bankDetails !== undefined) data.bankDetails = body.bankDetails ? String(body.bankDetails).trim() : null;
+  if (body.installments !== undefined) data.installments = body.installments;
+  if (body.currency !== undefined) data.currency = body.currency || "AOA";
+  if (body.paymentMethod !== undefined) data.paymentMethod = body.paymentMethod || null;
+  if (body.bankDetails !== undefined) data.bankDetails = body.bankDetails || null;
   if (body.status !== undefined) {
-    const status = String(body.status);
-    if (!["pending", "approved"].includes(status)) {
-      return NextResponse.json({ error: "Estado inválido." }, { status: 400 });
-    }
-    data.status = status;
+    data.status = body.status;
   }
 
   // Handle items replacement + totals recalculation
-  if (Array.isArray(body.items)) {
-    const rawItems: Array<{ description?: unknown; quantity?: unknown; unitPrice?: unknown; kind?: unknown }> = body.items;
-    if (!rawItems.length) return NextResponse.json({ error: "O orçamento precisa de pelo menos um item." }, { status: 400 });
-    const normalizedItems = rawItems.map((i) => {
-      const description = i.description ? String(i.description).trim() : "";
-      const quantity = Number(i.quantity);
-      const unitPrice = Number(i.unitPrice);
-      if (!description) throw new Error("A descrição de cada item é obrigatória.");
-      if (!Number.isInteger(quantity) || quantity <= 0) throw new Error("A quantidade deve ser um número inteiro positivo.");
-      if (!Number.isFinite(unitPrice) || unitPrice < 0) throw new Error("O preço unitário não pode ser negativo.");
-      return { description, quantity, unitPrice, total: quantity * unitPrice, kind: i.kind === "service" ? "service" : "product" };
-    });
+  if (body.items) {
+    const normalizedItems = body.items.map((i) => ({
+      description: i.description,
+      quantity: i.quantity,
+      unitPrice: i.unitPrice,
+      total: i.quantity * i.unitPrice,
+      kind: i.kind ?? "product",
+    }));
     const subtotal = normalizedItems.reduce((sum, i) => sum + i.total, 0);
     data.subtotal = subtotal;
     data.items = { deleteMany: {}, create: normalizedItems.map(({ kind: _kind, ...rest }) => rest) };
 
     const discountType = body.discountType !== undefined ? (body.discountType === "percentage" ? "percentage" : "fixed") : quote.discountType;
-    const discountValue = body.discountValue !== undefined ? Number(body.discountValue) : toNumber(quote.discountValue);
+    const discountValue = body.discountValue ?? toNumber(quote.discountValue);
     data.discountType = discountType;
     data.discountValue = discountValue;
     data.discount = discountType === "percentage" ? subtotal * Math.min(100, discountValue) / 100 : Math.min(subtotal, discountValue);
@@ -109,7 +102,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   } else {
     if (body.discountType !== undefined || body.discountValue !== undefined) {
       const discountType = body.discountType !== undefined ? (body.discountType === "percentage" ? "percentage" : "fixed") : quote.discountType;
-      const discountValue = body.discountValue !== undefined ? Number(body.discountValue) : toNumber(quote.discountValue);
+      const discountValue = body.discountValue ?? toNumber(quote.discountValue);
       const subtotal = data.subtotal !== undefined ? (data.subtotal as number) : toNumber(quote.subtotal);
       data.discountType = discountType;
       data.discountValue = discountValue;

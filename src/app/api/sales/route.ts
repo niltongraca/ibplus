@@ -6,6 +6,8 @@ import { createNotification } from "@/lib/notifications";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
 import { requireFeature, requireWrite } from "@/lib/permissions";
+import { parseBody } from "@/lib/validations/helpers";
+import { saleCreateSchema } from "@/lib/validations/finance";
 
 function serializeSale(s: { total?: unknown; items: unknown[] } & Record<string, unknown>) {
   return {
@@ -58,12 +60,10 @@ export async function POST(request: Request) {
   const denied = await requireWrite(user, "vendas"); if (denied) return denied;
 
   try {
-    const body = await request.json();
-    const items = body.items as { productId: string; quantity: number; unitPrice?: number }[] | undefined;
-
-    if (!Array.isArray(items) || items.length === 0) {
-      return NextResponse.json({ error: "A venda deve conter pelo menos um item." }, { status: 400 });
-    }
+    const parsed = await parseBody(request, saleCreateSchema);
+    if ("error" in parsed) return parsed.error;
+    const body = parsed.data;
+    const items = body.items;
 
     const customerId: string | null = body.customerId || null;
     const paymentMethod: string | null = body.paymentMethod || null;
@@ -74,12 +74,10 @@ export async function POST(request: Request) {
       if (!customer) return NextResponse.json({ error: "Cliente inválido." }, { status: 400 });
     }
 
-    const normalized = items.map((i) => {
-      if (!i.productId || !Number.isInteger(i.quantity) || i.quantity <= 0) {
-        throw new Error("INVALID_ITEM");
-      }
-      return { productId: i.productId, quantity: i.quantity };
-    });
+    const normalized: { productId: string; quantity: number }[] = items.map((i) => ({
+      productId: i.productId,
+      quantity: i.quantity,
+    }));
 
     const productIds = [...new Set(normalized.map((i) => i.productId))];
     const products = await prisma.product.findMany({ where: { id: { in: productIds }, companyId: user.companyId } });

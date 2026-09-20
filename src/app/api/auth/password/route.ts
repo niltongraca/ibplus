@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
+import { parseBody } from "@/lib/validations/helpers";
+import { changePasswordSchema } from "@/lib/validations/auth";
 
 export async function PUT(request: Request) {
   const user = await getAuthUser();
@@ -12,16 +14,9 @@ export async function PUT(request: Request) {
   const check = checkRateLimit(`password:${user.id}:${ip}`, "medium");
   if (!check.allowed) return rateLimitResponse(check.retryAfter!);
 
-  const { currentPassword, newPassword } = await request.json();
-  if (!currentPassword || !newPassword) {
-    return NextResponse.json({ error: "Senha actual e nova são obrigatórias." }, { status: 400 });
-  }
-  if (newPassword.length < 6) {
-    return NextResponse.json({ error: "A nova senha deve ter pelo menos 6 caracteres." }, { status: 400 });
-  }
-  if (currentPassword === newPassword) {
-    return NextResponse.json({ error: "A nova senha deve ser diferente da actual." }, { status: 400 });
-  }
+  const parsed = await parseBody(request, changePasswordSchema);
+  if ("error" in parsed) return parsed.error;
+  const { currentPassword, newPassword } = parsed.data;
 
   const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
   if (!dbUser) return NextResponse.json({ error: "Utilizador não encontrado." }, { status: 404 });

@@ -6,6 +6,8 @@ import { recordInvoicePayment, revertInvoicePayment, removeTransactionsByRef } f
 import { toNumber } from "@/lib/money";
 import { parseDateOnly } from "@/lib/utils";
 import { requireFeature, requireWrite, requireDelete } from "@/lib/permissions";
+import { parseBody } from "@/lib/validations/helpers";
+import { invoiceUpdateSchema } from "@/lib/validations/finance";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -42,23 +44,22 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const existing = await prisma.invoice.findFirst({ where: { id, companyId } });
   if (!existing) return NextResponse.json({ error: "Fatura não encontrada." }, { status: 404 });
 
-  const body = await request.json();
+  const parsed = await parseBody(request, invoiceUpdateSchema);
+  if ("error" in parsed) return parsed.error;
+  const body = parsed.data;
   const data: Prisma.InvoiceUpdateInput = {};
 
-  if (body.customer !== undefined) data.customer = body.customer ? String(body.customer).trim() : null;
-  if (body.customerEmail !== undefined) data.customerEmail = body.customerEmail ? String(body.customerEmail).trim() : null;
-  if (body.customerPhone !== undefined) data.customerPhone = body.customerPhone ? String(body.customerPhone).trim() : null;
-  if (body.customerNif !== undefined) data.customerNif = body.customerNif ? String(body.customerNif).trim() : null;
-  if (body.notes !== undefined) data.notes = body.notes ? String(body.notes).trim() : null;
+  if (body.customer !== undefined) data.customer = body.customer || null;
+  if (body.customerEmail !== undefined) data.customerEmail = body.customerEmail || null;
+  if (body.customerPhone !== undefined) data.customerPhone = body.customerPhone || null;
+  if (body.customerNif !== undefined) data.customerNif = body.customerNif || null;
+  if (body.notes !== undefined) data.notes = body.notes || null;
 
-  const nextStatus = body.status !== undefined ? String(body.status) : existing.status;
-  if (!["paid", "partially_paid", "pending"].includes(nextStatus)) {
-    return NextResponse.json({ error: "Estado inválido." }, { status: 400 });
-  }
+  const nextStatus = body.status ?? existing.status;
   data.status = nextStatus;
 
-  const total = Number(body.total) || toNumber(existing.total);
-  const calcPaidAmount = nextStatus === "paid" ? total : Number(body.paidAmount ?? 0) || 0;
+  const total = body.total ?? toNumber(existing.total);
+  const calcPaidAmount = nextStatus === "paid" ? total : body.paidAmount ?? 0;
   data.paidAmount = Math.max(0, Math.min(total, calcPaidAmount));
   data.total = total;
 
@@ -73,25 +74,21 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
 
   // Full/partial items replacement + recompute totals
-  if (Array.isArray(body.items)) {
-    const rawItems: Array<{ description?: unknown; quantity?: unknown; unitPrice?: unknown; kind?: unknown }> = body.items;
-    if (!rawItems.length) return NextResponse.json({ error: "A fatura precisa de pelo menos um item." }, { status: 400 });
-    const normalizedItems = rawItems.map((i) => {
-      const description = i.description ? String(i.description).trim() : "";
-      const quantity = Number(i.quantity);
-      const unitPrice = Number(i.unitPrice);
-      if (!description) throw new Error("A descrição de cada item é obrigatória.");
-      if (!Number.isInteger(quantity) || quantity <= 0) throw new Error("A quantidade deve ser um número inteiro positivo.");
-      if (!Number.isFinite(unitPrice) || unitPrice < 0) throw new Error("O preço unitário não pode ser negativo.");
-      return { description, quantity, unitPrice, total: quantity * unitPrice, kind: i.kind === "service" ? "service" : "product" };
-    });
+  if (body.items) {
+    const normalizedItems = body.items.map((i) => ({
+      description: i.description,
+      quantity: i.quantity,
+      unitPrice: i.unitPrice,
+      total: i.quantity * i.unitPrice,
+      kind: i.kind ?? "product",
+    }));
     const subtotal = normalizedItems.reduce((s, i) => s + i.total, 0);
     data.subtotal = subtotal;
     data.items = { deleteMany: {}, create: normalizedItems.map(({ kind: _kind, ...rest }) => rest) };
 
     if (body.discountValue !== undefined || body.discountType !== undefined) {
       const discountType = body.discountType === "percentage" ? "percentage" : (body.discountType ?? existing.discountType);
-      const discountValue = body.discountValue === undefined ? toNumber(existing.discountValue) : Number(body.discountValue);
+      const discountValue = body.discountValue ?? toNumber(existing.discountValue);
       data.discountType = discountType;
       data.discountValue = discountValue;
       data.discount = discountType === "percentage" ? subtotal * Math.min(100, discountValue) / 100 : Math.min(subtotal, discountValue);
@@ -99,19 +96,19 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
   } else {
     // Recompute discount if subtotal/discount changed without items
-    const subtotal = Number(body.subtotal) || toNumber(existing.subtotal);
+    const subtotal = body.subtotal ?? toNumber(existing.subtotal);
     const discountType = body.discountType === "percentage" ? "percentage" : existing.discountType;
-    const discountValue = body.discountValue === undefined ? toNumber(existing.discountValue) : Number(body.discountValue);
+    const discountValue = body.discountValue ?? toNumber(existing.discountValue);
     data.discountType = discountType;
     data.discountValue = discountValue;
     data.discount = discountType === "percentage" ? subtotal * Math.min(100, discountValue) / 100 : Math.min(subtotal, discountValue);
     data.total = total;
   }
 
-  if (body.installments !== undefined) data.installments = Math.max(1, Math.floor(Number(body.installments)) || 1);
-  if (body.currency !== undefined) data.currency = body.currency ? String(body.currency).trim() : "AOA";
-  if (body.paymentMethod !== undefined) data.paymentMethod = body.paymentMethod ? String(body.paymentMethod).trim() : null;
-  if (body.bankDetails !== undefined) data.bankDetails = body.bankDetails ? String(body.bankDetails).trim() : null;
+  if (body.installments !== undefined) data.installments = body.installments;
+  if (body.currency !== undefined) data.currency = body.currency || "AOA";
+  if (body.paymentMethod !== undefined) data.paymentMethod = body.paymentMethod || null;
+  if (body.bankDetails !== undefined) data.bankDetails = body.bankDetails || null;
 
   const wasPaid = Number(existing.paidAmount) > 0 || existing.status === "paid";
   const isPaid = data.status === "paid" || (data.status === "partially_paid" && (data.paidAmount as number) > 0);

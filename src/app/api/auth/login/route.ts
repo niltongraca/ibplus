@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { signToken } from "@/lib/auth";
 import { ensureCompanyOwner } from "@/lib/ownership";
 import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
+import { parseBody } from "@/lib/validations/helpers";
+import { loginSchema } from "@/lib/validations/auth";
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
@@ -11,11 +13,9 @@ export async function POST(request: Request) {
   if (!check.allowed) return rateLimitResponse(check.retryAfter!);
 
   try {
-    const { email, password } = await request.json();
-
-    if (!email || !password) {
-      return NextResponse.json({ error: "Email e senha são obrigatórios." }, { status: 400 });
-    }
+    const parsed = await parseBody(request, loginSchema);
+    if ("error" in parsed) return parsed.error;
+    const { email, password } = parsed.data;
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
