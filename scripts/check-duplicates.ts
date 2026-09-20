@@ -18,7 +18,6 @@ async function main() {
     GROUP BY "companyId", "userId"
     HAVING COUNT(*) > 1
   `;
-
   const totalArr = await prisma.$queryRaw`SELECT COUNT(*)::int AS c FROM "Employee"`;
   const ownersArr = await prisma.$queryRaw`SELECT COUNT(*)::int AS c FROM "Employee" WHERE "isOwner" = true`;
 
