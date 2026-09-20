@@ -1,5 +1,14 @@
 import nodemailer from "nodemailer";
 
+function esc(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function getTransporter() {
   if (
     !process.env.SMTP_HOST ||
@@ -70,7 +79,7 @@ export function inviteEmail(email: string, token: string, inviterName: string): 
     subject: "Convite para IBPlus+",
     html: baseHtml(
       `<h2 style="margin-top:0;color:#1e3a5f">Você foi convidado!</h2>
-       <p><strong>${inviterName}</strong> convidou-o para se juntar à equipa no IBPlus+.</p>
+       <p><strong>${esc(inviterName)}</strong> convidou-o para se juntar à equipa no IBPlus+.</p>
        <p>Clique no botão abaixo para aceitar o convite e criar a sua conta. Este link expira em <strong>7 dias</strong>.</p>
        <p style="text-align:center"><a href="${url}" class="btn">Aceitar Convite</a></p>`,
       "Convite para IBPlus+"
@@ -92,8 +101,8 @@ export function welcomeEmail(name: string, accountType: string): { subject: stri
   return {
     subject: "Bem-vindo ao IBPlus+!",
     html: baseHtml(
-      `<h2 style="margin-top:0;color:#1e3a5f">Olá ${name}, seja bem-vindo! 🎉</h2>
-       <p>A sua conta <strong>${tipo}</strong> foi criada com sucesso no IBPlus+.</p>
+      `<h2 style="margin-top:0;color:#1e3a5f">Olá ${esc(name)}, seja bem-vindo! 🎉</h2>
+       <p>A sua conta <strong>${esc(tipo)}</strong> foi criada com sucesso no IBPlus+.</p>
        <p>O IBPlus+ é a plataforma completa de gestão empresarial que oferece:</p>
        <ul>
          <li>📊 Dashboard inteligente com gráficos</li>

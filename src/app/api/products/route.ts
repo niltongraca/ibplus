@@ -27,18 +27,32 @@ export async function GET(request: Request) {
     ...(search ?? {}),
     ...(categoryId ? { categoryId } : {}),
     ...(active !== undefined ? { active } : {}),
-    ...(lowStock !== undefined ? { stock: { lte: prisma.product.fields.minStock } } : {}),
   };
 
-  const [products, total] = await Promise.all([
-    prisma.product.findMany({
+  let products: Awaited<ReturnType<typeof prisma.product.findMany>>;
+  let total: number;
+
+  if (lowStock === true) {
+    // Prisma não suporta comparar coluna com coluna num filtro; faz-se pós-leitura.
+    const allProducts = await prisma.product.findMany({
       where,
       include: { category: true },
       orderBy: { name: "asc" },
-      ...(all ? {} : { skip, take: limit }),
-    }),
-    prisma.product.count({ where }),
-  ]);
+    });
+    const low = allProducts.filter((p) => p.stock <= p.minStock);
+    total = low.length;
+    products = all ? low : low.slice(skip, skip + limit);
+  } else {
+    [products, total] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        include: { category: true },
+        orderBy: { name: "asc" },
+        ...(all ? {} : { skip, take: limit }),
+      }),
+      prisma.product.count({ where }),
+    ]);
+  }
 
   return NextResponse.json({
     products: products.map((p) => serializeProduct(p as never)),

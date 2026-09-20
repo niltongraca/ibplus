@@ -58,7 +58,7 @@ export default function RecuperarSenhaPage() {
             </div>
             <p className="text-ib-primary font-medium">{success}</p>
 
-            {token && (
+            {token && process.env.NODE_ENV !== "production" && (
               <div className="p-3 rounded-lg bg-blue-50 border border-blue-200 text-sm text-blue-800 break-all">
                 <p className="font-medium mb-1">Token (dev):</p>
                 <Link
