@@ -4,6 +4,30 @@ import { jwtVerify } from "jose";
 import { ROUTE_PERMISSIONS, PUBLIC_ROUTES } from "@/config/rbacRoutes";
 import { CARGO_LEVELS, DEFAULT_FEATURE_PERMISSIONS, ROUTE_FEATURE_MAP, type CargoLevel } from "@/config/permissions";
 
+// Endpoints /api/* intencionalmente SEM sessão JWT: auth de baixo nível
+// (login/register/forgot/reset), informação pública (content/plans/praca/contact/
+// invite-info) e rotas a secret próprio (cron com CRON_SECRET, verificado no handler).
+// Tudo o resto em /api/* exige JWT válido — fail-closed (nenhum handler pode
+// "esquecer-se" de chamar getAuthUser e ficar público por omissão).
+const API_PUBLIC_PREFIXES = [
+  "/api/auth/login",
+  "/api/auth/register",
+  "/api/auth/forgot-password",
+  "/api/auth/reset-password",
+  "/api/company/invite/info",
+  "/api/contact",
+  "/api/content",
+  "/api/plans",
+  "/api/praca",
+  "/api/cron",
+];
+
+function isApiPublic(pathname: string): boolean {
+  return API_PUBLIC_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(p + "/")
+  );
+}
+
 async function verifyTokenEdge(token: string): Promise<Record<string, any> | null> {
   try {
     const secret = getJwtSecret();
@@ -52,7 +76,26 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  if (pathname.startsWith("/_next") || pathname.startsWith("/api") || pathname === "/favicon.ico") {
+  if (pathname.startsWith("/_next") || pathname === "/favicon.ico") {
+    return response;
+  }
+
+  // Gate /api/* fail-closed: fora da allowlist pública, JWT válido é obrigatório.
+  // Um handler que "esqueça" getAuthUser() já não fica público por omissão —
+  // o middleware responde 401 JSON antes de chegar à rota.
+  if (pathname.startsWith("/api")) {
+    if (!isApiPublic(pathname)) {
+      const token = request.cookies.get("ibplus_session")?.value;
+      const payload = token ? await verifyTokenEdge(token) : null;
+      if (!payload) {
+        const unauthorized = NextResponse.json(
+          { error: "Não autenticado." },
+          { status: 401 }
+        );
+        addSecurityHeaders(unauthorized);
+        return unauthorized;
+      }
+    }
     return response;
   }
 
