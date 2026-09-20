@@ -37,7 +37,7 @@
 21. `Toast` sem `role="status"`/`aria-live` — leitores de ecrã não anunciam. `aria-label`/`title` presentes mas `aria-label` ausente noutros.
 22. `src/app/rh/funcionarios/page.tsx:213` — ícones de acção ~28px (touch <44px). `Sidebar` e header cumprem 44px.
 23. Metrics system (CWV) ausente — sem `core/web-vitals` listener, sem relatório de CWV. Adicionar em `app/layout` com rotas de grupo.
-24. CSP usa `unsafe-inline`/`unsafe-eval` no `next.config`; perfumaria com **duas libs JWT**; `eslint.ignoreDuringBuilds: true` (build deixa passar lint) — remover o ignore.
+24. CSP usa `unsafe-inline`/`unsafe-eval` no `next.config`; perfumaria com **duas libs JWT**; ~~`eslint.ignoreDuringBuilds: true` (build deixa passar lint)~~ **✔ RESOLVIDO (2026-09-20)** — `ignoreDuringBuilds` removido e `npm run lint` migrado de `next lint` (deprecated) para o CLI `eslint .`; `next build` volta a falhar com erros de lint.
 25. `src/lib/audit.ts:11` — `logAction()` re-executa `getAuthUser()` (nova query BD) por mutação; aceitar `userId`/`companyId` como args (menos roundtrips).
 26. Seed/backfill `prisma/seed.ts` fora de `tsconfig include` (não typecheck); `scripts/check-duplicates.ts`, `register-migration` one-offs commitados com `tsx` — aceitável, mas sem `prisma.config.ts` proper de `migrate` (Neon manual). Padronizar via `prisma migrate`.
 
@@ -60,4 +60,4 @@
 
 1. ~~**Validação inexistente a 90% das rotas** — a cada módulo novo a superfície de inputs mal tipados cresce; multiplicador de bugs.~~ **✔ RESOLVIDO (2026-09-20)**: 0 de 71 rotas `/api/*` usam `request.json()` sem schema (restam apenas as rotas já validadas — auth register/forgot/reset e students com zod inline — e `/api/upload` que consome `formData()`). Regressão mitigada porque os novos módulos de `validations/*` são o único ponto de entrada.
 2. **Arquitectura client-heavy** (~137 `"use client"`, sem Server Actions) — waterfalls de fetch e bundle grande; incompatível com o modelo Server Component; custoso de reverter depois.
-3. **Zero testes + lint desligado no build** — regressões de numerário/stock passam a produção sem barreira.
+3. ~~**Zero testes + lint desligado no build** — regressões de numerário/stock passam a produção sem barreira.~~ **✔ RESOLVIDO (2026-09-20)**: 75 testes unitários (`node:test` + `tsx`, sem dependências novas) sobre `validations/*` (helpers/finance/catalog/company), `money` e `utils`; correm com `npm test` no CI local/comandos; lint volta a correr no `next build` (0 erros; 8 avisos `no-img-element` de UX, tarefa da auditoria #18).

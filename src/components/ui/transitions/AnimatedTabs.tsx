@@ -109,6 +109,7 @@ export function AnimatedTabs<T extends string>({
   return (
     <div
       ref={containerRef}
+      role="tablist"
       className={`t-tabs ${trackClassName} ${className}`}
       style={{ backgroundColor: mode === "dark" ? "rgba(128,128,128,0.15)" : "#f3f4f6" }}
     >
@@ -124,6 +125,7 @@ export function AnimatedTabs<T extends string>({
       {tabs.map((tab) => (
         <button
           key={tab.key}
+          role="tab"
           data-key={tab.key}
           aria-selected={active === tab.key}
           onClick={() => onChange(tab.key)}

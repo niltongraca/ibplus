@@ -96,7 +96,6 @@ export const SuccessCheck = forwardRef<SuccessCheckHandle, SuccessCheckProps>(
 
     useEffect(() => {
       if (autoPlay) play();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [autoPlay]);
 
     return (

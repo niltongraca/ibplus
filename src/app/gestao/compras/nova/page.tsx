@@ -175,7 +175,7 @@ export default function NovaCompraPage() {
           </div>
 
           {items.length === 0 ? (
-            <p className="text-sm text-ib-muted text-center py-8">Nenhum item adicionado. Clique em "Adicionar Item" para começar.</p>
+            <p className="text-sm text-ib-muted text-center py-8">Nenhum item adicionado. Clique em &quot;Adicionar Item&quot; para começar.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
