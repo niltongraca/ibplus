@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
-
-const CARGO_LEVELS = ["owner", "manager", "collaborator", "viewer"] as const;
+import { parseBody } from "@/lib/validations/helpers";
+import { cargoUpdateSchema } from "@/lib/validations/company";
 
 async function findCargo(id: string, companyId: string) {
   return prisma.cargo.findFirst({ where: { id, companyId } });
@@ -18,21 +18,18 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const existing = await findCargo(id, user.companyId);
   if (!existing) return NextResponse.json({ error: "Cargo não encontrado." }, { status: 404 });
 
-  const body = await request.json();
+  const parsed = await parseBody(request, cargoUpdateSchema);
+  if ("error" in parsed) return parsed.error;
+  const body = parsed.data;
   const data: { name?: string; description?: string | null; level?: string; active?: boolean } = {};
 
   if (body.name !== undefined) {
-    const name = String(body.name).trim();
-    if (!name) return NextResponse.json({ error: "O nome do cargo não pode ficar vazio." }, { status: 400 });
-    data.name = name;
+    data.name = body.name;
   }
   if (body.description !== undefined) {
-    data.description = body.description ? String(body.description).trim() : null;
+    data.description = body.description || null;
   }
   if (body.level !== undefined) {
-    if (!CARGO_LEVELS.includes(body.level)) {
-      return NextResponse.json({ error: "Nível de cargo inválido." }, { status: 400 });
-    }
     data.level = body.level;
   }
   if (body.active !== undefined) data.active = body.active === true;

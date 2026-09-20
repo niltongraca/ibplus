@@ -4,8 +4,8 @@ import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { parseDateOnly } from "@/lib/utils";
 import { requireFeature, requireTeamManage } from "@/lib/permissions";
-
-const STATUSES = ["pending", "approved", "rejected", "cancelled"];
+import { parseBody } from "@/lib/validations/helpers";
+import { vacationUpdateSchema } from "@/lib/validations/rh";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -33,24 +33,25 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   });
   if (!existing) return NextResponse.json({ error: "Férias não encontradas." }, { status: 404 });
 
-  const body = await request.json();
+  const parsed = await parseBody(request, vacationUpdateSchema);
+  if ("error" in parsed) return parsed.error;
+  const body = parsed.data;
   const data: Prisma.VacationUncheckedUpdateInput = {};
 
-  if (body.startDate !== undefined) {
+  if (body.startDate !== undefined && body.startDate) {
     const startDate = parseDateOnly(body.startDate) ?? new Date(body.startDate);
     if (isNaN(startDate.getTime())) return NextResponse.json({ error: "A data de início não é válida." }, { status: 400 });
     data.startDate = startDate;
   }
-  if (body.endDate !== undefined) {
+  if (body.endDate !== undefined && body.endDate) {
     const endDate = parseDateOnly(body.endDate) ?? new Date(body.endDate);
     if (isNaN(endDate.getTime())) return NextResponse.json({ error: "A data de fim não é válida." }, { status: 400 });
     data.endDate = endDate;
   }
   if (body.status !== undefined) {
-    if (!STATUSES.includes(String(body.status))) return NextResponse.json({ error: "Estado inválido." }, { status: 400 });
-    data.status = String(body.status);
+    data.status = body.status;
   }
-  if (body.notes !== undefined) data.notes = body.notes ? String(body.notes).trim() : null;
+  if (body.notes !== undefined) data.notes = body.notes || null;
 
   const start = data.startDate instanceof Date ? data.startDate : existing.startDate;
   const end = data.endDate instanceof Date ? data.endDate : existing.endDate;

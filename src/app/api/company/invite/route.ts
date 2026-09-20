@@ -5,6 +5,8 @@ import { getAuthUser } from "@/lib/auth";
 import { requireFeature, requireTeamManage } from "@/lib/permissions";
 import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 import { sendEmail, inviteEmail } from "@/lib/email";
+import { parseBody } from "@/lib/validations/helpers";
+import { inviteCreateSchema } from "@/lib/validations/company";
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
@@ -22,7 +24,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { email, role } = await request.json();
+    const parsed = await parseBody(request, inviteCreateSchema);
+    if ("error" in parsed) return parsed.error;
+    const { email, role } = parsed.data;
     const token = crypto.randomBytes(32).toString("hex");
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 

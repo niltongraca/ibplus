@@ -4,8 +4,8 @@ import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { parseDateOnly, parsePagination, buildSearch } from "@/lib/utils";
 import { requireFeature, requireTeamManage } from "@/lib/permissions";
-
-const STATUSES = ["present", "absent", "late", "half_day", "justified"];
+import { parseBody } from "@/lib/validations/helpers";
+import { attendanceCreateSchema } from "@/lib/validations/rh";
 
 export async function GET(request: Request) {
   try {
@@ -46,9 +46,11 @@ export async function POST(request: Request) {
   const denied = await requireTeamManage(user); if (denied) return denied;
 
   try {
-    const body = await request.json();
-    const employeeId = typeof body.employeeId === "string" && body.employeeId ? body.employeeId : "";
-    if (!employeeId) return NextResponse.json({ error: "O funcionário é obrigatório." }, { status: 400 });
+    const parsed = await parseBody(request, attendanceCreateSchema);
+    if ("error" in parsed) return parsed.error;
+    const body = parsed.data;
+
+    const employeeId = body.employeeId;
 
     const employee = await prisma.employee.findFirst({
       where: { id: employeeId, companyId: user.companyId },
@@ -70,8 +72,8 @@ export async function POST(request: Request) {
     }
     if (checkIn && checkOut && checkOut < checkIn) return NextResponse.json({ error: "A saída deve ser após a entrada." }, { status: 400 });
 
-    const status = typeof body.status === "string" && STATUSES.includes(body.status) ? body.status : "present";
-    const notes = body.notes ? String(body.notes).trim() : null;
+    const status = body.status ?? "present";
+    const notes = body.notes || null;
 
     const attendance = await prisma.attendance.create({
       data: { employeeId, date, checkIn, checkOut, status, notes },

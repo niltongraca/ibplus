@@ -4,8 +4,8 @@ import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
 import { parseDateOnly } from "@/lib/utils";
 import { requireFeature, requireTeamManage } from "@/lib/permissions";
-
-const STATUSES = ["present", "absent", "late", "half_day", "justified"];
+import { parseBody } from "@/lib/validations/helpers";
+import { attendanceUpdateSchema } from "@/lib/validations/rh";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -33,10 +33,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   });
   if (!existing) return NextResponse.json({ error: "Presença não encontrada." }, { status: 404 });
 
-  const body = await request.json();
+  const parsed = await parseBody(request, attendanceUpdateSchema);
+  if ("error" in parsed) return parsed.error;
+  const body = parsed.data;
   const data: Prisma.AttendanceUncheckedUpdateInput = {};
 
-  if (body.date !== undefined) {
+  if (body.date !== undefined && body.date) {
     const date = parseDateOnly(body.date) ?? new Date(body.date);
     if (isNaN(date.getTime())) return NextResponse.json({ error: "A data não é válida." }, { status: 400 });
     data.date = date;
@@ -60,10 +62,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
   }
   if (body.status !== undefined) {
-    if (!STATUSES.includes(String(body.status))) return NextResponse.json({ error: "Estado inválido." }, { status: 400 });
-    data.status = String(body.status);
+    data.status = body.status;
   }
-  if (body.notes !== undefined) data.notes = body.notes ? String(body.notes).trim() : null;
+  if (body.notes !== undefined) data.notes = body.notes || null;
 
   const checkIn = data.checkIn instanceof Date ? data.checkIn : existing.checkIn;
   const checkOut = data.checkOut instanceof Date ? data.checkOut : existing.checkOut;

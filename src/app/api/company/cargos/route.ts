@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
-
-const CARGO_LEVELS = ["owner", "manager", "collaborator", "viewer"] as const;
+import { parseBody } from "@/lib/validations/helpers";
+import { cargoCreateSchema } from "@/lib/validations/company";
 
 export async function GET(request: Request) {
   const user = await getAuthUser();
@@ -27,17 +27,18 @@ export async function POST(request: Request) {
   if (!user.isOwner) return NextResponse.json({ error: "Apenas o dono pode gerir os cargos." }, { status: 403 });
 
   try {
-    const body = await request.json();
-    const name = typeof body.name === "string" ? body.name.trim() : "";
-    if (!name) return NextResponse.json({ error: "O nome do cargo é obrigatório." }, { status: 400 });
+    const parsed = await parseBody(request, cargoCreateSchema);
+    if ("error" in parsed) return parsed.error;
+    const body = parsed.data;
+    const name = body.name;
 
-    const level = CARGO_LEVELS.includes(body.level) ? body.level : "collaborator";
+    const level = body.level ?? "collaborator";
 
     const cargo = await prisma.cargo.create({
       data: {
         companyId: user.companyId,
         name,
-        description: body.description ? String(body.description).trim() : null,
+        description: body.description || null,
         level,
         active: body.active === false ? false : true,
       },

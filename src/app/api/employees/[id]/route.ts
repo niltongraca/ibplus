@@ -6,6 +6,8 @@ import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
 import { parseDateOnly } from "@/lib/utils";
 import { requireFeature, requireTeamManage } from "@/lib/permissions";
+import { parseBody } from "@/lib/validations/helpers";
+import { employeeUpdateSchema } from "@/lib/validations/rh";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -31,25 +33,21 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const existing = await prisma.employee.findFirst({ where: { id, companyId: user.companyId } });
   if (!existing) return NextResponse.json({ error: "Funcionário não encontrado." }, { status: 404 });
 
-  const body = await request.json();
+  const parsed = await parseBody(request, employeeUpdateSchema);
+  if ("error" in parsed) return parsed.error;
+  const body = parsed.data;
   const data: Prisma.EmployeeUncheckedUpdateInput = {};
 
   if (body.name !== undefined) {
-    const name = String(body.name).trim();
-    if (!name) return NextResponse.json({ error: "O nome não pode ficar vazio." }, { status: 400 });
-    data.name = name;
+    data.name = body.name;
   }
   if (body.email !== undefined) {
-    const email = body.email ? String(body.email).trim() : "";
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return NextResponse.json({ error: "O email não é válido." }, { status: 400 });
-    data.email = email || null;
+    data.email = body.email || null;
   }
-  if (body.phone !== undefined) data.phone = body.phone ? String(body.phone).trim() : null;
-  if (body.position !== undefined) data.position = body.position ? String(body.position).trim() : null;
+  if (body.phone !== undefined) data.phone = body.phone || null;
+  if (body.position !== undefined) data.position = body.position || null;
   if (body.salary !== undefined) {
-    const salary = Number(body.salary);
-    if (!Number.isFinite(salary) || salary < 0) return NextResponse.json({ error: "O salário não pode ser negativo." }, { status: 400 });
-    data.salary = salary;
+    data.salary = body.salary ?? 0;
   }
   if (body.hireDate !== undefined) {
     if (body.hireDate) {

@@ -4,6 +4,8 @@ import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { parseDateOnly, parsePagination, buildSearch } from "@/lib/utils";
 import { requireFeature, requireTeamManage } from "@/lib/permissions";
+import { parseBody } from "@/lib/validations/helpers";
+import { vacationCreateSchema } from "@/lib/validations/rh";
 
 export async function GET(request: Request) {
   try {
@@ -44,9 +46,11 @@ export async function POST(request: Request) {
   const denied = await requireTeamManage(user); if (denied) return denied;
 
   try {
-    const body = await request.json();
-    const employeeId = typeof body.employeeId === "string" && body.employeeId ? body.employeeId : "";
-    if (!employeeId) return NextResponse.json({ error: "O funcionário é obrigatório." }, { status: 400 });
+    const parsed = await parseBody(request, vacationCreateSchema);
+    if ("error" in parsed) return parsed.error;
+    const body = parsed.data;
+
+    const employeeId = body.employeeId;
 
     const employee = await prisma.employee.findFirst({
       where: { id: employeeId, companyId: user.companyId },
@@ -61,8 +65,8 @@ export async function POST(request: Request) {
 
     if (endDate < startDate) return NextResponse.json({ error: "A data de fim deve ser posterior à de início." }, { status: 400 });
 
-    const status = typeof body.status === "string" && ["pending", "approved", "rejected", "cancelled"].includes(body.status) ? body.status : "pending";
-    const notes = body.notes ? String(body.notes).trim() : null;
+    const status = body.status ?? "pending";
+    const notes = body.notes || null;
 
     const vacation = await prisma.vacation.create({
       data: { employeeId, startDate, endDate, status, notes },

@@ -3,6 +3,8 @@ import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser, signToken } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
+import { parseBody } from "@/lib/validations/helpers";
+import { companyAcquisitionSchema } from "@/lib/validations/company";
 
 export async function GET() {
   const user = await getAuthUser();
@@ -28,9 +30,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = await request.json();
-    const action = body.action === "redeem" ? "redeem" : body.action === "generate" ? "generate" : null;
-    if (!action) return NextResponse.json({ error: "Acção inválida." }, { status: 400 });
+    const parsed = await parseBody(request, companyAcquisitionSchema);
+    if ("error" in parsed) return parsed.error;
+    const body = parsed.data;
+    const action = body.action;
 
     if (action === "generate") {
       if (!user.isOwner) {
@@ -49,7 +52,7 @@ export async function POST(request: Request) {
     if (user.role !== "admin" && user.companyId && !user.isOwner) {
       return NextResponse.json({ error: "Apenas o dono de uma organização pode adquirir outra empresa." }, { status: 403 });
     }
-    const code = typeof body.code === "string" ? body.code.trim().toUpperCase() : "";
+    const code = body.code || "";
     if (!code) return NextResponse.json({ error: "Indique o código de aquisição." }, { status: 400 });
 
     const target = await prisma.company.findUnique({ where: { acquisitionCode: code } });

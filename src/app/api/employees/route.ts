@@ -5,6 +5,8 @@ import { parsePagination, parseDateOnly, buildSearch, parseBool } from "@/lib/ut
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
 import { requireFeature, requireTeamManage } from "@/lib/permissions";
+import { parseBody } from "@/lib/validations/helpers";
+import { employeeCreateSchema } from "@/lib/validations/rh";
 
 export async function GET(request: Request) {
   const user = await getAuthUser();
@@ -46,19 +48,14 @@ export async function POST(request: Request) {
   const denied = await requireTeamManage(user); if (denied) return denied;
 
   try {
-    const body = await request.json();
-    const name = typeof body.name === "string" ? body.name.trim() : "";
-    if (!name) return NextResponse.json({ error: "O nome é obrigatório." }, { status: 400 });
+    const parsed = await parseBody(request, employeeCreateSchema);
+    if ("error" in parsed) return parsed.error;
+    const body = parsed.data;
 
-    const email = body.email ? String(body.email).trim() : "";
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json({ error: "O email não é válido." }, { status: 400 });
-    }
+    const name = body.name;
+    const email = body.email || "";
 
-    const salary = body.salary === undefined || body.salary === null || body.salary === "" ? 0 : Number(body.salary);
-    if (!Number.isFinite(salary) || salary < 0) {
-      return NextResponse.json({ error: "O salário não pode ser negativo." }, { status: 400 });
-    }
+    const salary = body.salary ?? 0;
 
     let hireDate: Date | null = null;
     if (body.hireDate) {
@@ -80,8 +77,8 @@ export async function POST(request: Request) {
         companyId: user.companyId,
         name,
         email: email || null,
-        phone: body.phone ? String(body.phone).trim() : null,
-        position: body.position ? String(body.position).trim() : null,
+        phone: body.phone || null,
+        position: body.position || null,
         cargoId,
         salary,
         hireDate,

@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
-
-const SUB_TYPES = ["SUBEMPRESA", "ORGANIZACAO", "FILIAL", "SUCURSAL"] as const;
+import { parseBody } from "@/lib/validations/helpers";
+import { subCompanyCreateSchema } from "@/lib/validations/company";
 
 export async function GET() {
   const user = await getAuthUser();
@@ -23,20 +23,21 @@ export async function POST(request: Request) {
   if (!user.isOwner) return NextResponse.json({ error: "Apenas o dono pode gerir as subempresas e organizações." }, { status: 403 });
 
   try {
-    const body = await request.json();
-    const name = typeof body.name === "string" ? body.name.trim() : "";
-    if (!name) return NextResponse.json({ error: "O nome é obrigatório." }, { status: 400 });
+    const parsed = await parseBody(request, subCompanyCreateSchema);
+    if ("error" in parsed) return parsed.error;
+    const body = parsed.data;
 
-    const type = SUB_TYPES.includes(body.type) ? body.type : "SUBEMPRESA";
+    const name = body.name;
+    const type = body.type ?? "SUBEMPRESA";
 
     const subCompany = await prisma.subCompany.create({
       data: {
         companyId: user.companyId,
         name,
         type,
-        sector: body.sector ? String(body.sector).trim() : null,
-        address: body.address ? String(body.address).trim() : null,
-        description: body.description ? String(body.description).trim() : null,
+        sector: body.sector || null,
+        address: body.address || null,
+        description: body.description || null,
         active: body.active === false ? false : true,
       },
     });

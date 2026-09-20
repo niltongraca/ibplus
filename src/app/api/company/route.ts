@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { getAuthUser } from "@/lib/auth";
+import { parseBody } from "@/lib/validations/helpers";
+import { companyUpdateSchema } from "@/lib/validations/company";
 
 export async function GET() {
   try {
@@ -20,13 +22,13 @@ export async function PUT(request: Request) {
     const user = await getAuthUser();
     if (!user || !user.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-    const data = await request.json();
+    const parsed = await parseBody(request, companyUpdateSchema);
+    if ("error" in parsed) return parsed.error;
+    const body = parsed.data;
     const updateData: Prisma.CompanyUncheckedUpdateInput = {};
 
-    if (data.name !== undefined) {
-      const name = data.name === null ? "" : String(data.name).trim();
-      if (!name) return NextResponse.json({ error: "O nome da empresa não pode ficar vazio." }, { status: 400 });
-      updateData.name = name;
+    if (body.name !== undefined) {
+      updateData.name = body.name;
     }
 
     const nullableFields = [
@@ -36,18 +38,11 @@ export async function PUT(request: Request) {
     ] as const;
 
     for (const key of nullableFields) {
-      if (data[key] !== undefined) updateData[key] = data[key] === null ? null : String(data[key]).trim();
+      if (body[key] !== undefined) updateData[key] = body[key] === null ? null : body[key];
     }
 
-    const email = data.email === undefined ? undefined : data.email === null ? null : String(data.email).trim();
-    if (email !== undefined && email !== "" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email ?? "")) {
-      return NextResponse.json({ error: "O email não é válido." }, { status: 400 });
-    }
-    if (data.corPrincipal !== undefined) {
-      updateData.corPrincipal = String(data.corPrincipal).trim();
-      if (!/^#[0-9a-fA-F]{6}$/.test(updateData.corPrincipal)) {
-        return NextResponse.json({ error: "A cor principal deve ser em formato hexadecimal (ex: #2563eb)." }, { status: 400 });
-      }
+    if (body.corPrincipal !== undefined) {
+      updateData.corPrincipal = body.corPrincipal;
     }
 
     const result = await prisma.company.update({

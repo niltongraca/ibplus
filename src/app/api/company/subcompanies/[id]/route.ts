@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
-
-const SUB_TYPES = ["SUBEMPRESA", "ORGANIZACAO", "FILIAL", "SUCURSAL"] as const;
+import { parseBody } from "@/lib/validations/helpers";
+import { subCompanyUpdateSchema } from "@/lib/validations/company";
 
 async function findSubCompany(id: string, companyId: string) {
   return prisma.subCompany.findFirst({ where: { id, companyId } });
@@ -18,23 +18,20 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const existing = await findSubCompany(id, user.companyId);
   if (!existing) return NextResponse.json({ error: "Subempresa não encontrada." }, { status: 404 });
 
-  const body = await request.json();
+  const parsed = await parseBody(request, subCompanyUpdateSchema);
+  if ("error" in parsed) return parsed.error;
+  const body = parsed.data;
   const data: { name?: string; type?: string; sector?: string | null; address?: string | null; description?: string | null; active?: boolean } = {};
 
   if (body.name !== undefined) {
-    const name = String(body.name).trim();
-    if (!name) return NextResponse.json({ error: "O nome não pode ficar vazio." }, { status: 400 });
-    data.name = name;
+    data.name = body.name;
   }
   if (body.type !== undefined) {
-    if (!SUB_TYPES.includes(body.type)) {
-      return NextResponse.json({ error: "Tipo de subempresa inválido." }, { status: 400 });
-    }
     data.type = body.type;
   }
-  if (body.sector !== undefined) data.sector = body.sector ? String(body.sector).trim() : null;
-  if (body.address !== undefined) data.address = body.address ? String(body.address).trim() : null;
-  if (body.description !== undefined) data.description = body.description ? String(body.description).trim() : null;
+  if (body.sector !== undefined) data.sector = body.sector || null;
+  if (body.address !== undefined) data.address = body.address || null;
+  if (body.description !== undefined) data.description = body.description || null;
   if (body.active !== undefined) data.active = body.active === true;
 
   const subCompany = await prisma.subCompany.update({ where: { id }, data });

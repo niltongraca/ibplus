@@ -11,6 +11,8 @@ import {
   type FeatureKey,
 } from "@/config/permissions";
 import { logAction } from "@/lib/audit";
+import { parseBody } from "@/lib/validations/helpers";
+import { companyPermissionsSchema } from "@/lib/validations/company";
 
 export async function GET() {
   const user = await getAuthUser();
@@ -28,20 +30,15 @@ export async function PUT(request: Request) {
   if (denied) return denied;
 
   try {
-    const body = await request.json();
-    const matrix = body.matrix as Record<string, Record<string, boolean>> | undefined;
-    if (!matrix || typeof matrix !== "object") {
-      return NextResponse.json({ error: "Matriz de permissões inválida." }, { status: 400 });
-    }
+    const parsed = await parseBody(request, companyPermissionsSchema);
+    if ("error" in parsed) return parsed.error;
+    const matrix = parsed.data.matrix;
 
     const levels = CARGO_LEVELS as readonly string[];
 
     for (const [level, features] of Object.entries(matrix)) {
       if (!levels.includes(level)) {
         return NextResponse.json({ error: `Nível "${level}" inválido.` }, { status: 400 });
-      }
-      if (!features || typeof features !== "object") {
-        return NextResponse.json({ error: `Permissões inválidas para "${level}".` }, { status: 400 });
       }
       for (const feature of Object.keys(features)) {
         if (!(FEATURE_KEYS as readonly string[]).includes(feature)) {
