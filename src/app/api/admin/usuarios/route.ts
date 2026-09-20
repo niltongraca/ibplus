@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { parsePagination, buildSearch } from "@/lib/utils";
 import type { Prisma, AccountType, PlanType } from "@prisma/client";
+import { parseBody } from "@/lib/validations/helpers";
+import { adminUserUpdateSchema, adminIdSchema } from "@/lib/validations/admin";
 
 export async function GET(request: Request) {
   try {
@@ -55,8 +57,9 @@ export async function PUT(request: Request) {
     const user = await getAuthUser();
     if (!user || user.role !== "admin") return NextResponse.json({ error: "Não autorizado." }, { status: 403 });
 
-    const { id, role, plan, accountType } = await request.json();
-    if (!id) return NextResponse.json({ error: "ID é obrigatório." }, { status: 400 });
+    const parsed = await parseBody(request, adminUserUpdateSchema);
+    if ("error" in parsed) return parsed.error;
+    const { id, role, plan, accountType } = parsed.data;
 
     const result = await prisma.user.updateMany({
       where: { id },
@@ -79,8 +82,9 @@ export async function DELETE(request: Request) {
     const user = await getAuthUser();
     if (!user || user.role !== "admin") return NextResponse.json({ error: "Não autorizado." }, { status: 403 });
 
-    const { id } = await request.json();
-    if (!id) return NextResponse.json({ error: "ID é obrigatório." }, { status: 400 });
+    const parsed = await parseBody(request, adminIdSchema);
+    if ("error" in parsed) return parsed.error;
+    const { id } = parsed.data;
     if (id === user.id) return NextResponse.json({ error: "Não pode eliminar a sua própria conta." }, { status: 400 });
 
     const result = await prisma.user.deleteMany({ where: { id } });

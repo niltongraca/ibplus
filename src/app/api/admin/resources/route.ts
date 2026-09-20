@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { parseBody } from "@/lib/validations/helpers";
+import { resourceToggleSchema } from "@/lib/validations/admin";
 
 export async function GET() {
   const user = await getAuthUser();
@@ -18,7 +20,9 @@ export async function PUT(request: Request) {
   if (!user || user.role !== "admin") return NextResponse.json({ error: "Não autorizado." }, { status: 403 });
 
   try {
-    const { id, enabled } = await request.json();
+    const parsed = await parseBody(request, resourceToggleSchema);
+    if ("error" in parsed) return parsed.error;
+    const { id, enabled } = parsed.data;
     await prisma.resource.update({ where: { id }, data: { enabled } });
     return NextResponse.json({ success: true });
   } catch {

@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { parsePagination, buildSearch } from "@/lib/utils";
 import type { Prisma, ContentType } from "@prisma/client";
+import { parseBody } from "@/lib/validations/helpers";
+import { contentCreateSchema } from "@/lib/validations/admin";
 
 export async function GET(request: NextRequest) {
   try {
@@ -35,13 +37,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Não autorizado." }, { status: 403 });
     }
 
-    const { title, type, url, description, thumbnail, author, tags, featured } = await request.json();
-    if (!title || !type || !url) {
-      return NextResponse.json({ error: "Título, tipo e URL são obrigatórios." }, { status: 400 });
-    }
+    const parsed = await parseBody(request, contentCreateSchema);
+    if ("error" in parsed) return parsed.error;
+    const { title, type, url, description, thumbnail, author, tags, featured } = parsed.data;
 
     const content = await prisma.content.create({
-      data: { title, type: type.toUpperCase(), url, description, thumbnail, author, tags, featured: featured || false },
+      data: {
+        title,
+        type,
+        url,
+        description: description || null,
+        thumbnail: thumbnail || null,
+        author: author || null,
+        tags: tags || null,
+        featured: featured || false,
+      },
     });
 
     return NextResponse.json({ content });

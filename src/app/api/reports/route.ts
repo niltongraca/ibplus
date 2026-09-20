@@ -6,6 +6,8 @@ import { generateReportForCompany, type ReportPeriod } from "@/lib/reports";
 import { toNumber } from "@/lib/money";
 import { parsePagination } from "@/lib/utils";
 import { requireFeature, requireWrite } from "@/lib/permissions";
+import { parseBody } from "@/lib/validations/helpers";
+import { reportGenerateSchema } from "@/lib/validations/admin";
 
 function serializeReport(r: { totalRevenue?: unknown; totalExpenses?: unknown; netResult?: unknown; invoicesPaidTotal?: unknown } & Record<string, unknown>) {
   return {
@@ -49,8 +51,9 @@ export async function POST(request: Request) {
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   const denied = await requireWrite(user, "relatorios"); if (denied) return denied;
 
-  const body = await request.json().catch(() => ({}));
-  const period: ReportPeriod = body.period === "quarterly" || body.period === "annual" ? body.period : "monthly";
+  const parsed = await parseBody(request, reportGenerateSchema);
+  if ("error" in parsed) return parsed.error;
+  const period: ReportPeriod = parsed.data.period ?? "monthly";
 
   const report = await generateReportForCompany(user.companyId, period);
 

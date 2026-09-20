@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
+import { parseBody } from "@/lib/validations/helpers";
+import { notificationCreateSchema, notificationUpdateSchema } from "@/lib/validations/admin";
 
 export async function GET() {
   const user = await getAuthUser();
@@ -24,9 +26,18 @@ export async function POST(request: Request) {
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   try {
-    const { type, title, message, link, requiresUpdate } = await request.json();
+    const parsed = await parseBody(request, notificationCreateSchema);
+    if ("error" in parsed) return parsed.error;
+    const { type, title, message, link, requiresUpdate } = parsed.data;
     const notification = await prisma.notification.create({
-      data: { companyId: user.companyId, type, title, message, link, requiresUpdate: Boolean(requiresUpdate) },
+      data: {
+        companyId: user.companyId,
+        type: type || "info",
+        title,
+        message: message || null,
+        link: link || null,
+        requiresUpdate: requiresUpdate === true,
+      },
     });
     return NextResponse.json({ notification }, { status: 201 });
   } catch {
@@ -39,7 +50,9 @@ export async function PUT(request: Request) {
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
   try {
-    const { id, readAll } = await request.json();
+    const parsed = await parseBody(request, notificationUpdateSchema);
+    if ("error" in parsed) return parsed.error;
+    const { id, readAll } = parsed.data;
 
     if (readAll) {
       await prisma.notification.updateMany({

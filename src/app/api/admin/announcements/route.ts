@@ -2,13 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
-
-interface AnnouncementBody {
-  title?: string;
-  message?: string;
-  link?: string;
-  requiresUpdate?: boolean;
-}
+import { parseBody } from "@/lib/validations/helpers";
+import { announcementCreateSchema } from "@/lib/validations/admin";
 
 export async function GET() {
   const user = await getAuthUser();
@@ -27,14 +22,9 @@ export async function POST(request: Request) {
   if (!user || user.role !== "admin") return NextResponse.json({ error: "Não autorizado." }, { status: 403 });
 
   try {
-    const body = (await request.json()) as AnnouncementBody;
-
-    const title = typeof body.title === "string" ? body.title.trim() : "";
-    if (!title) return NextResponse.json({ error: "O título é obrigatório." }, { status: 400 });
-
-    const message = typeof body.message === "string" ? body.message.trim() : "";
-    const link = typeof body.link === "string" ? body.link.trim() : "";
-    const requiresUpdate = Boolean(body.requiresUpdate);
+    const parsed = await parseBody(request, announcementCreateSchema);
+    if ("error" in parsed) return parsed.error;
+    const { title, message, link, requiresUpdate } = parsed.data;
 
     const companies = await prisma.company.findMany({ select: { id: true } });
 

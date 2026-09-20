@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { parsePagination, buildSearch } from "@/lib/utils";
 import type { Prisma, PlanType } from "@prisma/client";
+import { parseBody } from "@/lib/validations/helpers";
+import { adminCompanyUpdateSchema, adminIdSchema } from "@/lib/validations/admin";
 
 export async function GET(request: Request) {
   try {
@@ -59,12 +61,17 @@ export async function PUT(request: Request) {
     const user = await getAuthUser();
     if (!user || user.role !== "admin") return NextResponse.json({ error: "Não autorizado." }, { status: 403 });
 
-    const { id, name, email, nif } = await request.json();
-    if (!id) return NextResponse.json({ error: "ID é obrigatório." }, { status: 400 });
+    const parsed = await parseBody(request, adminCompanyUpdateSchema);
+    if ("error" in parsed) return parsed.error;
+    const { id, name, email, nif } = parsed.data;
 
     const result = await prisma.company.updateMany({
       where: { id },
-      data: { name: name ?? undefined, email: email ?? undefined, nif: nif ?? undefined },
+      data: {
+        name: name ?? undefined,
+        email: email === undefined ? undefined : email === null ? null : email || null,
+        nif: nif ?? undefined,
+      },
     });
 
     if (!result.count) return NextResponse.json({ error: "Empresa não encontrada." }, { status: 404 });
@@ -79,8 +86,9 @@ export async function DELETE(request: Request) {
     const user = await getAuthUser();
     if (!user || user.role !== "admin") return NextResponse.json({ error: "Não autorizado." }, { status: 403 });
 
-    const { id } = await request.json();
-    if (!id) return NextResponse.json({ error: "ID é obrigatório." }, { status: 400 });
+    const parsed = await parseBody(request, adminIdSchema);
+    if ("error" in parsed) return parsed.error;
+    const { id } = parsed.data;
 
     const company = await prisma.company.findUnique({ where: { id }, include: { _count: { select: { users: true } } } });
     if (!company) return NextResponse.json({ error: "Empresa não encontrada." }, { status: 404 });

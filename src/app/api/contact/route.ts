@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
 import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
+import { parseBody } from "@/lib/validations/helpers";
+import { contactSchema } from "@/lib/validations/admin";
 
 function escapeHtml(input: string): string {
   return input
@@ -17,16 +19,9 @@ export async function POST(req: NextRequest) {
     const check = checkRateLimit(`contact:${ip}`, "medium");
     if (!check.allowed) return rateLimitResponse(check.retryAfter!);
 
-    const { name, email, subject, message } = await req.json();
-
-    if (!name || !email || !message) {
-      return NextResponse.json({ error: "Todos os campos são obrigatórios." }, { status: 400 });
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json({ error: "Email inválido." }, { status: 400 });
-    }
+    const parsed = await parseBody(req, contactSchema);
+    if ("error" in parsed) return parsed.error;
+    const { name, email, subject, message } = parsed.data;
 
     const safeName = escapeHtml(String(name)).slice(0, 100);
     const safeEmail = escapeHtml(String(email)).slice(0, 150);

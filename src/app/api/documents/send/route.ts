@@ -6,6 +6,8 @@ import { toNumber } from "@/lib/money";
 import { buildDocumentHtml } from "@/lib/exportDocument";
 import { sendEmail } from "@/lib/email";
 import { logAction } from "@/lib/audit";
+import { parseBody } from "@/lib/validations/helpers";
+import { documentSendSchema } from "@/lib/validations/admin";
 
 type DocType = "FATURA" | "ORÇAMENTO";
 
@@ -29,19 +31,13 @@ export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
 
-  const body = await request.json().catch(() => null);
-  if (!body) return NextResponse.json({ error: "Corpo inválido." }, { status: 400 });
-
-  const type: DocType | null =
-    body.type === "FATURA" ? "FATURA" : body.type === "ORÇAMENTO" ? "ORÇAMENTO" : null;
-  if (!type) return NextResponse.json({ error: "Tipo de documento inválido." }, { status: 400 });
+  const parsed = await parseBody(request, documentSendSchema);
+  if ("error" in parsed) return parsed.error;
+  const { type, id, to } = parsed.data;
+  const explicitTo = to || "";
 
   const denied = await requireWrite(user, type === "FATURA" ? "faturacao" : "orcamentos");
   if (denied) return denied;
-
-  const id = body.id ? String(body.id) : "";
-  if (!id) return NextResponse.json({ error: "Documento não identificado." }, { status: 400 });
-  const explicitTo = body.to ? String(body.to).trim() : "";
 
   const company = await prisma.company.findUnique({ where: { id: user.companyId } });
   const companyInfo = company
