@@ -58,6 +58,6 @@
 
 ## 3 maiores riscos de longo prazo
 
-1. **Validação inexistente a 90% das rotas** — a cada módulo novo a superfície de inputs mal tipados cresce; multiplicador de bugs.
+1. **Validação inexistente a 90% das rotas** — a cada módulo novo a superfície de inputs mal tipados cresce; multiplicador de bugs. *(métrica verificada 2026-09-20: 51 de 71 rotas `/api/*` usam `request.json()` sem zod — 72%; lista completa em grep: `[a-zA-Z]`*Inv\r)*.
 2. **Arquitectura client-heavy** (~137 `"use client"`, sem Server Actions) — waterfalls de fetch e bundle grande; incompatível com o modelo Server Component; custoso de reverter depois.
 3. **Zero testes + lint desligado no build** — regressões de numerário/stock passam a produção sem barreira.
