@@ -6,9 +6,8 @@ import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
 import { parseDateOnly } from "@/lib/utils";
 import { requireFeature, requireWrite, requireDelete } from "@/lib/permissions";
-
-const TYPES = ["email", "social", "sms", "whatsapp", "other"];
-const STATUSES = ["draft", "active", "paused", "completed", "cancelled"];
+import { parseBody } from "@/lib/validations/helpers";
+import { campaignUpdateSchema } from "@/lib/validations/catalog";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -33,30 +32,22 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const existing = await prisma.campaign.findFirst({ where: { id, companyId: user.companyId } });
   if (!existing) return NextResponse.json({ error: "Campanha não encontrada." }, { status: 404 });
 
-  const body = await request.json();
+  const parsed = await parseBody(request, campaignUpdateSchema);
+  if ("error" in parsed) return parsed.error;
+  const body = parsed.data;
   const data: Prisma.CampaignUncheckedUpdateInput = {};
 
   if (body.name !== undefined) {
-    const name = String(body.name).trim();
-    if (!name) return NextResponse.json({ error: "O nome não pode ficar vazio." }, { status: 400 });
-    data.name = name;
+    data.name = body.name;
   }
   if (body.type !== undefined) {
-    if (!TYPES.includes(String(body.type))) return NextResponse.json({ error: "Tipo inválido." }, { status: 400 });
-    data.type = String(body.type);
+    data.type = body.type;
   }
   if (body.status !== undefined) {
-    if (!STATUSES.includes(String(body.status))) return NextResponse.json({ error: "Estado inválido." }, { status: 400 });
-    data.status = String(body.status);
+    data.status = body.status;
   }
   if (body.budget !== undefined) {
-    if (body.budget === null || body.budget === "") {
-      data.budget = null;
-    } else {
-      const budget = Number(body.budget);
-      if (!Number.isFinite(budget) || budget < 0) return NextResponse.json({ error: "O orçamento não pode ser negativo." }, { status: 400 });
-      data.budget = budget;
-    }
+    data.budget = body.budget === null ? null : body.budget;
   }
   if (body.startDate !== undefined) {
     data.startDate = body.startDate ? (parseDateOnly(body.startDate) ?? new Date(body.startDate)) : null;
@@ -66,7 +57,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     data.endDate = body.endDate ? (parseDateOnly(body.endDate) ?? new Date(body.endDate)) : null;
     if (data.endDate instanceof Date && isNaN(data.endDate.getTime())) return NextResponse.json({ error: "A data de fim não é válida." }, { status: 400 });
   }
-  if (body.notes !== undefined) data.notes = body.notes ? String(body.notes).trim() : null;
+  if (body.notes !== undefined) data.notes = body.notes || null;
 
   const start = data.startDate instanceof Date ? data.startDate : existing.startDate;
   const end = data.endDate instanceof Date ? data.endDate : existing.endDate;

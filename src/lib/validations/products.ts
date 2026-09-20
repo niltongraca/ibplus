@@ -8,7 +8,7 @@ export const productSchema = z.object({
   stock: z.coerce.number().int("O stock deve ser um número inteiro.").min(0, "O stock não pode ser negativo.").optional().nullable(),
   minStock: z.coerce.number().int("O stock mínimo deve ser um número inteiro.").min(0, "O stock mínimo não pode ser negativo.").optional().nullable(),
   unit: z.string().trim().max(10, "A unidade excede 10 caracteres.").optional().default("un"),
-  categoryId: z.string().length(24, "Categoria inválida.").optional().nullable(),
+  categoryId: z.string().max(100, "Categoria inválida.").optional().nullable(),
   active: z.boolean().optional(),
 });
 

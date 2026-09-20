@@ -3,10 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
-
-const PAYMENT_METHODS = ["cash", "card", "transfer", "multicaixa"];
-
-type CartItem = { productId: string; quantity: number };
+import { parseBody } from "@/lib/validations/helpers";
+import { checkoutSchema } from "@/lib/validations/catalog";
 
 export async function POST(request: Request) {
   const user = await getAuthUser();
@@ -14,17 +12,15 @@ export async function POST(request: Request) {
   const companyId = user.companyId as string;
 
   try {
-    const body = await request.json();
-    const customerName = body.customerName ? String(body.customerName).trim() : "";
-    const paymentMethod = typeof body.paymentMethod === "string" && PAYMENT_METHODS.includes(body.paymentMethod) ? body.paymentMethod : "cash";
+    const parsed = await parseBody(request, checkoutSchema);
+    if ("error" in parsed) return parsed.error;
+    const body = parsed.data;
+    const customerName = body.customerName || "";
+    const paymentMethod = body.paymentMethod ?? "cash";
 
-    const items: CartItem[] = Array.isArray(body.items) ? body.items : [];
-    if (!items.length) return NextResponse.json({ error: "Carrinho vazio." }, { status: 400 });
+    const items = body.items;
 
     const productIds = items.map((item) => item.productId);
-    if (productIds.some((id) => typeof id !== "string" || !id)) {
-      return NextResponse.json({ error: "Produto inválido no carrinho." }, { status: 400 });
-    }
 
     const products = await prisma.product.findMany({
       where: { id: { in: productIds }, companyId: companyId },
@@ -40,9 +36,6 @@ export async function POST(request: Request) {
     for (const item of items) {
       const product = productMap.get(item.productId);
       if (!product) return NextResponse.json({ error: "Produto inválido." }, { status: 400 });
-      if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
-        return NextResponse.json({ error: "Quantidade inválida." }, { status: 400 });
-      }
       if (product.stock < item.quantity) {
         return NextResponse.json({ error: `Stock insuficiente para "${product.name}".` }, { status: 400 });
       }

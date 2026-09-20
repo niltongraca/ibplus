@@ -5,9 +5,8 @@ import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
 import { parseDateOnly, parsePagination, buildSearch } from "@/lib/utils";
 import { requireFeature, requireWrite } from "@/lib/permissions";
-
-const TYPES = ["email", "social", "sms", "whatsapp", "other"];
-const STATUSES = ["draft", "active", "paused", "completed", "cancelled"];
+import { parseBody } from "@/lib/validations/helpers";
+import { campaignCreateSchema } from "@/lib/validations/catalog";
 
 export async function GET(request: Request) {
   try {
@@ -54,18 +53,18 @@ export async function POST(request: Request) {
   const denied = await requireWrite(user, "marketing"); if (denied) return denied;
 
   try {
-    const body = await request.json();
-    const name = typeof body.name === "string" ? body.name.trim() : "";
-    if (!name) return NextResponse.json({ error: "O nome é obrigatório." }, { status: 400 });
+    const parsed = await parseBody(request, campaignCreateSchema);
+    if ("error" in parsed) return parsed.error;
+    const body = parsed.data;
+    const name = body.name;
 
-    const type = typeof body.type === "string" && TYPES.includes(body.type) ? body.type : "email";
-    const status = typeof body.status === "string" && STATUSES.includes(body.status) ? body.status : "draft";
-    const notes = body.notes ? String(body.notes).trim() : null;
+    const type = body.type ?? "email";
+    const status = body.status ?? "draft";
+    const notes = body.notes || null;
 
     let budget: number | null = null;
-    if (body.budget !== undefined && body.budget !== null && body.budget !== "") {
-      budget = Number(body.budget);
-      if (!Number.isFinite(budget) || budget < 0) return NextResponse.json({ error: "O orçamento não pode ser negativo." }, { status: 400 });
+    if (body.budget !== undefined && body.budget !== null) {
+      budget = body.budget;
     }
 
     let startDate: Date | null = null;

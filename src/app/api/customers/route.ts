@@ -5,6 +5,8 @@ import { parsePagination, buildSearch } from "@/lib/utils";
 import { createNotification } from "@/lib/notifications";
 import { logAction } from "@/lib/audit";
 import { requireFeature, requireWrite } from "@/lib/permissions";
+import { parseBody } from "@/lib/validations/helpers";
+import { customerCreateSchema } from "@/lib/validations/catalog";
 
 export async function GET(request: Request) {
   const user = await getAuthUser();
@@ -41,27 +43,25 @@ export async function POST(request: Request) {
   const denied = await requireWrite(user, "clientes"); if (denied) return denied;
 
   try {
-    const body = await request.json();
-    const name = typeof body.name === "string" ? body.name.trim() : "";
-    if (!name) return NextResponse.json({ error: "O nome é obrigatório." }, { status: 400 });
+    const parsed = await parseBody(request, customerCreateSchema);
+    if ("error" in parsed) return parsed.error;
+    const body = parsed.data;
 
-    const email = body.email ? String(body.email).trim() : "";
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json({ error: "O email não é válido." }, { status: 400 });
-    }
+    const name = body.name;
+    const email = body.email || "";
 
-    const type = body.type === "empresa" ? "empresa" : "particular";
+    const type = body.type ?? "particular";
 
     const customer = await prisma.customer.create({
       data: {
         name,
         companyId: user.companyId,
         email: email || null,
-        phone: body.phone ? String(body.phone).trim() : null,
-        nif: body.nif ? String(body.nif).trim() : null,
-        address: body.address ? String(body.address).trim() : null,
+        phone: body.phone || null,
+        nif: body.nif || null,
+        address: body.address || null,
         type,
-        notes: body.notes ? String(body.notes).trim() : null,
+        notes: body.notes || null,
       },
     });
     await logAction("create", "customer", customer.id, `Cliente "${customer.name}" criado`);

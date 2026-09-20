@@ -5,6 +5,8 @@ import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
 import { requireFeature, requireWrite, requireDelete } from "@/lib/permissions";
+import { parseBody } from "@/lib/validations/helpers";
+import { customerUpdateSchema } from "@/lib/validations/catalog";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -35,26 +37,24 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const existing = await prisma.customer.findFirst({ where: { id, companyId: user.companyId } });
   if (!existing) return NextResponse.json({ error: "Cliente não encontrado." }, { status: 404 });
 
-  const body = await request.json();
+  const parsed = await parseBody(request, customerUpdateSchema);
+  if ("error" in parsed) return parsed.error;
+  const body = parsed.data;
 
   const data: Prisma.CustomerUncheckedUpdateInput = {};
 
   if (body.name !== undefined) {
-    const name = String(body.name).trim();
-    if (!name) return NextResponse.json({ error: "O nome não pode ficar vazio." }, { status: 400 });
-    data.name = name;
+    data.name = body.name;
   }
   if (body.email !== undefined) {
-    const email = body.email ? String(body.email).trim() : "";
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return NextResponse.json({ error: "O email não é válido." }, { status: 400 });
-    data.email = email || null;
+    data.email = body.email || null;
   }
-  if (body.phone !== undefined) data.phone = body.phone ? String(body.phone).trim() : null;
-  if (body.nif !== undefined) data.nif = body.nif ? String(body.nif).trim() : null;
-  if (body.address !== undefined) data.address = body.address ? String(body.address).trim() : null;
-  if (body.type !== undefined) data.type = body.type === "empresa" ? "empresa" : "particular";
-  if (body.notes !== undefined) data.notes = body.notes ? String(body.notes).trim() : null;
-  if (body.stage !== undefined) data.stage = String(body.stage);
+  if (body.phone !== undefined) data.phone = body.phone || null;
+  if (body.nif !== undefined) data.nif = body.nif || null;
+  if (body.address !== undefined) data.address = body.address || null;
+  if (body.type !== undefined) data.type = body.type ?? "particular";
+  if (body.notes !== undefined) data.notes = body.notes || null;
+  if (body.stage !== undefined) data.stage = body.stage || null;
 
   const result = await prisma.customer.updateMany({ where: { id, companyId: user.companyId }, data });
 

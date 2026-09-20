@@ -5,6 +5,8 @@ import { parsePagination, buildSearch, parseBool } from "@/lib/utils";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
 import { requireFeature, requireWrite } from "@/lib/permissions";
+import { parseBody } from "@/lib/validations/helpers";
+import { productSchema } from "@/lib/validations/products";
 
 function serializeProduct(p: { price?: unknown; cost?: unknown } & Record<string, unknown>) {
   return { ...p, price: toNumber(p.price), cost: toNumber(p.cost) };
@@ -69,30 +71,17 @@ export async function POST(request: Request) {
   const companyId = user.companyId;
 
   try {
-    const body = await request.json();
-    const { name, description, price, cost, stock, minStock, unit, categoryId } = body;
+    const parsed = await parseBody(request, productSchema);
+    if ("error" in parsed) return parsed.error;
+    const body = parsed.data;
 
-    const nameTrimmed = typeof name === "string" ? name.trim() : "";
-    if (!nameTrimmed || price === undefined || price === null || price === "") {
-      return NextResponse.json({ error: "Nome e preço são obrigatórios." }, { status: 400 });
-    }
+    const nameTrimmed = body.name;
+    const priceNum = body.price;
+    const costNum = body.cost ?? 0;
+    const stockNum = body.stock ?? 0;
+    const minStockNum = body.minStock ?? 0;
 
-    const priceNum = Number(price);
-    if (!Number.isFinite(priceNum) || priceNum <= 0) {
-      return NextResponse.json({ error: "O preço deve ser um número positivo." }, { status: 400 });
-    }
-
-    const costNum = cost === undefined || cost === null || cost === "" ? 0 : Number(cost);
-    if (!Number.isFinite(costNum) || costNum < 0) {
-      return NextResponse.json({ error: "O custo não pode ser negativo." }, { status: 400 });
-    }
-
-    const stockNum = stock === undefined || stock === null || stock === "" ? 0 : Number(stock);
-    const minStockNum = minStock === undefined || minStock === null || minStock === "" ? 0 : Number(minStock);
-    if (!Number.isInteger(stockNum) || stockNum < 0) return NextResponse.json({ error: "O stock deve ser um número inteiro não negativo." }, { status: 400 });
-    if (!Number.isInteger(minStockNum) || minStockNum < 0) return NextResponse.json({ error: "O stock mínimo deve ser um número inteiro não negativo." }, { status: 400 });
-
-    const catId = categoryId || null;
+    const catId = body.categoryId || null;
     if (catId) {
       const category = await prisma.category.findFirst({ where: { id: catId, companyId: user.companyId } });
       if (!category) return NextResponse.json({ error: "Categoria inválida." }, { status: 400 });
@@ -102,12 +91,12 @@ export async function POST(request: Request) {
       const created = await tx.product.create({
         data: {
           name: nameTrimmed,
-          description: description || null,
+          description: body.description || null,
           price: priceNum,
           cost: costNum,
           stock: stockNum,
           minStock: minStockNum,
-          unit: unit || "un",
+          unit: body.unit || "un",
           categoryId: catId,
           companyId,
         },

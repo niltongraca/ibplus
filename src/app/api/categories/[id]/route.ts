@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { requireWrite, requireDelete } from "@/lib/permissions";
+import { parseBody } from "@/lib/validations/helpers";
+import { categoryUpdateSchema } from "@/lib/validations/catalog";
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -9,10 +11,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const denied = await requireWrite(user, "produtos"); if (denied) return denied;
 
   const { id } = await params;
-  const { name } = await request.json();
-  if (!name?.trim()) return NextResponse.json({ error: "Nome é obrigatório." }, { status: 400 });
+  const parsed = await parseBody(request, categoryUpdateSchema);
+  if ("error" in parsed) return parsed.error;
+  const { name } = parsed.data;
 
-  const result = await prisma.category.updateMany({ where: { id, companyId: user.companyId }, data: { name: name.trim() } });
+  const result = await prisma.category.updateMany({ where: { id, companyId: user.companyId }, data: { name } });
   if (!result.count) return NextResponse.json({ error: "Categoria não encontrada." }, { status: 404 });
 
   return NextResponse.json({ success: true });

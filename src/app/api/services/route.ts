@@ -5,6 +5,8 @@ import { parsePagination, buildSearch, parseBool } from "@/lib/utils";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
 import { requireFeature, requireWrite } from "@/lib/permissions";
+import { parseBody } from "@/lib/validations/helpers";
+import { serviceCreateSchema } from "@/lib/validations/catalog";
 
 export async function GET(request: Request) {
   try {
@@ -51,25 +53,19 @@ export async function POST(request: Request) {
   const denied = await requireWrite(user, "servicos"); if (denied) return denied;
 
   try {
-    const body = await request.json();
-    const { name, description, price, duration } = body;
+    const parsed = await parseBody(request, serviceCreateSchema);
+    if ("error" in parsed) return parsed.error;
+    const body = parsed.data;
 
-    const nameTrimmed = typeof name === "string" ? name.trim() : "";
-    if (!nameTrimmed || price === undefined || price === null || price === "") {
-      return NextResponse.json({ error: "Nome e preço são obrigatórios." }, { status: 400 });
-    }
-
-    const priceNum = Number(price);
-    if (!Number.isFinite(priceNum) || priceNum <= 0) {
-      return NextResponse.json({ error: "O preço deve ser um número positivo." }, { status: 400 });
-    }
+    const nameTrimmed = body.name;
+    const priceNum = body.price;
 
     const service = await prisma.service.create({
       data: {
         name: nameTrimmed,
-        description: description ? String(description).trim() : null,
+        description: body.description || null,
         price: priceNum,
-        duration: duration ? String(duration).trim() : null,
+        duration: body.duration || null,
         companyId: user.companyId,
       },
     });

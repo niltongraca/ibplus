@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { requireFeature, requireWrite } from "@/lib/permissions";
+import { parseBody } from "@/lib/validations/helpers";
+import { categoryCreateSchema } from "@/lib/validations/catalog";
 
 export async function GET() {
   const user = await getAuthUser();
@@ -23,13 +25,14 @@ export async function POST(request: Request) {
   const denied = await requireWrite(user, "produtos"); if (denied) return denied;
 
   try {
-    const { name } = await request.json();
-    if (!name?.trim()) return NextResponse.json({ error: "Nome é obrigatório." }, { status: 400 });
+    const parsed = await parseBody(request, categoryCreateSchema);
+    if ("error" in parsed) return parsed.error;
+    const { name } = parsed.data;
 
-    const existing = await prisma.category.findFirst({ where: { companyId: user.companyId, name: name.trim() } });
+    const existing = await prisma.category.findFirst({ where: { companyId: user.companyId, name } });
     if (existing) return NextResponse.json({ error: "Categoria já existe." }, { status: 409 });
 
-    const category = await prisma.category.create({ data: { companyId: user.companyId, name: name.trim() } });
+    const category = await prisma.category.create({ data: { companyId: user.companyId, name } });
     return NextResponse.json({ category }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Erro ao criar categoria." }, { status: 400 });

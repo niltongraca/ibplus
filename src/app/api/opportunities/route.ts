@@ -6,8 +6,8 @@ import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
 import { parsePagination, buildSearch } from "@/lib/utils";
 import { requireFeature, requireWrite, requireDelete } from "@/lib/permissions";
-
-const STAGES = ["lead", "qualified", "proposal", "negotiation", "closed"];
+import { parseBody } from "@/lib/validations/helpers";
+import { opportunityCreateSchema, opportunityPatchSchema, opportunityDeleteSchema } from "@/lib/validations/catalog";
 
 export async function GET(request: Request) {
   const user = await getAuthUser();
@@ -52,21 +52,19 @@ export async function POST(request: Request) {
   const denied = await requireWrite(user, "crm"); if (denied) return denied;
 
   try {
-    const body = await request.json();
-    const title = typeof body.title === "string" ? body.title.trim() : "";
-    if (!title) return NextResponse.json({ error: "O título é obrigatório." }, { status: 400 });
-
-    const customerId = typeof body.customerId === "string" && body.customerId ? body.customerId : "";
-    if (!customerId) return NextResponse.json({ error: "O cliente é obrigatório." }, { status: 400 });
+    const parsed = await parseBody(request, opportunityCreateSchema);
+    if ("error" in parsed) return parsed.error;
+    const body = parsed.data;
+    const title = body.title;
+    const customerId = body.customerId;
 
     const customer = await prisma.customer.findFirst({ where: { id: customerId, companyId: user.companyId } });
     if (!customer) return NextResponse.json({ error: "Cliente não encontrado." }, { status: 400 });
 
-    const value = body.value === undefined || body.value === null || body.value === "" ? 0 : Number(body.value);
-    if (!Number.isFinite(value) || value < 0) return NextResponse.json({ error: "O valor não pode ser negativo." }, { status: 400 });
+    const value = body.value ?? 0;
 
-    const stage = typeof body.stage === "string" && STAGES.includes(body.stage) ? body.stage : "lead";
-    const notes = body.notes ? String(body.notes).trim() : null;
+    const stage = body.stage ?? "lead";
+    const notes = body.notes || null;
 
     const opportunity = await prisma.opportunity.create({
       data: {
@@ -93,21 +91,19 @@ export async function PATCH(request: Request) {
   const denied = await requireWrite(user, "crm"); if (denied) return denied;
 
   try {
-    const body = await request.json();
-    const id = typeof body.id === "string" ? body.id : "";
-    if (!id) return NextResponse.json({ error: "ID em falta." }, { status: 400 });
+    const parsed = await parseBody(request, opportunityPatchSchema);
+    if ("error" in parsed) return parsed.error;
+    const body = parsed.data;
+    const id = body.id;
 
     const data: Prisma.OpportunityUncheckedUpdateInput = {};
     if (body.stage !== undefined) {
-      if (!STAGES.includes(String(body.stage))) return NextResponse.json({ error: "Etapa inválida." }, { status: 400 });
-      data.stage = String(body.stage);
+      data.stage = body.stage;
     }
     if (body.value !== undefined) {
-      const value = Number(body.value);
-      if (!Number.isFinite(value) || value < 0) return NextResponse.json({ error: "O valor não pode ser negativo." }, { status: 400 });
-      data.value = value;
+      data.value = body.value;
     }
-    if (body.notes !== undefined) data.notes = body.notes ? String(body.notes).trim() : null;
+    if (body.notes !== undefined) data.notes = body.notes || null;
 
     const result = await prisma.opportunity.updateMany({ where: { id, companyId: user.companyId }, data });
     if (!result.count) return NextResponse.json({ error: "Oportunidade não encontrada." }, { status: 404 });
@@ -124,7 +120,9 @@ export async function DELETE(request: Request) {
   const denied = await requireDelete(user, "crm"); if (denied) return denied;
 
   try {
-    const { id } = await request.json();
+    const parsed = await parseBody(request, opportunityDeleteSchema);
+    if ("error" in parsed) return parsed.error;
+    const { id } = parsed.data;
     const result = await prisma.opportunity.deleteMany({ where: { id, companyId: user.companyId } });
     if (!result.count) return NextResponse.json({ error: "Oportunidade não encontrada." }, { status: 404 });
     await logAction("delete", "opportunity", id, `Oportunidade eliminada`);

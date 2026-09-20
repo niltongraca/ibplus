@@ -5,6 +5,8 @@ import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
 import { requireFeature, requireWrite, requireDelete } from "@/lib/permissions";
+import { parseBody } from "@/lib/validations/helpers";
+import { serviceUpdateSchema } from "@/lib/validations/catalog";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -28,21 +30,19 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   if (!existing) return NextResponse.json({ error: "Serviço não encontrado." }, { status: 404 });
 
   try {
-    const data = await request.json();
+    const parsed = await parseBody(request, serviceUpdateSchema);
+    if ("error" in parsed) return parsed.error;
+    const data = parsed.data;
     const update: Prisma.ServiceUncheckedUpdateInput = {};
 
     if (data.name !== undefined) {
-      const name = String(data.name).trim();
-      if (!name) return NextResponse.json({ error: "O nome não pode ficar vazio." }, { status: 400 });
-      update.name = name;
+      update.name = data.name;
     }
-    if (data.description !== undefined) update.description = data.description ? String(data.description).trim() : null;
+    if (data.description !== undefined) update.description = data.description || null;
     if (data.price !== undefined) {
-      const priceNum = Number(data.price);
-      if (!Number.isFinite(priceNum) || priceNum <= 0) return NextResponse.json({ error: "O preço deve ser um número positivo." }, { status: 400 });
-      update.price = priceNum;
+      update.price = data.price;
     }
-    if (data.duration !== undefined) update.duration = data.duration ? String(data.duration).trim() : null;
+    if (data.duration !== undefined) update.duration = data.duration || null;
     if (data.active !== undefined) update.active = data.active === true;
 
     const service = await prisma.service.updateMany({ where: { id, companyId: user.companyId }, data: update });

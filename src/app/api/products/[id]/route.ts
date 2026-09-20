@@ -5,6 +5,8 @@ import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
 import { requireFeature, requireWrite, requireDelete } from "@/lib/permissions";
+import { validateSchema } from "@/lib/validations/helpers";
+import { productUpdateSchema, productStockAdjustSchema } from "@/lib/validations/catalog";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -31,22 +33,21 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const existing = await prisma.product.findFirst({ where: { id, companyId: user.companyId } });
   if (!existing) return NextResponse.json({ error: "Produto não encontrado." }, { status: 404 });
 
-  const data = await request.json();
+  const body = await request.json();
 
-  if ("stockAdjust" in data) {
-    const adjust = Number(data.stockAdjust);
-    if (!Number.isInteger(adjust) || adjust === 0) {
-      return NextResponse.json({ error: "O ajuste de stock deve ser um número inteiro diferente de zero." }, { status: 400 });
-    }
+  if ("stockAdjust" in body) {
+    const parsedAdj = validateSchema(productStockAdjustSchema, body);
+    if ("error" in parsedAdj) return parsedAdj.error;
+    const adj = parsedAdj.data;
 
-    const { stockAdjust, ...rest } = data;
+    const adjust = adj.stockAdjust;
     try {
       await prisma.$transaction(async (tx) => {
         const where = adjust < 0 ? { id, companyId, stock: { gte: Math.abs(adjust) } } : { id, companyId };
         const result = await tx.product.updateMany({ where, data: { stock: { increment: adjust } } });
         if (result.count === 0) throw new Error("STOCK_NEGATIVE");
         await tx.stockMovement.create({
-          data: { productId: id, type: adjust > 0 ? "IN" : "OUT", quantity: Math.abs(adjust), notes: rest.notes || "Ajuste manual" },
+          data: { productId: id, type: adjust > 0 ? "IN" : "OUT", quantity: Math.abs(adjust), notes: adj.notes || "Ajuste manual" },
         });
       });
     } catch (err) {
@@ -61,47 +62,40 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ success: true, stock: newStock?.stock });
   }
 
-  const { name, description, price, cost, stock, minStock, unit, categoryId } = data;
+  const parsed = validateSchema(productUpdateSchema, body);
+  if ("error" in parsed) return parsed.error;
+  const data = parsed.data;
 
-  const nameTrimmed = name !== undefined ? (typeof name === "string" ? name.trim() : name) : existing.name;
-  if (typeof nameTrimmed === "string" && !nameTrimmed) return NextResponse.json({ error: "O nome não pode ficar vazio." }, { status: 400 });
+  const nameTrimmed = data.name ?? existing.name;
 
-  const catId = categoryId === undefined ? existing.categoryId : (categoryId || null);
+  const catId = data.categoryId === undefined ? existing.categoryId : (data.categoryId || null);
   if (catId) {
     const category = await prisma.category.findFirst({ where: { id: catId, companyId: user.companyId } });
     if (!category) return NextResponse.json({ error: "Categoria inválida." }, { status: 400 });
   }
 
-  const parsed: Prisma.ProductUncheckedUpdateInput = {};
-  if (price !== undefined) {
-    const priceNum = Number(price);
-    if (!Number.isFinite(priceNum) || priceNum <= 0) return NextResponse.json({ error: "O preço deve ser um número positivo." }, { status: 400 });
-    parsed.price = priceNum;
+  const parsedData: Prisma.ProductUncheckedUpdateInput = {};
+  if (data.price !== undefined) {
+    parsedData.price = data.price;
   }
-  if (cost !== undefined) {
-    const costNum = Number(cost);
-    if (!Number.isFinite(costNum) || costNum < 0) return NextResponse.json({ error: "O custo não pode ser negativo." }, { status: 400 });
-    parsed.cost = costNum;
+  if (data.cost !== undefined) {
+    parsedData.cost = data.cost ?? 0;
   }
-  if (stock !== undefined) {
-    const stockNum = Number(stock);
-    if (!Number.isInteger(stockNum) || stockNum < 0) return NextResponse.json({ error: "O stock deve ser um número inteiro não negativo." }, { status: 400 });
-    parsed.stock = stockNum;
+  if (data.stock !== undefined) {
+    parsedData.stock = data.stock ?? 0;
   }
-  if (minStock !== undefined) {
-    const minStockNum = Number(minStock);
-    if (!Number.isInteger(minStockNum) || minStockNum < 0) return NextResponse.json({ error: "O stock mínimo deve ser um número inteiro não negativo." }, { status: 400 });
-    parsed.minStock = minStockNum;
+  if (data.minStock !== undefined) {
+    parsedData.minStock = data.minStock ?? 0;
   }
-  if (unit !== undefined) parsed.unit = unit || "un";
+  if (data.unit !== undefined) parsedData.unit = data.unit || "un";
 
   const result = await prisma.product.updateMany({
     where: { id, companyId: user.companyId },
     data: {
-      ...(name !== undefined ? { name: nameTrimmed } : {}),
-      ...(description !== undefined ? { description } : {}),
-      ...(categoryId !== undefined ? { categoryId: catId } : {}),
-      ...parsed,
+      ...(data.name !== undefined ? { name: nameTrimmed } : {}),
+      ...(data.description !== undefined ? { description: data.description } : {}),
+      ...(data.categoryId !== undefined ? { categoryId: catId } : {}),
+      ...parsedData,
     },
   });
 
