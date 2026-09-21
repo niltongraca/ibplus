@@ -124,7 +124,7 @@ export default function LojaOnlinePage() {
       {loading ? (
         <div className="p-12 text-center text-ib-muted text-sm">A carregar...</div>
       ) : products.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+        <div className="card p-12 text-center">
           <ShoppingBag className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <p className="text-ib-muted text-sm">Nenhum produto encontrado.</p>
         </div>
@@ -133,7 +133,7 @@ export default function LojaOnlinePage() {
           {products.map((product) => {
             const inCart = cart.find((item) => item.productId === product.id);
             return (
-              <div key={product.id} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow flex flex-col">
+              <div key={product.id} className="card p-5 hover:shadow-md transition-shadow flex flex-col">
                 <div className="w-full h-32 bg-gray-50 rounded-lg flex items-center justify-center mb-4">
                   <ShoppingBag className="w-10 h-10 text-gray-300" />
                 </div>
@@ -213,7 +213,7 @@ export default function LojaOnlinePage() {
 
       {showCheckout && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => { if (!checkingOut) setShowCheckout(false); }}>
-          <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="card p-6 max-w-md w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
             {checkoutDone ? (
               <div className="text-center py-6">
                 <SuccessCheck className="mx-auto mb-4" size={80} />

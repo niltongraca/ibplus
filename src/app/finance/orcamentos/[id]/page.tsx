@@ -205,7 +205,7 @@ export default function OrcamentoDetailPage() {
       )}
 
       {(quote.status === "pending" || quote.status === "approved") && (
-        <div className="flex flex-wrap items-center gap-3 bg-white rounded-xl border border-gray-200 p-4 mb-6 print-hidden">
+        <div className="flex flex-wrap items-center gap-3 card p-4 mb-6 print-hidden">
           <span className="text-sm text-ib-muted">
             {quote.status === "pending"
               ? "Este orçamento está em espera. Ao aprová-lo será criada automaticamente uma fatura com os mesmos dados."

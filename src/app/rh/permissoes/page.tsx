@@ -95,7 +95,7 @@ export default function PermissoesPage() {
   if (!user?.companyId) {
     return (
       <div className="max-w-3xl mx-auto">
-        <div className="bg-white rounded-xl border border-gray-200 p-6 text-center">
+        <div className="card p-6 text-center">
           <Lock className="w-10 h-10 text-gray-300 mx-auto mb-3" />
           <p className="text-ib-muted">As permissões estão disponíveis apenas para organizações com equipa.</p>
         </div>
@@ -106,7 +106,7 @@ export default function PermissoesPage() {
   if (!canManage) {
     return (
       <div className="max-w-3xl mx-auto">
-        <div className="bg-white rounded-xl border border-gray-200 p-6 text-center">
+        <div className="card p-6 text-center">
           <Lock className="w-10 h-10 text-gray-300 mx-auto mb-3" />
           <p className="text-ib-muted">Apenas o dono da organização pode gerir as permissões.</p>
         </div>
@@ -149,9 +149,9 @@ export default function PermissoesPage() {
       )}
 
       {!matrix ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-10 text-center text-ib-muted">A carregar permissões...</div>
+        <div className="card p-10 text-center text-ib-muted">A carregar permissões...</div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="tbl">
               <thead>

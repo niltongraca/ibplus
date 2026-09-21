@@ -93,7 +93,7 @@ export function AcquisitionSection() {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 mb-6">
+    <div className="card mb-6">
       <div className="p-4 border-b border-gray-100 flex items-center gap-2">
         <KeyRound className="w-4 h-4 text-ib-accent" />
         <h2 className="font-semibold text-ib-primary">Aquisição de empresas</h2>

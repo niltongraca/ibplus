@@ -13,7 +13,7 @@ interface Sale {
 
 export function SalesWidget({ sales }: { sales: Sale[] | undefined }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div className="card overflow-hidden">
       <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100">
         <h2 className="font-semibold text-gray-900 flex items-center gap-2">
           <ReceiptText className="w-4 h-4 text-blue-600" />

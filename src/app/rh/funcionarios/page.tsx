@@ -179,7 +179,7 @@ export default function FuncionariosPage() {
 
       {isOwner && <CargosManager />}
 
-      <div className="bg-white rounded-xl border border-gray-200">
+      <div className="card">
         <div className="p-4 border-b border-gray-100 flex items-center justify-between">
           <div className="relative max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -254,7 +254,7 @@ export default function FuncionariosPage() {
 
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowForm(false)}>
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="card shadow-xl w-full max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-ib-primary">{editing ? "Editar Funcionário" : "Novo Funcionário"}</h2>
               <button onClick={() => setShowForm(false)} aria-label="Fechar" className="p-2 text-gray-400 hover:text-gray-600 min-w-[44px] min-h-[44px] flex items-center justify-center">

@@ -65,7 +65,7 @@ export default function NovoAlunoPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 max-w-2xl">
+      <form onSubmit={handleSubmit} className="card p-6 max-w-2xl">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-ib-primary mb-1">Nome *</label>

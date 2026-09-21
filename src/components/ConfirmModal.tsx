@@ -68,7 +68,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
       {children}
       {state && (
         <AnimatedModal open onClose={handleCancel} closeOnBackdrop panelClassName="relative">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
+          <div className="card shadow-2xl max-w-md w-full mx-4 p-6">
             <button
               onClick={handleCancel}
               className="absolute top-3 right-3 p-1 hover:bg-gray-100 rounded-lg"

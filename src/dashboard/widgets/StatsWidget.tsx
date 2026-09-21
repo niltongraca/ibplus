@@ -43,7 +43,7 @@ function StatCard({ icon: Icon, label, value, color, sub }: { icon: LucideIcon; 
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
+    <div className="card p-4 hover:shadow-md transition-shadow">
       <div className="flex items-center gap-3 mb-2">
         <div className={`w-9 h-9 rounded-lg ${colors[color]} flex items-center justify-center`}><Icon className="w-4 h-4" /></div>
         <span className="text-xs text-gray-500 uppercase tracking-wider font-medium">{label}</span>

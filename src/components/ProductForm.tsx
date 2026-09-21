@@ -143,7 +143,7 @@ export default function ProductForm({ mode, type, id, initialData }: ProductForm
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 max-w-2xl">
+      <form onSubmit={handleSubmit} className="card p-6 max-w-2xl">
         {error && (
           <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}

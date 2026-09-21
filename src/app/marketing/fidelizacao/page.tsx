@@ -62,7 +62,7 @@ export default function FidelizacaoPage() {
         ].map((s) => {
           const Icon = s.icon;
           return (
-            <div key={s.label} className="bg-white rounded-xl border border-gray-200 p-5">
+            <div key={s.label} className="card p-5">
               <div className="flex items-center gap-3 mb-3">
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${s.color}`}>
                   <Icon className="w-5 h-5" />
@@ -75,7 +75,7 @@ export default function FidelizacaoPage() {
         })}
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200">
+      <div className="card">
         <div className="p-4 border-b border-gray-100 flex items-center justify-between">
           <div className="relative max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />

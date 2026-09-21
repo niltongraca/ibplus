@@ -75,7 +75,7 @@ function InfoCard({
 }) {
   const c = colorMap[color] || colorMap.blue;
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
+    <div className="card p-5 hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between mb-1">
         <div className={`w-11 h-11 rounded-full ${c.box} flex items-center justify-center`}>
           <Icon className={`w-5 h-5 ${c.icon}`} />

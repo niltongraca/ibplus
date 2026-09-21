@@ -157,7 +157,7 @@ export default function PerfilPage() {
 
       {activeTab === "perfil" && (
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="card p-6">
             <h2 className="font-semibold text-ib-primary mb-4 flex items-center gap-2">
               <User className="w-4 h-4 text-ib-accent" /> Dados Pessoais
             </h2>
@@ -204,7 +204,7 @@ export default function PerfilPage() {
 
       {activeTab === "contactos" && (
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="card p-6">
             <h2 className="font-semibold text-ib-primary mb-4 flex items-center gap-2">
               <Smartphone className="w-4 h-4 text-ib-accent" /> Contactos da Loja
             </h2>
@@ -230,7 +230,7 @@ export default function PerfilPage() {
 
       {activeTab === "endereco" && (
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="card p-6">
             <h2 className="font-semibold text-ib-primary mb-4 flex items-center gap-2">
               <MapPin className="w-4 h-4 text-ib-accent" /> Configuração de Endereço
             </h2>
@@ -261,7 +261,7 @@ export default function PerfilPage() {
 
       {activeTab === "loja" && (
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="card p-6">
             <h2 className="font-semibold text-ib-primary mb-4 flex items-center gap-2">
               <Building2 className="w-4 h-4 text-ib-accent" /> Dados Básicos
             </h2>
@@ -290,7 +290,7 @@ export default function PerfilPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="card p-6">
             <h2 className="font-semibold text-ib-primary mb-4 flex items-center gap-2">
               <Share2 className="w-4 h-4 text-ib-accent" /> Sobre Nós
             </h2>
@@ -314,7 +314,7 @@ export default function PerfilPage() {
 
       {activeTab === "personalizar" && (
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="card p-6">
             <h2 className="font-semibold text-ib-primary mb-4 flex items-center gap-2">
               <Palette className="w-4 h-4 text-ib-accent" /> Personalização
             </h2>
@@ -338,7 +338,7 @@ export default function PerfilPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="card p-6">
             <h2 className="font-semibold text-ib-primary mb-4 flex items-center gap-2">
               <Moon className="w-4 h-4 text-ib-accent" /> Tema da Interface
             </h2>
@@ -359,7 +359,7 @@ export default function PerfilPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="card p-6">
             <h2 className="font-semibold text-ib-primary mb-4 flex items-center gap-2">
               <Download className="w-4 h-4 text-ib-accent" /> Instalar Aplicativo
             </h2>
@@ -375,7 +375,7 @@ export default function PerfilPage() {
 
       {activeTab === "horarios" && (
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="card p-6">
             <h2 className="font-semibold text-ib-primary mb-4 flex items-center gap-2">
               <Clock className="w-4 h-4 text-ib-accent" /> Horários de Funcionamento
             </h2>

@@ -61,7 +61,7 @@ export function CatalogPicker({ products, services, onSelect }: CatalogPickerPro
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 w-72 max-h-80 overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-lg z-20">
+        <div className="absolute right-0 top-full mt-1 w-72 max-h-80 overflow-y-auto card shadow-lg z-20">
           {!hasItems && (
             <p className="px-4 py-3 text-sm text-ib-muted">O catálogo está vazio.</p>
           )}

@@ -88,7 +88,7 @@ export default function AgendaPage() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6">
+        <div className="lg:col-span-2 card p-6">
           <div className="page-header">
             <button onClick={prevMonth} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><ChevronLeft className="w-5 h-5 text-ib-muted" /></button>
             <h2 className="text-lg font-bold text-ib-primary">{monthNames[currentMonth]} {currentYear}</h2>
@@ -127,7 +127,7 @@ export default function AgendaPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="card p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-ib-primary">
               {selectedDate ? `${selectedDate.getDate()} de ${monthNames[selectedDate.getMonth()]}` : "Seleccione um dia"}

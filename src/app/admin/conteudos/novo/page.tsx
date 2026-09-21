@@ -64,7 +64,7 @@ export default function NovoConteudoPage() {
       {error && <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm mb-4">{error}</div>}
 
       <form onSubmit={handleSubmit} className="max-w-2xl space-y-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+        <div className="card p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-ib-primary mb-1">Título *</label>
             <input type="text" value={form.title} onChange={(e) => update("title", e.target.value)} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />

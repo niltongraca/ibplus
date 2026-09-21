@@ -11,7 +11,7 @@ export function CampaignsWidget({ data }: { data: CampaignsData | null }) {
   if (!data) return null;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
+    <div className="card p-6">
       <div className="flex items-center gap-2 mb-4">
         <Megaphone className="w-5 h-5 text-cyan-600" />
         <h2 className="font-semibold text-ib-primary">Campanhas</h2>

@@ -137,7 +137,7 @@ export default function NovaCompraPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="card p-6">
           <h2 className="text-lg font-semibold text-ib-primary mb-4">Informações da Compra</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -162,7 +162,7 @@ export default function NovaCompraPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="card p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-ib-primary">Itens</h2>
             <button

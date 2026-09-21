@@ -112,7 +112,7 @@ export function CargosManager({ compact = false }: { compact?: boolean }) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 mb-6">
+    <div className="card mb-6">
       <div className="p-4 border-b border-gray-100 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Shield className="w-4 h-4 text-ib-accent" />

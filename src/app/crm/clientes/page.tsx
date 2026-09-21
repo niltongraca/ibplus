@@ -36,7 +36,7 @@ export default function CrmClientesPage() {
         </Link>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+      <div className="card p-4 mb-6">
         <div className="relative max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input type="text" placeholder="Pesquisar clientes..." value={search} onChange={(e) => setSearch(e.target.value)}
@@ -45,14 +45,14 @@ export default function CrmClientesPage() {
       </div>
 
       {customers.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+        <div className="card p-12 text-center">
           <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <p className="text-ib-muted">Nenhum cliente encontrado.</p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {customers.map((c) => (
-            <div key={c.id} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-sm transition-shadow">
+            <div key={c.id} className="card p-5 hover:shadow-sm transition-shadow">
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <Link href={`/gestao/clientes/${c.id}`} className="font-semibold text-ib-primary hover:text-ib-accent">

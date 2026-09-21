@@ -82,7 +82,7 @@ export default function VendasPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200">
+      <div className="card">
         {message && (
           <div className="border-b border-green-100 bg-green-50 px-4 py-3 text-sm text-green-700">{message}</div>
         )}

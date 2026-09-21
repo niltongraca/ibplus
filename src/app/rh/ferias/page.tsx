@@ -94,7 +94,7 @@ export default function FeriasPage() {
 
       {showForm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
-          <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="card p-6 max-w-md w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-bold text-ib-primary mb-4">Solicitar Férias</h2>
             {formError && (
               <div className="mb-3 p-2.5 rounded-lg bg-red-50 text-red-600 text-sm">{formError}</div>
@@ -130,7 +130,7 @@ export default function FeriasPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-200">
+      <div className="card">
         <div className="p-4 border-b border-gray-100">
           <div className="relative max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />

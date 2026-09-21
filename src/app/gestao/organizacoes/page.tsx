@@ -13,7 +13,7 @@ export default function OrganizacoesPage() {
   if (!canManage) {
     return (
       <div className="max-w-3xl mx-auto">
-        <div className="bg-white rounded-xl border border-gray-200 p-6 text-center">
+        <div className="card p-6 text-center">
           <ShieldCheck className="w-10 h-10 text-gray-300 mx-auto mb-3" />
           <p className="text-ib-muted">A gestão de organizações está disponível apenas para o dono.</p>
         </div>

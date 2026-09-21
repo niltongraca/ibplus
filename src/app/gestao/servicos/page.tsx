@@ -75,7 +75,7 @@ export default function ServicosPage() {
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {services.map((service) => (
-              <div key={service.id} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-all">
+              <div key={service.id} className="card p-5 hover:shadow-md transition-all">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-ib-accent/10 flex items-center justify-center">

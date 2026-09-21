@@ -31,7 +31,7 @@ export function InviteManager() {
 
   if (user?.accountType === "EMPREENDEDOR") {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="card p-6">
         <h3 className="font-semibold text-ib-primary mb-2 flex items-center gap-2">
           <Users className="w-4 h-4 text-ib-accent" /> Utilizadores
         </h3>
@@ -72,7 +72,7 @@ export function InviteManager() {
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="card p-6">
         <h3 className="font-semibold text-ib-primary mb-4 flex items-center gap-2">
           <Users className="w-4 h-4 text-ib-accent" /> Convidar Utilizador
         </h3>
@@ -96,7 +96,7 @@ export function InviteManager() {
       </div>
 
       {invites.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="card p-6">
           <h3 className="font-semibold text-ib-primary mb-4">Convites Activos</h3>
           <div className="space-y-2">
             {invites.map((invite) => (

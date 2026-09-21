@@ -100,21 +100,21 @@ export default function ContasPagarPage() {
       </div>
 
       <div className="grid sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="card p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Total</p>
           <p className="text-xl font-bold text-gray-900">{formatCurrency(unpaidTotal + paidTotal)}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="card p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Por Pagar</p>
           <p className="text-xl font-bold text-orange-600">{formatCurrency(unpaidTotal)}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="card p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Pagas</p>
           <p className="text-xl font-bold text-green-600">{formatCurrency(paidTotal)}</p>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200">
+      <div className="card">
         <div className="p-4 border-b border-gray-200 flex items-center gap-4">
           <div className="relative max-w-xs flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />

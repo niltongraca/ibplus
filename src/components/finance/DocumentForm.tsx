@@ -236,7 +236,7 @@ export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; 
             <h1 className="text-2xl font-bold text-ib-primary">{isInvoice ? "Editar Fatura" : "Editar Orçamento"}</h1>
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-ib-muted">A carregar...</div>
+        <div className="card p-12 text-center text-ib-muted">A carregar...</div>
       </div>
     );
   }
@@ -261,7 +261,7 @@ export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; 
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Secção 1 - Informações comerciais e do cliente */}
-        <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <section className="card overflow-hidden">
           <header className="flex items-center gap-3 px-6 pt-5 pb-2">
             <span className="w-7 h-7 rounded-full bg-ib-accent text-white text-sm font-bold flex items-center justify-center">1</span>
             <div>
@@ -314,7 +314,7 @@ export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; 
         </section>
 
         {/* Secção 2 - Itens + subtotal/desconto/remessa/total */}
-        <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <section className="card overflow-hidden">
           <header className="flex items-center gap-3 px-6 pt-5 pb-2">
             <span className="w-7 h-7 rounded-full bg-ib-accent text-white text-sm font-bold flex items-center justify-center">2</span>
             <div>
@@ -443,7 +443,7 @@ export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; 
         </section>
 
         {/* Secção 3 - Outros */}
-        <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <section className="card overflow-hidden">
           <header className="flex items-center gap-3 px-6 pt-5 pb-2">
             <span className="w-7 h-7 rounded-full bg-ib-accent text-white text-sm font-bold flex items-center justify-center">3</span>
             <div>

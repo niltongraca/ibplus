@@ -13,7 +13,7 @@ export function DonationsWidget({ data }: { data: DonationsData | null }) {
   if (!data) return null;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
+    <div className="card p-6">
       <div className="flex items-center gap-2 mb-4">
         <Heart className="w-5 h-5 text-pink-600" />
         <h2 className="font-semibold text-ib-primary">Doações</h2>

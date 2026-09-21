@@ -79,7 +79,7 @@ export default function PrevisoesPage() {
         {forecasts.map((f) => {
           const Icon = f.icon;
           return (
-            <div key={f.title} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div key={f.title} className="card overflow-hidden">
               <div className="p-5">
                 <div className="flex items-center gap-3 mb-4">
                   <div className={`w-10 h-10 rounded-lg ${f.bg} flex items-center justify-center`}>
@@ -106,7 +106,7 @@ export default function PrevisoesPage() {
         })}
       </div>
 
-      <div className="mt-6 bg-white rounded-xl border border-gray-200 p-6">
+      <div className="mt-6 card p-6">
         <h3 className="font-semibold text-ib-primary mb-2">Dados Reais Utilizados</h3>
         <div className="grid sm:grid-cols-3 gap-4 text-sm">
           <div className="p-3 bg-gray-50 rounded-lg">

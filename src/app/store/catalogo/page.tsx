@@ -69,14 +69,14 @@ export default function CatalogoPage() {
       {loading ? (
         <div className="p-12 text-center text-ib-muted text-sm">A carregar...</div>
       ) : products.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+        <div className="card p-12 text-center">
           <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <p className="text-ib-muted text-sm">Nenhum produto encontrado.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {products.map((product) => (
-            <div key={product.id} className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div key={product.id} className="card p-6 hover:shadow-md transition-shadow">
               <div className="w-full h-40 bg-gray-50 rounded-lg flex items-center justify-center mb-4">
                 <BookOpen className="w-12 h-12 text-gray-300" />
               </div>

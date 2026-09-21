@@ -85,7 +85,7 @@ export function InvoiceTemplate({ data, type, typeLabel, company }: InvoiceTempl
   const remaining = Math.max(0, data.total - paidAmount);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden print:border-none">
+    <div className="card overflow-hidden print:border-none">
       <div className="bg-gradient-to-r from-[#0a1628] via-[#0f1f3d] to-[#1a2a4a] px-8 py-6 print:px-6 print:py-4">
         <div className="flex justify-between items-start">
           <div className="flex items-start gap-4">

@@ -63,9 +63,9 @@ export default function ConfiguracaoPage() {
       </div>
 
       {loading ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center text-ib-muted">A carregar...</div>
+        <div className="card p-12 text-center text-ib-muted">A carregar...</div>
       ) : data && data.completed ? (
-        <div className="bg-white rounded-xl border border-green-200 p-10 text-center">
+        <div className="card border-green-200 p-10 text-center">
           <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-3" />
           <h2 className="text-lg font-semibold text-ib-primary">Conta completa!</h2>
           <p className="text-sm text-ib-muted mt-1">Todos os passos foram concluídos. Aproveite as novas funções.</p>
@@ -75,7 +75,7 @@ export default function ConfiguracaoPage() {
           {steps.map((step) => (
             <div
               key={step.key}
-              className={`bg-white rounded-xl border p-5 flex flex-col sm:flex-row sm:items-center gap-4 ${step.done ? "border-green-200" : "border-gray-200"}`}
+              className={`card p-5 flex flex-col sm:flex-row sm:items-center gap-4 ${step.done ? "border-green-200" : ""}`}
             >
               <div className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 ${step.done ? "bg-green-100 text-green-600" : "bg-ib-accent/10 text-ib-accent"}`}>
                 {stepIcons[step.key] || <Circle className="w-5 h-5" />}

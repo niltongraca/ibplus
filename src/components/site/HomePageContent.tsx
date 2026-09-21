@@ -272,7 +272,7 @@ export default function HomePageContent() {
           items={faqItems}
           triggerClassName="font-semibold text-ib-primary text-sm px-5 py-4"
           contentClassName="px-5 pb-5 text-sm text-ib-muted leading-relaxed"
-          itemClassName="bg-white border border-gray-200 shadow-sm"
+          itemClassName="card shadow-sm"
         />
       </section>
 

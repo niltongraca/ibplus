@@ -203,7 +203,7 @@ export default function FaturaDetailPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 print-hidden">
+      <div className="card p-6 mb-6 print-hidden">
         <div className="flex flex-col sm:flex-row sm:items-end gap-4">
           <div className="sm:w-64">
             <label className="block text-sm font-medium text-ib-primary mb-1">Estado</label>

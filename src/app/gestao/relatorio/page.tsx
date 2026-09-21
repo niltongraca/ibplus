@@ -238,7 +238,7 @@ export default function RelatorioPage() {
         <SummaryCard icon={DollarSign} label="Receita Total" value={formatCurrency(data.totalRevenue)} color="green" sub={`${formatCurrency(data.todaySales)} hoje`} />
         <SummaryCard icon={TrendingDown} label="Despesas" value={formatCurrency(data.totalExpenses)} color="red" sub={`${formatCurrency(data.monthExpenses)} este mês`} />
         <SummaryCard icon={TrendingUp} label="Lucro Líquido" value={formatCurrency(netProfit)} color={netProfit >= 0 ? "blue" : "red"} sub={`${profitMargin.toFixed(1)}% margem`} />
-        <div className="bg-white rounded-xl border border-gray-200 p-5 print:break-inside-avoid">
+        <div className="card p-5 print:break-inside-avoid">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-9 h-9 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center"><Wallet className="w-4 h-4" /></div>
             <span className="text-xs text-ib-muted uppercase tracking-wider font-medium">Caixa da Empresa</span>
@@ -267,7 +267,7 @@ export default function RelatorioPage() {
       <ChartsWidget data={data} />
 
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5 print:break-inside-avoid">
+        <div className="card p-5 print:break-inside-avoid">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900 flex items-center gap-2">
               <ShoppingCart className="w-4 h-4 text-blue-600" />
@@ -292,7 +292,7 @@ export default function RelatorioPage() {
           )}
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5 print:break-inside-avoid">
+        <div className="card p-5 print:break-inside-avoid">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900 flex items-center gap-2">
               <ReceiptText className="w-4 h-4 text-red-500" />
@@ -319,7 +319,7 @@ export default function RelatorioPage() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5 print:break-inside-avoid">
+        <div className="card p-5 print:break-inside-avoid">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900 flex items-center gap-2">
               <Package className="w-4 h-4 text-blue-600" />
@@ -384,7 +384,7 @@ export default function RelatorioPage() {
           )}
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5 print:break-inside-avoid">
+        <div className="card p-5 print:break-inside-avoid">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900 flex items-center gap-2">
               <Users className="w-4 h-4 text-purple-600" />
@@ -438,7 +438,7 @@ export default function RelatorioPage() {
       </div>
 
       {data.topProducts && data.topProducts.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="card p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900 flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-purple-600" />
@@ -479,7 +479,7 @@ function SummaryCard({ icon: Icon, label, value, color, sub }: { icon: LucideIco
     purple: "bg-purple-50 text-purple-600",
   };
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 print:break-inside-avoid">
+    <div className="card p-5 print:break-inside-avoid">
       <div className="flex items-center gap-3 mb-2">
         <div className={`w-9 h-9 rounded-lg ${colors[color]} flex items-center justify-center`}><Icon className="w-4 h-4" /></div>
         <span className="text-xs text-ib-muted uppercase tracking-wider font-medium">{label}</span>

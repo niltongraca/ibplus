@@ -76,7 +76,7 @@ export default function AssistentePage() {
         <p className="text-ib-muted text-sm">Converse com o assistente inteligente IBPlus</p>
       </div>
 
-      <div className="flex-1 bg-white rounded-xl border border-gray-200 flex flex-col overflow-hidden">
+      <div className="flex-1 card flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.map((msg, i) => (
             <div key={i} className={`flex gap-3 ${msg.from === "user" ? "justify-end" : ""}`}>

@@ -51,7 +51,7 @@ export default function AnaliseVendasPage() {
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <div key={stat.label} className="bg-white rounded-xl border border-gray-200 p-5">
+            <div key={stat.label} className="card p-5">
               <div className="flex items-center gap-3 mb-3">
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${stat.color}`}>
                   <Icon className="w-5 h-5" />
@@ -64,7 +64,7 @@ export default function AnaliseVendasPage() {
         })}
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="card p-6">
         <div className="flex items-center gap-2 mb-4">
           <Lightbulb className="w-5 h-5 text-yellow-500" />
           <h2 className="font-semibold text-ib-primary">Insights de Vendas</h2>

@@ -99,7 +99,7 @@ export default function ClienteDetailPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="card p-6">
             <h2 className="text-lg font-semibold text-ib-primary mb-4">Informação Geral</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -143,7 +143,7 @@ export default function ClienteDetailPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="card p-6">
             <h2 className="text-lg font-semibold text-ib-primary mb-4">Histórico de Compras</h2>
             {customer.sales.length === 0 ? (
               <div className="text-center py-8">
@@ -184,7 +184,7 @@ export default function ClienteDetailPage() {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="card p-6">
             <h2 className="text-lg font-semibold text-ib-primary mb-4">Resumo</h2>
             <div className="space-y-4">
               <div>

@@ -72,7 +72,7 @@ export default function DespesasPage() {
         </Link>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200">
+      <div className="card">
         <div className="p-4 border-b border-gray-100 flex items-center gap-3">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />

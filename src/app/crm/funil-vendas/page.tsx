@@ -107,7 +107,7 @@ export default function FunilVendasPage() {
             </div>
             <div className="space-y-3 min-h-[200px]">
               {stage.items.map((item) => (
-                <div key={item.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+                <div key={item.id} className="card p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between mb-2">
                     <p className="font-medium text-ib-primary text-sm">{item.title}</p>
                     <div className="relative group">
@@ -135,7 +135,7 @@ export default function FunilVendasPage() {
         ))}
       </div>
 
-      <div className="mt-6 bg-white rounded-xl border border-gray-200 p-6">
+      <div className="mt-6 card p-6">
         <div className="flex items-center gap-3 mb-4">
           <TrendingUp className="w-5 h-5 text-blue-600" />
           <h3 className="font-semibold text-gray-900">Resumo do Funil</h3>
@@ -170,7 +170,7 @@ export default function FunilVendasPage() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+          <div className="card p-6 w-full max-w-md mx-4">
             <h3 className="font-semibold text-ib-primary mb-4">Nova Oportunidade</h3>
             {formError && (
               <div className="mb-3 p-2.5 rounded-lg bg-red-50 text-red-600 text-sm">{formError}</div>

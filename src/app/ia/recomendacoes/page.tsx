@@ -112,7 +112,7 @@ export default function RecomendacoesPage() {
         {recommendations.map((rec) => {
           const Icon = rec.icon;
           return (
-            <div key={rec.title} className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
+            <div key={rec.title} className="card p-5 hover:shadow-md transition-shadow">
               <div className="flex gap-4">
                 <div className={`w-10 h-10 rounded-lg ${rec.bg} flex items-center justify-center shrink-0`}>
                   <Icon className={`w-5 h-5 ${rec.color}`} />
@@ -128,7 +128,7 @@ export default function RecomendacoesPage() {
       </div>
 
       {data.recentSales && data.recentSales.length > 0 && (
-        <div className="mt-6 bg-white rounded-xl border border-gray-200 p-6">
+        <div className="mt-6 card p-6">
           <h3 className="font-semibold text-ib-primary mb-2">Vendas Recentes</h3>
           <div className="space-y-2">
             {data.recentSales.map((sale) => (

@@ -11,7 +11,7 @@ export function StudentsWidget({ data }: { data: StudentsData | null }) {
   if (!data) return null;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
+    <div className="card p-6">
       <div className="flex items-center gap-2 mb-4">
         <GraduationCap className="w-5 h-5 text-emerald-600" />
         <h2 className="font-semibold text-ib-primary">Alunos</h2>

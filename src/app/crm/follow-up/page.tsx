@@ -48,7 +48,7 @@ export default function FollowUpPage() {
 
       {showForm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowForm(null)}>
-          <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="card p-6 max-w-md w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-bold text-ib-primary mb-3">Registar Follow-up</h3>
             <textarea value={formNote} onChange={(e) => setFormNote(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" rows={3} placeholder="Notas do acompanhamento..." autoFocus />
             <div className="flex gap-3 justify-end mt-4">
@@ -59,7 +59,7 @@ export default function FollowUpPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-200">
+      <div className="card">
         <div className="p-4 border-b border-gray-100">
           <div className="relative max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />

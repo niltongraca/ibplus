@@ -61,21 +61,21 @@ export default function StockPage() {
       </div>
 
       <div className="grid sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="card p-4">
           <p className="text-xs text-ib-muted uppercase tracking-wider font-medium mb-1">Total Produtos</p>
           <p className="text-2xl font-bold text-ib-primary">{totalCount || allProducts.length}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="card p-4">
           <p className="text-xs text-ib-muted uppercase tracking-wider font-medium mb-1">Stock Total</p>
           <p className="text-2xl font-bold text-ib-primary">{totalStock}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="card p-4">
           <p className="text-xs text-ib-muted uppercase tracking-wider font-medium mb-1">Produtos Críticos</p>
           <p className="text-2xl font-bold text-red-500">{criticalCount}</p>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200">
+      <div className="card">
         <div className="p-4 border-b border-gray-100 flex items-center gap-3">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -136,7 +136,7 @@ export default function StockPage() {
         <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 mt-6">
+      <div className="card mt-6">
         <div className="p-5 border-b border-gray-100 flex items-center justify-between">
           <h2 className="font-semibold text-gray-900 flex items-center gap-2">
             <PackageSearch className="w-4 h-4 text-blue-600" />

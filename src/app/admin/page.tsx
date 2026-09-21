@@ -49,7 +49,7 @@ export default function AdminPage() {
           { icon: Globe, label: "ONGs", value: stats?.ongCount ?? "-", sub: "Organizações não-governamentais", color: "text-amber-600 bg-amber-50", border: "border-amber-100" },
           { icon: Activity, label: "Educação", value: stats?.educacaoCount ?? "-", sub: "Instituições de ensino", color: "text-rose-600 bg-rose-50", border: "border-rose-100" },
         ].map((s) => (
-          <div key={s.label} className={`bg-white border ${s.border} rounded-xl p-5 hover:shadow-sm transition-shadow`}>
+          <div key={s.label} className={`card ${s.border} p-5 hover:shadow-sm transition-shadow`}>
             <div className="flex items-center justify-between mb-3">
               <div className={`w-10 h-10 rounded-lg ${s.color} flex items-center justify-center`}>
                 <s.icon className="w-5 h-5" />

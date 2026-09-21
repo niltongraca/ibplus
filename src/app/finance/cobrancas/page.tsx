@@ -151,7 +151,7 @@ export default function CobrancasPage() {
         <p className="text-ib-muted text-sm">Controle e gerencie as suas cobranças pendentes.</p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200">
+      <div className="card">
         <div className="p-4 border-b border-gray-200 flex items-center gap-4">
           <div className="relative max-w-xs flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />

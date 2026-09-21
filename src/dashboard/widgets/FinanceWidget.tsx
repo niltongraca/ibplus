@@ -18,7 +18,7 @@ interface FinanceData {
 export function FinanceWidget({ data }: { data: FinanceData | null }) {
   if (!data) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="card p-6">
         <p className="text-sm text-gray-400 py-8 text-center">Sem dados financeiros disponíveis.</p>
       </div>
     );
@@ -27,7 +27,7 @@ export function FinanceWidget({ data }: { data: FinanceData | null }) {
   const netProfit = data.totalRevenue - data.totalExpenses;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
+    <div className="card p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-semibold text-gray-900 flex items-center gap-2">
           <Wallet className="w-4 h-4 text-blue-600" />

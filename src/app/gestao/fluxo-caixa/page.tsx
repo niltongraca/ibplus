@@ -66,21 +66,21 @@ export default function FluxoCaixaPage() {
       </div>
 
       <div className="grid sm:grid-cols-3 gap-4 mb-8">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="card p-5">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center"><TrendingUp className="w-5 h-5 text-green-600" /></div>
             <span className="text-xs text-ib-muted uppercase tracking-wider font-medium">Entradas</span>
           </div>
           <p className="text-2xl font-bold text-green-600">{formatCurrency(revenue)}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="card p-5">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center"><TrendingDown className="w-5 h-5 text-red-600" /></div>
             <span className="text-xs text-ib-muted uppercase tracking-wider font-medium">Saídas</span>
           </div>
           <p className="text-2xl font-bold text-red-600">{formatCurrency(expenses)}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="card p-5">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center"><BarChart3 className="w-5 h-5 text-blue-600" /></div>
             <span className="text-xs text-ib-muted uppercase tracking-wider font-medium">Saldo</span>
@@ -89,7 +89,7 @@ export default function FluxoCaixaPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200">
+      <div className="card">
         <div className="p-4 border-b border-gray-100">
           <h2 className="font-semibold text-ib-primary">Movimentações</h2>
         </div>

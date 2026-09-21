@@ -210,15 +210,15 @@ export default function RelatoriosPage() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="card p-5">
           <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Total Vendas</p>
           <p className="text-2xl font-bold text-gray-900">{data?.totalSales || 0}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="card p-5">
           <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Compras</p>
           <p className="text-2xl font-bold text-gray-900">{formatCurrency(data?.totalPurchases || 0)}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="card p-5">
           <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Faturas Pendentes</p>
           <p className="text-2xl font-bold text-gray-900">{data?.pendingInvoices || 0}</p>
           <p className="text-xs text-orange-500">{formatCurrency(data?.pendingInvoicesTotal || 0)}</p>
@@ -226,7 +226,7 @@ export default function RelatoriosPage() {
       </div>
 
       {data?.monthlySales && data.monthlySales.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+        <div className="card p-6 mb-6">
           <h2 className="font-semibold text-gray-900 mb-4">Tendência de Vendas</h2>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={data.monthlySales}>
@@ -242,7 +242,7 @@ export default function RelatoriosPage() {
 
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
         {data?.monthlySales && data.monthlySales.length > 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="card p-6">
             <h2 className="font-semibold text-gray-900 mb-4">Vendas Mensais</h2>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={data.monthlySales}>
@@ -256,7 +256,7 @@ export default function RelatoriosPage() {
           </div>
         )}
         {data?.categorySales && data.categorySales.length > 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="card p-6">
             <h2 className="font-semibold text-gray-900 mb-4">Vendas por Categoria</h2>
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
@@ -272,7 +272,7 @@ export default function RelatoriosPage() {
         )}
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+      <div className="card p-6 mb-6">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <div>
             <h2 className="font-semibold text-gray-900">Relatórios Automáticos</h2>
@@ -334,7 +334,7 @@ export default function RelatoriosPage() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="card p-6">
           <h2 className="font-semibold text-gray-900 mb-4">Exportar Relatórios</h2>
           <div className="space-y-2">
             <ExportButton icon={DollarSign} label="Receitas e Despesas" color="green" onClick={() => handleExport("Receitas e Despesas")} />
@@ -343,7 +343,7 @@ export default function RelatoriosPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="card p-6">
           <h2 className="font-semibold text-gray-900 mb-4">Resumo</h2>
           {data && (
             <div className="space-y-3">
@@ -374,7 +374,7 @@ function SummaryCard({ icon: Icon, label, value, color }: { icon: LucideIcon; la
     purple: "bg-purple-50 text-purple-600",
   };
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className="card p-5">
       <div className="flex items-center gap-3 mb-2">
         <div className={`w-9 h-9 rounded-lg ${colors[color]} flex items-center justify-center`}><Icon className="w-4 h-4" /></div>
         <span className="text-xs text-gray-500 uppercase tracking-wider font-medium">{label}</span>

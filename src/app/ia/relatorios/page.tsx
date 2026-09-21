@@ -80,7 +80,7 @@ export default function RelatoriosIAPage() {
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="card p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
               <TrendingUp className="w-5 h-5 text-green-600" />
@@ -89,7 +89,7 @@ export default function RelatoriosIAPage() {
           </div>
           <p className="text-2xl font-bold text-ib-primary">{data ? formatCurrency(data.totalRevenue) : "—"}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="card p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
               <ShoppingCart className="w-5 h-5 text-blue-600" />
@@ -98,7 +98,7 @@ export default function RelatoriosIAPage() {
           </div>
           <p className="text-2xl font-bold text-ib-primary">{data?.totalSales || 0}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="card p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
               <Users className="w-5 h-5 text-purple-600" />
@@ -107,7 +107,7 @@ export default function RelatoriosIAPage() {
           </div>
           <p className="text-2xl font-bold text-ib-primary">{data?.totalCustomers || 0}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="card p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-lg bg-yellow-50 flex items-center justify-center">
               <BarChart3 className="w-5 h-5 text-yellow-600" />
@@ -121,7 +121,7 @@ export default function RelatoriosIAPage() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="card p-6">
           <div className="flex items-center gap-2 mb-4">
             <FileText className="w-5 h-5 text-ib-accent" />
             <h2 className="font-semibold text-ib-primary">Relatórios Inteligentes</h2>
@@ -151,7 +151,7 @@ export default function RelatoriosIAPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="card p-6">
           <div className="flex items-center gap-2 mb-4">
             <Bot className="w-5 h-5 text-ib-accent" />
             <h2 className="font-semibold text-ib-primary">Resumo com Análise IA</h2>
