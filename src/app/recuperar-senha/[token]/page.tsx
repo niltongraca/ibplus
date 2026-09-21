@@ -48,7 +48,7 @@ export default function ResetarSenhaPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-ib-surface flex items-center justify-center px-4">
+      <div className="min-h-screen flex items-center justify-center px-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 mb-2">
@@ -58,7 +58,7 @@ export default function ResetarSenhaPage() {
             </div>
           </div>
 
-          <div className="bg-white p-8 rounded-xl border border-gray-200 space-y-5 text-center">
+          <div className="card p-8 space-y-5 text-center">
             <div className="flex justify-center">
               <SuccessCheck size={64} />
             </div>
@@ -77,7 +77,7 @@ export default function ResetarSenhaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-ib-surface flex items-center justify-center px-4 relative">
+    <div className="min-h-screen flex items-center justify-center px-4 relative">
       <Link href="/recuperar-senha" className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2 text-ib-muted hover:text-ib-primary transition-colors">
         <ArrowLeft className="h-5 w-5" />
         <span className="text-sm">Voltar</span>
@@ -93,13 +93,13 @@ export default function ResetarSenhaPage() {
           <p className="text-ib-muted">Nova senha</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl border border-gray-200 space-y-5">
+        <form onSubmit={handleSubmit} className="card p-8 space-y-5">
           {error && (
             <div className="p-3 rounded-lg bg-ib-danger/10 text-ib-danger text-sm">{error}</div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-ib-primary mb-1.5">Nova senha</label>
+            <label className="label">Nova senha</label>
             <input
               type="password"
               value={password}
@@ -107,12 +107,12 @@ export default function ResetarSenhaPage() {
               placeholder="••••••••"
               required
               minLength={8}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40"
+              className="input"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-ib-primary mb-1.5">Confirmar senha</label>
+            <label className="label">Confirmar senha</label>
             <input
               type="password"
               value={confirmPassword}
@@ -120,7 +120,7 @@ export default function ResetarSenhaPage() {
               placeholder="••••••••"
               required
               minLength={8}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40"
+              className="input"
             />
           </div>
 

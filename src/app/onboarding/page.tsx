@@ -125,12 +125,12 @@ export default function OnboardingWizard() {
           </h2>
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-ib-primary mb-1">Nome *</label>
-              <input type="text" value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Nome" className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+              <label className="label">Nome *</label>
+              <input type="text" value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Nome" className="input" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-ib-primary mb-1">Telefone *</label>
-              <input type="text" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="+244 XXX XXX XXX" className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+              <label className="label">Telefone *</label>
+              <input type="text" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="+244 XXX XXX XXX" className="input" />
             </div>
           </div>
         </div>
@@ -145,12 +145,12 @@ export default function OnboardingWizard() {
           </h2>
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-ib-primary mb-1">Área de Actuação</label>
-              <input type="text" value={form.areaActuacao} onChange={(e) => update("areaActuacao", e.target.value)} placeholder="Ex.: Educação, Saúde, Ambiente" className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+              <label className="label">Área de Actuação</label>
+              <input type="text" value={form.areaActuacao} onChange={(e) => update("areaActuacao", e.target.value)} placeholder="Ex.: Educação, Saúde, Ambiente" className="input" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-ib-primary mb-1">Website</label>
-              <input type="text" value={form.website} onChange={(e) => update("website", e.target.value)} placeholder="https://" className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+              <label className="label">Website</label>
+              <input type="text" value={form.website} onChange={(e) => update("website", e.target.value)} placeholder="https://" className="input" />
             </div>
           </div>
         </div>
@@ -165,8 +165,8 @@ export default function OnboardingWizard() {
           </h2>
           <p className="text-sm text-ib-muted mb-3">Número de contacto para os seus clientes.</p>
           <div>
-            <label className="block text-sm font-medium text-ib-primary mb-1">WhatsApp</label>
-            <input type="text" value={form.whatsappStore} onChange={(e) => update("whatsappStore", e.target.value)} placeholder="+244 XXX XXX XXX" className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+            <label className="label">WhatsApp</label>
+            <input type="text" value={form.whatsappStore} onChange={(e) => update("whatsappStore", e.target.value)} placeholder="+244 XXX XXX XXX" className="input" />
           </div>
         </div>
       );
@@ -180,12 +180,12 @@ export default function OnboardingWizard() {
           </h2>
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-ib-primary mb-1">Endereço</label>
-              <input type="text" value={form.address} onChange={(e) => update("address", e.target.value)} placeholder="Rua, nº, bairro" className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+              <label className="label">Endereço</label>
+              <input type="text" value={form.address} onChange={(e) => update("address", e.target.value)} placeholder="Rua, nº, bairro" className="input" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-ib-primary mb-1">Província</label>
-              <select value={form.provinciaOperacao} onChange={(e) => update("provinciaOperacao", e.target.value)} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40">
+              <label className="label">Província</label>
+              <select value={form.provinciaOperacao} onChange={(e) => update("provinciaOperacao", e.target.value)} className="input">
                 <option value="">Seleccionar</option>
                 {["Bengo","Benguela","Bié","Cabinda","Cuando Cubango","Cuanza Norte","Cuanza Sul","Cunene","Huambo","Huíla","Luanda","Lunda Norte","Lunda Sul","Malanje","Moxico","Namibe","Uíge","Zaire"].map((p) => (
                   <option key={p} value={p}>{p}</option>
@@ -205,8 +205,8 @@ export default function OnboardingWizard() {
           </h2>
           <p className="text-sm text-ib-muted mb-3">Uma breve descrição do seu negócio.</p>
           <div>
-            <label className="block text-sm font-medium text-ib-primary mb-1">Descrição</label>
-            <textarea value={form.descricaoLoja} onChange={(e) => update("descricaoLoja", e.target.value)} rows={3} placeholder="Conte um pouco sobre..." className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40 resize-none" />
+            <label className="label">Descrição</label>
+            <textarea value={form.descricaoLoja} onChange={(e) => update("descricaoLoja", e.target.value)} rows={3} placeholder="Conte um pouco sobre..." className="textarea resize-none" />
           </div>
         </div>
       );
@@ -220,8 +220,8 @@ export default function OnboardingWizard() {
           </h2>
           <p className="text-sm text-ib-muted mb-3">Horários de funcionamento/disponibilidade.</p>
           <div>
-            <label className="block text-sm font-medium text-ib-primary mb-1">Horários</label>
-            <textarea value={form.horarioFuncionamento} onChange={(e) => update("horarioFuncionamento", e.target.value)} rows={4} placeholder="Seg-Sex: 08h-18h&#10;Sáb: 08h-13h" className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40 resize-none" />
+            <label className="label">Horários</label>
+            <textarea value={form.horarioFuncionamento} onChange={(e) => update("horarioFuncionamento", e.target.value)} rows={4} placeholder="Seg-Sex: 08h-18h&#10;Sáb: 08h-13h" className="textarea resize-none" />
           </div>
         </div>
       );
@@ -256,16 +256,16 @@ export default function OnboardingWizard() {
           ))}
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <div className="card p-6 shadow-sm">
           {renderStep()}
         </div>
 
         <div className="flex justify-between mt-6">
-          <button onClick={prev} disabled={step === 0} className="flex items-center gap-1.5 px-4 py-2 border border-gray-200 rounded-lg text-sm text-ib-muted hover:bg-gray-50 disabled:opacity-30">
+          <button onClick={prev} disabled={step === 0} className="btn btn-outline disabled:opacity-30">
             <ArrowLeft className="w-4 h-4" /> Anterior
           </button>
           {isLast ? (
-            <button onClick={handleFinish} disabled={saving} className="flex items-center gap-1.5 px-5 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50">
+            <button onClick={handleFinish} disabled={saving} className="btn bg-green-600 text-white hover:bg-green-700 disabled:opacity-50">
               <CheckCircle className="w-4 h-4" /> {saving ? "A salvar..." : "Concluir"}
             </button>
           ) : (

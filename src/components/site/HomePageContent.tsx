@@ -185,7 +185,7 @@ export default function HomePageContent() {
       <section className="bg-ib-surface py-16 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 lg:grid-cols-4 gap-5">
           {stats.map((s) => (
-            <div key={s.label} className="glass-card text-center p-6">
+            <div key={s.label} className="card text-center p-6">
               <div className="text-3xl sm:text-4xl font-extrabold text-ib-accent mb-2">
                 <CountUpStat value={s.value} suffix={s.suffix} />
               </div>
@@ -209,7 +209,7 @@ export default function HomePageContent() {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {modules.map((mod) => (
-            <div key={mod.name} className="group glass-card p-6 hover:-translate-y-1 hover:shadow-lg transition-all">
+            <div key={mod.name} className="group card p-6 hover:-translate-y-1 hover:shadow-lg transition-all">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-ib-accent/10 group-hover:bg-ib-accent transition-colors">
                 <mod.icon className="w-6 h-6 text-ib-accent group-hover:text-white transition-colors" />
               </div>

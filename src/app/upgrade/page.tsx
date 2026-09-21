@@ -25,7 +25,7 @@ const plans = [
       "Gestão de stock", "Relatórios financeiros", "IA e recomendações",
     ],
     cta: "Seleccionar Premium",
-    ctaStyle: "bg-blue-600 text-white hover:bg-blue-700",
+    ctaStyle: "btn btn-primary",
     popular: true,
   },
   {
@@ -60,15 +60,15 @@ export default function UpgradePage() {
 
         <div className="text-center mb-12">
           <Sparkles className="w-10 h-10 text-blue-600 mx-auto mb-3" />
-          <h1 className="text-3xl font-bold text-gray-900">Escolha o seu Plano</h1>
-          <p className="text-gray-500 mt-2">Comece grátis e faça upgrade conforme o seu negócio cresce</p>
+          <h1 className="page-title text-3xl">Escolha o seu Plano</h1>
+          <p className="text-ib-muted mt-2">Comece grátis e faça upgrade conforme o seu negócio cresce</p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
           {plans.map((plan) => {
             const isCurrent = plan.planKey === user?.plan;
             return (
-              <div key={plan.name} className={`bg-white rounded-2xl border ${plan.popular ? "border-blue-500 ring-2 ring-blue-500/20" : "border-gray-200"} p-6 shadow-sm relative`}>
+              <div key={plan.name} className={`card p-6 shadow-sm relative ${plan.popular ? "border-blue-500 ring-2 ring-blue-500/20" : ""}`}>
                 {plan.popular && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
                     Mais Popular
@@ -95,7 +95,7 @@ export default function UpgradePage() {
                 <button
                   onClick={() => handleSelectPlan(plan.planKey)}
                   disabled={isCurrent}
-                  className={`w-full py-2.5 rounded-lg text-sm font-medium transition-colors ${isCurrent ? "bg-gray-100 text-gray-400 cursor-default" : plan.ctaStyle}`}
+                  className={`btn w-full ${isCurrent ? "bg-gray-100 text-gray-400 cursor-default" : plan.ctaStyle}`}
                 >
                   {isCurrent ? "Plano Actual" : plan.cta}
                 </button>
@@ -106,7 +106,7 @@ export default function UpgradePage() {
 
         {selectedPlan && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4 text-center">
+            <div className="card p-6 w-full max-w-md mx-4 text-center">
               <MessageCircle className="w-12 h-12 text-blue-600 mx-auto mb-4" />
               <h3 className="text-lg font-bold text-gray-900 mb-2">Upgrade para {selectedPlan}</h3>
               <p className="text-gray-500 text-sm mb-6">
@@ -115,13 +115,13 @@ export default function UpgradePage() {
               <div className="flex flex-col gap-2">
                 <a
                   href="mailto:suporte@ibplus.co.ao?subject=Upgrade de Plano"
-                  className="w-full py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                  className="btn btn-primary w-full"
                 >
                   Enviar Email para Suporte
                 </a>
                 <button
                   onClick={() => setSelectedPlan(null)}
-                  className="w-full py-2.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                  className="btn btn-outline w-full"
                 >
                   Fechar
                 </button>

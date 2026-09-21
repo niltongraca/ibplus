@@ -237,9 +237,9 @@ function CadastroPage() {
           <p style={{ color: "var(--text-muted)" }}>Crie a sua conta gratuita</p>
         </div>
 
-        <div className="glass-card p-8">
+        <div className="card p-8">
           {inviteToken && (
-            <div className="mb-6 glass-card p-4 flex items-start gap-3" style={{ borderRadius: "12px" }}>
+            <div className="mb-6 card p-4 flex items-start gap-3" style={{ borderRadius: "12px" }}>
               <Link2 className="w-5 h-5 text-ib-accent mt-0.5 shrink-0" />
               <div>
                 <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Convite de Acesso</p>
@@ -259,7 +259,7 @@ function CadastroPage() {
               <div className="grid sm:grid-cols-2 gap-4">
                 {ACCOUNT_TYPES.map((t) => (
                   <button key={t.value} onClick={() => selectType(t.value)}
-                    className="glass-card p-5 hover:shadow-md transition-all text-left group">
+                    className="card p-5 hover:shadow-md transition-all text-left group">
                     <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-3 group-hover:scale-105 transition-transform" style={{ backgroundColor: "rgba(37, 99, 235, 0.1)" }}>
                       <t.icon className="w-5 h-5 text-ib-accent" />
                     </div>
@@ -278,7 +278,7 @@ function CadastroPage() {
                     const isActive = stepNum <= step;
                     return (
                       <div key={s.title} className="flex items-center gap-2 flex-1">
-                        <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold transition-colors ${isActive ? "bg-ib-accent text-white" : "glass-btn"}`}>
+                        <div className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold transition-colors ${isActive ? "bg-ib-accent text-white" : "bg-[var(--bg-secondary)] text-ib-muted"}`}>
                           {stepNum}
                         </div>
                         <div className={`hidden sm:block text-xs font-medium ${isActive ? "text-ib-accent" : ""}`} style={{ color: isActive ? undefined : "var(--text-muted)" }}>
@@ -293,40 +293,40 @@ function CadastroPage() {
 
               {step === 1 && (
                 <div className="space-y-5">
-                  <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Dados da Conta</h2>
+                  <h2 className="page-title text-xl">Dados da Conta</h2>
                   <p className="text-sm -mt-3" style={{ color: "var(--text-muted)" }}>Informações básicas para criar a sua conta</p>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="sm:col-span-2">
-                      <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>
+                      <label className="label">
                         {accountType === "EMPRESA" || accountType === "ONG" || accountType === "EDUCACAO" ? "Nome do responsável" : "Nome completo"}
                       </label>
                       <input value={form.nome || ""} onChange={(e) => updateField("nome", e.target.value)}
-                        className="glass-input w-full px-3 py-2.5 text-sm" style={{ color: "var(--text-primary)" }}
+                        className="input"
                         placeholder="Seu nome completo" required />
                       {fieldErrors.nome && (
                         <p className="text-xs mt-1" style={{ color: "var(--color-ib-danger)" }}>{fieldErrors.nome}</p>
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Email</label>
+                      <label className="label">Email</label>
                       <input type="email" value={form.email || ""} onChange={(e) => updateField("email", e.target.value)}
-                        className="glass-input w-full px-3 py-2.5 text-sm" style={{ color: "var(--text-primary)" }}
+                        className="input"
                         placeholder="seu@email.com" required />
                       {fieldErrors.email && (
                         <p className="text-xs mt-1" style={{ color: "var(--color-ib-danger)" }}>{fieldErrors.email}</p>
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Telefone <span style={{ color: "var(--text-muted)" }} className="font-normal">(opcional)</span></label>
+                      <label className="label">Telefone <span style={{ color: "var(--text-muted)" }} className="font-normal">(opcional)</span></label>
                       <input type="tel" value={form.telefone || ""} onChange={(e) => updateField("telefone", e.target.value)}
-                        className="glass-input w-full px-3 py-2.5 text-sm" style={{ color: "var(--text-primary)" }}
+                        className="input"
                         placeholder="+244 900 000 000" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Senha</label>
+                      <label className="label">Senha</label>
                       <div className="relative">
                         <input type={showPassword ? "text" : "password"} value={form.password || ""} onChange={(e) => updateField("password", e.target.value)}
-                          className="glass-input w-full px-3 py-2.5 text-sm pr-10" style={{ color: "var(--text-primary)" }}
+                          className="input pr-10"
                           placeholder="Mínimo 8 caracteres" required minLength={8} />
                         <button type="button" onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }}>
@@ -338,9 +338,9 @@ function CadastroPage() {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Confirmar senha</label>
+                      <label className="label">Confirmar senha</label>
                       <input type={showPassword ? "text" : "password"} value={form.confirmPassword || ""} onChange={(e) => updateField("confirmPassword", e.target.value)}
-                        className="glass-input w-full px-3 py-2.5 text-sm" style={{ color: "var(--text-primary)" }}
+                        className="input"
                         placeholder="Repita a senha" required minLength={8} />
                       {fieldErrors.confirmPassword && (
                         <p className="text-xs mt-1" style={{ color: "var(--color-ib-danger)" }}>{fieldErrors.confirmPassword}</p>
@@ -348,33 +348,33 @@ function CadastroPage() {
                     </div>
                     {!isInviteFlow && accountType && accountType !== "EMPREENDEDOR" && (
                       <div className="sm:col-span-2">
-                        <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>
+                        <label className="label">
                           Seu cargo na organização
                           <span style={{ color: "var(--color-ib-danger)" }}>*</span>
                         </label>
                         <input value={form.cargoName || ""} onChange={(e) => updateField("cargoName", e.target.value)}
-                          className="glass-input w-full px-3 py-2.5 text-sm" style={{ color: "var(--text-primary)" }}
+                          className="input"
                           placeholder="Ex.: Sócio-fundador, Director Geral" required />
                       </div>
                     )}
                   </div>
 
                   {isInviteFlow && (
-                    <div className="pt-4" style={{ borderTop: "1px solid var(--border-color)" }}>
-                      <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>
+                    <div className="pt-4 border-t border-[var(--border-color)]">
+                      <label className="label">
                         {inviteData?.company ? `Seu cargo em ${inviteData.company.name}` : "Seu cargo na organização"}
                         {inviteData?.cargos?.length ? "" : <span style={{ color: "var(--text-muted)" }} className="font-normal"> (opcional)</span>}
                       </label>
                       {inviteData?.cargos?.length ? (
                         <select value={form.cargoId || inviteData.cargos.find((c) => c.isDefault)?.id || ""} onChange={(e) => updateField("cargoId", e.target.value)}
-                          className="glass-input w-full px-3 py-2.5 text-sm" style={{ color: "var(--text-primary)" }}>
+                          className="input">
                           {inviteData.cargos.map((c) => (
                             <option key={c.id} value={c.id}>{c.name}</option>
                           ))}
                         </select>
                       ) : (
                         <input value={form.cargoName || ""} onChange={(e) => updateField("cargoName", e.target.value)}
-                          className="glass-input w-full px-3 py-2.5 text-sm" style={{ color: "var(--text-primary)" }}
+                          className="input"
                           placeholder="Ex.: Gestor de Vendas" />
                       )}
                       {inviteData?.cargos?.length ? (
@@ -421,28 +421,28 @@ function CadastroPage() {
               )}
               {step === 3 && accountType === "EMPRESA" && (
                 <div className="space-y-5">
-                  <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Identidade da Empresa</h2>
+                  <h2 className="page-title text-xl">Identidade da Empresa</h2>
                   <p className="text-sm -mt-3" style={{ color: "var(--text-muted)" }}>Conte-nos sobre a sua empresa</p>
                   <div>
                     <textarea value={form.descricao || ""} onChange={(e) => updateField("descricao", e.target.value)} rows={3}
-                      className="glass-input w-full px-3 py-2.5 text-sm resize-none" style={{ color: "var(--text-primary)" }}
+                      className="textarea resize-none"
                       placeholder="Descreva a sua empresa" />
                   </div>
                   <div className="grid sm:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Missão <span style={{ color: "var(--text-muted)" }} className="font-normal">(opcional)</span></label>
+                      <label className="label">Missão <span style={{ color: "var(--text-muted)" }} className="font-normal">(opcional)</span></label>
                       <textarea value={form.missao || ""} onChange={(e) => updateField("missao", e.target.value)} rows={2}
-                        className="glass-input w-full px-3 py-2.5 text-sm resize-none" style={{ color: "var(--text-primary)" }} placeholder="Missão" />
+                        className="textarea resize-none" placeholder="Missão" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Visão <span style={{ color: "var(--text-muted)" }} className="font-normal">(opcional)</span></label>
+                      <label className="label">Visão <span style={{ color: "var(--text-muted)" }} className="font-normal">(opcional)</span></label>
                       <textarea value={form.visao || ""} onChange={(e) => updateField("visao", e.target.value)} rows={2}
-                        className="glass-input w-full px-3 py-2.5 text-sm resize-none" style={{ color: "var(--text-primary)" }} placeholder="Visão" />
+                        className="textarea resize-none" placeholder="Visão" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Valores <span style={{ color: "var(--text-muted)" }} className="font-normal">(opcional)</span></label>
+                      <label className="label">Valores <span style={{ color: "var(--text-muted)" }} className="font-normal">(opcional)</span></label>
                       <textarea value={form.valores || ""} onChange={(e) => updateField("valores", e.target.value)} rows={2}
-                        className="glass-input w-full px-3 py-2.5 text-sm resize-none" style={{ color: "var(--text-primary)" }} placeholder="Valores" />
+                        className="textarea resize-none" placeholder="Valores" />
                     </div>
                   </div>
                   <ActividadeForm form={form} updateField={updateField} />
@@ -453,19 +453,19 @@ function CadastroPage() {
                 <div className="mt-5 p-3 rounded-lg text-sm" style={{ backgroundColor: "rgba(239, 68, 68, 0.1)", color: "var(--color-ib-danger)" }}>{error}</div>
               )}
 
-              <div className="flex items-center justify-between mt-8 pt-6" style={{ borderTop: "1px solid var(--border-color)" }}>
+              <div className="flex items-center justify-between mt-8 pt-6 border-t border-[var(--border-color)]">
                 <button type="button" onClick={prevStep}
-                  className="glass-btn flex items-center gap-2 px-4 py-2.5 text-sm font-medium" style={{ color: "var(--text-muted)" }}>
+                  className="btn btn-secondary">
                   <ArrowLeft className="w-4 h-4" /> {step > 1 ? "Anterior" : "Alterar tipo"}
                 </button>
                 {step < totalSteps ? (
                   <button type="button" onClick={nextStep} disabled={!canProceed()}
-                    className="glass-btn-primary flex items-center gap-2 px-6 py-2.5 text-sm disabled:opacity-50">
+                    className="btn btn-primary px-6 disabled:opacity-50">
                     Seguinte <ArrowRight className="w-4 h-4" />
                   </button>
                 ) : (
                   <button type="button" onClick={handleSubmit} disabled={loading}
-                    className="glass-btn-primary flex items-center gap-2 px-6 py-2.5 text-sm disabled:opacity-50">
+                    className="btn btn-primary px-6 disabled:opacity-50">
                     {loading ? "Criando conta..." : <><UserPlus className="w-4 h-4" /> Criar conta</>}
                   </button>
                 )}
@@ -491,11 +491,11 @@ interface FormProps {
 function Input({ label, field, form, updateField, placeholder, type, required }: FormProps & { label: string; field: string; placeholder?: string; type?: string; required?: boolean }) {
   return (
     <div>
-      <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>
+      <label className="label">
         {label} {!required && <span style={{ color: "var(--text-muted)" }} className="font-normal">(opcional)</span>}
       </label>
       <input type={type || "text"} value={form[field] || ""} onChange={(e) => updateField(field, e.target.value)}
-        className="glass-input w-full px-3 py-2.5 text-sm" style={{ color: "var(--text-primary)" }}
+        className="input"
         placeholder={placeholder} />
     </div>
   );
@@ -504,7 +504,7 @@ function Input({ label, field, form, updateField, placeholder, type, required }:
 function EmpreendedorForm({ form, updateField }: FormProps) {
   return (
     <>
-      <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Perfil do Empreendedor</h2>
+      <h2 className="page-title text-xl">Perfil do Empreendedor</h2>
       <p className="text-sm -mt-3" style={{ color: "var(--text-muted)" }}>Informações adicionais sobre si</p>
       <div className="grid sm:grid-cols-2 gap-4">
         <Input label="Nome comercial" field="nomeComercial" form={form} updateField={updateField} placeholder="Como é conhecido(a)" />
@@ -512,9 +512,9 @@ function EmpreendedorForm({ form, updateField }: FormProps) {
         <Input label="BI" field="bi" form={form} updateField={updateField} placeholder="Bilhete de identidade" />
         <Input label="Data de nascimento" field="dataNascimento" form={form} updateField={updateField} type="date" />
         <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Sexo <span style={{ color: "var(--text-muted)" }} className="font-normal">(opcional)</span></label>
+          <label className="label">Sexo <span style={{ color: "var(--text-muted)" }} className="font-normal">(opcional)</span></label>
           <select value={form.sexo || ""} onChange={(e) => updateField("sexo", e.target.value)}
-            className="glass-input w-full px-3 py-2.5 text-sm" style={{ color: "var(--text-primary)" }}>
+            className="input">
             <option value="">Seleccionar</option>
             <option value="masculino">Masculino</option>
             <option value="feminino">Feminino</option>
@@ -529,12 +529,12 @@ function EmpreendedorForm({ form, updateField }: FormProps) {
 function EmpresaForm({ form, updateField }: FormProps) {
   return (
     <>
-      <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Dados da Empresa</h2>
+      <h2 className="page-title text-xl">Dados da Empresa</h2>
       <p className="text-sm -mt-3" style={{ color: "var(--text-muted)" }}>Informações sobre o seu negócio</p>
       <div>
-        <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Nome da empresa <span style={{ color: "var(--color-ib-danger)" }}>*</span></label>
+        <label className="label">Nome da empresa <span style={{ color: "var(--color-ib-danger)" }}>*</span></label>
         <input value={form.nomeEmpresa || ""} onChange={(e) => updateField("nomeEmpresa", e.target.value)}
-          className="glass-input w-full px-3 py-2.5 text-sm" style={{ color: "var(--text-primary)" }}
+          className="input"
           placeholder="Nome da sua empresa" required />
       </div>
       <div className="grid sm:grid-cols-2 gap-4">
@@ -550,12 +550,12 @@ function EmpresaForm({ form, updateField }: FormProps) {
 function ONGForm({ form, updateField }: FormProps) {
   return (
     <>
-      <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Dados da ONG</h2>
+      <h2 className="page-title text-xl">Dados da ONG</h2>
       <p className="text-sm -mt-3" style={{ color: "var(--text-muted)" }}>Informações sobre a organização</p>
       <div>
-        <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Nome da ONG</label>
+        <label className="label">Nome da ONG</label>
         <input value={form.nomeInstituicao || form.nome || ""} onChange={(e) => updateField("nomeInstituicao", e.target.value)}
-          className="glass-input w-full px-3 py-2.5 text-sm" style={{ color: "var(--text-primary)" }} placeholder="Nome da organização" />
+          className="input" placeholder="Nome da organização" />
       </div>
       <div className="grid sm:grid-cols-2 gap-4">
         <Input label="Missão" field="missao" form={form} updateField={updateField} placeholder="Missão da ONG" />
@@ -572,7 +572,7 @@ function ONGForm({ form, updateField }: FormProps) {
 function AssociacaoForm({ form, updateField }: FormProps) {
   return (
     <>
-      <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Dados da Associação</h2>
+      <h2 className="page-title text-xl">Dados da Associação</h2>
       <p className="text-sm -mt-3" style={{ color: "var(--text-muted)" }}>Informações sobre a associação</p>
       <Input label="Nome da associação" field="nomeInstituicao" form={form} updateField={updateField} placeholder="Nome da associação" />
       <div className="grid sm:grid-cols-2 gap-4 mt-4">
@@ -586,18 +586,18 @@ function AssociacaoForm({ form, updateField }: FormProps) {
 function EducacaoForm({ form, updateField }: FormProps) {
   return (
     <>
-      <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Dados da Instituição</h2>
+      <h2 className="page-title text-xl">Dados da Instituição</h2>
       <p className="text-sm -mt-3" style={{ color: "var(--text-muted)" }}>Informações sobre a instituição de ensino</p>
       <div>
-        <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Nome da instituição</label>
+        <label className="label">Nome da instituição</label>
         <input value={form.nomeInstituicao || ""} onChange={(e) => updateField("nomeInstituicao", e.target.value)}
-          className="glass-input w-full px-3 py-2.5 text-sm" style={{ color: "var(--text-primary)" }} placeholder="Nome da escola/universidade" />
+          className="input" placeholder="Nome da escola/universidade" />
       </div>
       <div className="grid sm:grid-cols-2 gap-4 mt-4">
         <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Tipo de instituição</label>
+          <label className="label">Tipo de instituição</label>
           <select value={form.tipoInstituicao || ""} onChange={(e) => updateField("tipoInstituicao", e.target.value)}
-            className="glass-input w-full px-3 py-2.5 text-sm" style={{ color: "var(--text-primary)" }}>
+            className="input">
             <option value="">Seleccionar</option>
             <option value="escola">Escola</option>
             <option value="universidade">Universidade</option>
@@ -618,7 +618,7 @@ function EducacaoForm({ form, updateField }: FormProps) {
 function CooperativaForm({ form, updateField }: FormProps) {
   return (
     <>
-      <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Dados da Cooperativa</h2>
+      <h2 className="page-title text-xl">Dados da Cooperativa</h2>
       <p className="text-sm -mt-3" style={{ color: "var(--text-muted)" }}>Informações sobre a cooperativa</p>
       <Input label="Nome da cooperativa" field="nomeInstituicao" form={form} updateField={updateField} placeholder="Nome da cooperativa" />
       <div className="grid sm:grid-cols-2 gap-4 mt-4">
@@ -633,7 +633,7 @@ function CooperativaForm({ form, updateField }: FormProps) {
 function LocationForm({ form, updateField }: FormProps) {
   return (
     <div className="space-y-5">
-      <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Localização</h2>
+      <h2 className="page-title text-xl">Localização</h2>
       <p className="text-sm -mt-3" style={{ color: "var(--text-muted)" }}>Onde está localizado(a)</p>
       <div className="grid sm:grid-cols-2 gap-4">
         <Input label="País" field="pais" form={form} updateField={updateField} placeholder="Angola" />
@@ -654,12 +654,12 @@ function LocationForm({ form, updateField }: FormProps) {
 function IdentityForm({ form, updateField, accountType }: FormProps & { accountType: string }) {
   return (
     <div className="space-y-5">
-      <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Identidade</h2>
+      <h2 className="page-title text-xl">Identidade</h2>
       <p className="text-sm -mt-3" style={{ color: "var(--text-muted)" }}>Informações adicionais</p>
       <div>
-        <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Descrição</label>
+        <label className="label">Descrição</label>
         <textarea value={form.descricao || ""} onChange={(e) => updateField("descricao", e.target.value)} rows={3}
-          className="glass-input w-full px-3 py-2.5 text-sm resize-none" style={{ color: "var(--text-primary)" }}
+          className="textarea resize-none"
           placeholder="Breve descrição" />
       </div>
       <div className="grid sm:grid-cols-2 gap-4">
@@ -673,7 +673,7 @@ function IdentityForm({ form, updateField, accountType }: FormProps & { accountT
 function ActividadeForm({ form, updateField }: FormProps) {
   return (
     <div className="space-y-5 mt-5">
-      <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Actividade</h2>
+      <h2 className="page-title text-xl">Actividade</h2>
       <p className="text-sm -mt-3" style={{ color: "var(--text-muted)" }}>Ramo e presença online</p>
       <div className="grid sm:grid-cols-2 gap-4">
         <Input label="Ramo de actividade" field="ramoActividade" form={form} updateField={updateField} placeholder="Ex.: Tecnologia, Saúde" />

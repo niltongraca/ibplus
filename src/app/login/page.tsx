@@ -65,7 +65,7 @@ function LoginForm() {
           <p style={{ color: "var(--text-muted)" }}>Entre na sua conta</p>
         </div>
 
-        <form className="glass-card p-8 space-y-5" onSubmit={handleSubmit}>
+        <form className="card p-8 space-y-5" onSubmit={handleSubmit}>
           {error && (
             <div className="p-3 rounded-lg" style={{ backgroundColor: "rgba(239, 68, 68, 0.1)", color: "var(--color-ib-danger)" }}>
               {error}
@@ -73,7 +73,7 @@ function LoginForm() {
           )}
 
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-primary)" }}>
+            <label className="label">
               Email
             </label>
             <input
@@ -82,13 +82,13 @@ function LoginForm() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu@email.com"
               required
-              className="glass-input w-full px-3 py-2.5 text-sm"
+              className="input w-full px-3 py-2.5 text-sm"
               style={{ color: "var(--text-primary)" }}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-primary)" }}>
+            <label className="label">
               Senha
             </label>
             <div className="relative">
@@ -98,7 +98,7 @@ function LoginForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="glass-input w-full px-3 py-2.5 text-sm pr-10"
+                className="input w-full px-3 py-2.5 text-sm pr-10"
                 style={{ color: "var(--text-primary)" }}
               />
               <button
@@ -114,7 +114,7 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="glass-btn-primary w-full py-2.5 text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+            className="btn btn-primary w-full py-2.5 text-sm flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {loading ? "Entrando..." : (
               <>

@@ -161,7 +161,7 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
         <ArrowLeft className="w-4 h-4" /> Voltar à Praça
       </Link>
 
-      <div className="glass-card overflow-hidden mb-8">
+      <div className="card overflow-hidden mb-8">
         {user?.coverPhoto && (
           <div className="w-full h-32 sm:h-44">
             <SmartImage src={user.coverPhoto} alt="Capa da empresa" width={1200} height={300} className="w-full h-full object-cover" />
@@ -181,7 +181,7 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
             )}
           </div>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>{company.name}</h1>
+            <h1 className="page-title">{company.name}</h1>
             {company.nif && <p className="text-sm" style={{ color: "var(--text-muted)" }}>NIF: {company.nif}</p>}
             {user?.name && (
               <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>{user.name}</p>
@@ -190,7 +190,7 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
         </div>
 
         {profile.descricao && (
-          <div className="glass-card mb-6 p-4">
+          <div className="card mb-6 p-4">
             <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{profile.descricao}</p>
           </div>
         )}
@@ -224,7 +224,7 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
                 href={s.url!.startsWith("http") ? s.url! : `https://${s.url}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="glass-btn inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium"
+                className="btn btn-secondary inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium"
                 style={{ color: "var(--text-muted)" }}
               >
                 <s.icon className="w-3.5 h-3.5" />
@@ -237,20 +237,20 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
       </div>
 
       <div className="page-header">
-        <h2 className="text-xl font-bold flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+        <h2 className="text-xl font-bold flex items-center gap-2 text-[var(--text-primary)]">
           <Package className="w-5 h-5" /> Produtos e Serviços
         </h2>
       </div>
 
       {company.products.length === 0 ? (
-        <div className="glass-card text-center py-12">
+        <div className="card text-center py-12">
           <Package className="w-12 h-12 mx-auto mb-3" style={{ color: "var(--text-muted)" }} />
           <p style={{ color: "var(--text-muted)" }}>Nenhum produto disponível de momento.</p>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {company.products.map((product) => (
-            <div key={product.id} className="glass-card p-5 hover:shadow-md transition-shadow">
+            <div key={product.id} className="card p-5 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: "rgba(37, 99, 235, 0.1)", color: "var(--color-ib-accent)" }}>
                   {product.category?.name || "Sem categoria"}
@@ -267,7 +267,7 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
         </div>
       )}
 
-      <div className="glass-card mt-8 p-6 text-center">
+      <div className="card mt-8 p-6 text-center">
         <p className="text-sm mb-3" style={{ color: "var(--text-secondary)" }}>Interessado em algum produto ou serviço?</p>
         <div className="flex flex-wrap justify-center gap-3">
           {company.phone && (
@@ -275,8 +275,7 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
               href={`https://wa.me/${company.phone.replace(/[^0-9]/g, "")}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium"
-              style={{ backgroundColor: "#22c55e", color: "white" }}
+              className="btn bg-green-500 text-white hover:bg-green-600"
             >
               <MessageCircle className="w-4 h-4" /> WhatsApp
             </a>
@@ -284,7 +283,7 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
           {company.email && (
             <a
               href={`mailto:${company.email}`}
-              className="glass-btn-primary inline-flex items-center gap-2 px-4 py-2 text-sm"
+              className="btn btn-primary inline-flex items-center gap-2 px-4 py-2 text-sm"
             >
               <Send className="w-4 h-4" /> Enviar Email
             </a>

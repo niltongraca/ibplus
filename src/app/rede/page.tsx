@@ -88,7 +88,7 @@ export default function RedePage() {
             <Users className="w-6 h-6 text-ib-accent" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Rede</h1>
+            <h1 className="page-title">Rede</h1>
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>Conteúdos, dicas e novidades</p>
           </div>
         </div>
@@ -100,25 +100,24 @@ export default function RedePage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Pesquisar na rede..."
-            className="w-full pl-9 pr-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40"
-            style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)", color: "var(--text-primary)" }}
+            className="input pl-9 pr-4"
           />
         </div>
 
         {loading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="rounded-xl border p-5 animate-pulse" style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)" }}>
+              <div key={i} className="card p-5 animate-pulse">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700" />
+                  <div className="w-10 h-10 rounded-full bg-[var(--skeleton)]" />
                   <div className="space-y-2 flex-1">
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
-                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/4" />
+                    <div className="h-4 bg-[var(--skeleton)] rounded w-1/3" />
+                    <div className="h-3 bg-[var(--skeleton)] rounded w-1/4" />
                   </div>
                 </div>
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2" />
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2" />
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
+                <div className="h-4 bg-[var(--skeleton)] rounded w-3/4 mb-2" />
+                <div className="h-4 bg-[var(--skeleton)] rounded w-full mb-2" />
+                <div className="h-4 bg-[var(--skeleton)] rounded w-2/3" />
               </div>
             ))}
           </div>
@@ -132,8 +131,7 @@ export default function RedePage() {
             {sorted.map((item) => (
               <article
                 key={item.id}
-                className="rounded-xl border overflow-hidden"
-                style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)" }}
+                className="card overflow-hidden"
               >
                 <div className="p-4 sm:p-5">
                   <div className="flex items-start gap-3 mb-3">

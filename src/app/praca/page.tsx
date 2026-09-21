@@ -38,7 +38,7 @@ export default async function PracaPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" style={{ backgroundColor: "rgba(37, 99, 235, 0.1)" }}>
             <Store className="w-8 h-8 text-ib-accent" />
           </div>
-          <h1 className="text-4xl font-bold mt-4 mb-3" style={{ color: "var(--text-primary)" }}>Praça</h1>
+          <h1 className="text-4xl font-bold mt-4 mb-3 text-[var(--text-primary)]">Praça</h1>
           <p className="text-lg max-w-2xl mx-auto" style={{ color: "var(--text-muted)" }}>
             Explore as empresas registadas na plataforma e descubra os seus produtos e serviços.
           </p>
@@ -55,7 +55,7 @@ export default async function PracaPage() {
               <Link
                 key={company.id}
                 href={`/praca/${company.id}`}
-                className="glass-card p-6 hover:shadow-lg transition-all group"
+                className="card p-6 hover:shadow-lg transition-all group"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden" style={{ backgroundColor: "rgba(37, 99, 235, 0.1)" }}>
