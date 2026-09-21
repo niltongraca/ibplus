@@ -90,7 +90,7 @@ export default function AdminConteudosPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="p-4 border-b border-[var(--border-color)] flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input type="text" placeholder="Pesquisar conteúdos..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
@@ -103,15 +103,15 @@ export default function AdminConteudosPage() {
             <option value="ARTICLE">Artigos</option>
           </select>
         </div>
-        <table className="w-full text-sm">
+        <table className="tbl">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200 text-ib-muted text-xs uppercase tracking-wider">
-              <th className="text-left p-3 font-medium">Título</th>
-              <th className="text-center p-3 font-medium w-20">Tipo</th>
-              <th className="text-center p-3 font-medium w-20">Destaque</th>
-              <th className="text-center p-3 font-medium w-20">Publicado</th>
-              <th className="text-center p-3 font-medium w-24">Data</th>
-              <th className="text-center p-3 font-medium w-28">Acções</th>
+              <th className="tbl-th">Título</th>
+              <th className="tbl-th text-center w-20">Tipo</th>
+              <th className="tbl-th text-center w-20">Destaque</th>
+              <th className="tbl-th text-center w-20">Publicado</th>
+              <th className="tbl-th text-center w-24">Data</th>
+              <th className="tbl-th text-center w-28">Acções</th>
             </tr>
           </thead>
           <tbody>
@@ -123,7 +123,7 @@ export default function AdminConteudosPage() {
               const Icon = typeIcons[item.type];
               return (
                 <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="p-3">
+                  <td className="tbl-td">
                     <div className="flex items-center gap-2">
                       <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
                         item.type === "VIDEO" ? "bg-red-100 text-red-500" :
@@ -135,25 +135,25 @@ export default function AdminConteudosPage() {
                       <span className="font-medium text-ib-primary truncate max-w-xs">{item.title}</span>
                     </div>
                   </td>
-                  <td className="p-3 text-center">
+                  <td className="tbl-td text-center">
                     <span className="text-xs text-ib-muted">{typeLabels[item.type]}</span>
                   </td>
-                  <td className="p-3 text-center">
+                  <td className="tbl-td text-center">
                     <button onClick={() => toggleFeatured(item)} className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                       item.featured ? "bg-amber-100 text-amber-600" : "bg-gray-100 text-gray-400"
                     }`}>
                       {item.featured ? "Sim" : "Não"}
                     </button>
                   </td>
-                  <td className="p-3 text-center">
+                  <td className="tbl-td text-center">
                     <button onClick={() => togglePublished(item)} className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                       item.published ? "bg-green-100 text-green-600" : "bg-red-100 text-red-400"
                     }`}>
                       {item.published ? "Sim" : "Não"}
                     </button>
                   </td>
-                  <td className="p-3 text-center text-xs text-ib-muted">{formatDate(item.createdAt)}</td>
-                  <td className="p-3 text-center">
+                  <td className="tbl-td text-center text-ib-muted">{formatDate(item.createdAt)}</td>
+                  <td className="tbl-td text-center">
                     <div className="flex items-center justify-center gap-1">
                       <a href={item.url} target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-gray-100 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center" title="Abrir URL">
                         <ExternalLink className="w-4 h-4 text-ib-muted" />

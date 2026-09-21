@@ -54,8 +54,8 @@ export default function AdminUsuarios() {
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center gap-3">
+      <div className="card overflow-hidden">
+        <div className="p-4 border-b border-[var(--border-color)] flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input type="text" placeholder="Pesquisar utilizadores..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
@@ -63,19 +63,19 @@ export default function AdminUsuarios() {
           <span className="text-xs text-ib-muted">{total} utilizador{total !== 1 ? "es" : ""}</span>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="tbl">
             <thead>
-              <tr className="border-b border-gray-100 text-ib-muted text-left">
-                <th className="p-4 font-medium">Utilizador</th>
-                <th className="p-4 font-medium">Email</th>
-                <th className="p-4 font-medium">Tipo de Conta</th>
-                <th className="p-4 font-medium">Registo</th>
+              <tr className="border-b border-[var(--border-color)] text-ib-muted text-left">
+                <th className="tbl-th">Utilizador</th>
+                <th className="tbl-th">Email</th>
+                <th className="tbl-th">Tipo de Conta</th>
+                <th className="tbl-th">Registo</th>
               </tr>
             </thead>
             <tbody>
               {users.map((u) => (
                 <tr key={u.id} className="border-b border-gray-50 text-ib-primary hover:bg-gray-50 transition-colors">
-                  <td className="p-4">
+                  <td className="tbl-td">
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
                         u.role === "admin" ? "bg-amber-50 text-amber-600" :
@@ -87,12 +87,12 @@ export default function AdminUsuarios() {
                       </div>
                     </div>
                   </td>
-                  <td className="p-4">
+                  <td className="tbl-td">
                     <span className="flex items-center gap-1.5 text-ib-muted">
                       <Mail className="w-3 h-3" /> {u.email}
                     </span>
                   </td>
-                  <td className="p-4">
+                  <td className="tbl-td">
                     <div className="flex flex-wrap items-center gap-1.5">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${typeStyles[u.accountType] || "bg-gray-50 text-gray-600 border-gray-200"}`}>
                         {typeLabels[u.accountType] || u.accountType}
@@ -102,7 +102,7 @@ export default function AdminUsuarios() {
                       </span>
                     </div>
                   </td>
-                  <td className="p-4 text-ib-muted text-sm">
+                  <td className="tbl-td text-ib-muted">
                     <span className="flex items-center gap-1.5">
                       <Calendar className="w-3 h-3" /> {new Date(u.createdAt).toLocaleDateString("pt-AO")}
                     </span>

@@ -71,7 +71,7 @@ export default function MovimentoStockPage() {
 
       {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>}
 
-      <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+      <form onSubmit={handleSubmit} className="card p-6 space-y-4">
         <div>
           <label className="block text-sm font-medium text-ib-primary mb-1">Produto</label>
           <select value={productId} onChange={(e) => setProductId(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40">

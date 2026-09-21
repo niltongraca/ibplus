@@ -31,8 +31,8 @@ export default function AdminEmpresas() {
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center gap-3">
+      <div className="card overflow-hidden">
+        <div className="p-4 border-b border-[var(--border-color)] flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input type="text" placeholder="Pesquisar empresas..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
@@ -40,13 +40,13 @@ export default function AdminEmpresas() {
           <span className="text-xs text-ib-muted">{total} empresa{total !== 1 ? "s" : ""}</span>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="tbl">
             <thead>
-              <tr className="border-b border-gray-100 text-ib-muted text-left">
-                <th className="p-4 font-medium">Empresa</th>
-                <th className="p-4 font-medium">NIF</th>
-                <th className="p-4 font-medium">Contacto</th>
-                <th className="p-4 font-medium text-center">Utilizadores</th>
+              <tr className="border-b border-[var(--border-color)] text-ib-muted text-left">
+                <th className="tbl-th">Empresa</th>
+                <th className="tbl-th">NIF</th>
+                <th className="tbl-th">Contacto</th>
+                <th className="tbl-th text-center">Utilizadores</th>
               </tr>
             </thead>
             <tbody>
@@ -55,7 +55,7 @@ export default function AdminEmpresas() {
                 const nif = e.companyProfile?.nif || e.company?.nif;
                 return (
                 <tr key={e.id} className="border-b border-gray-50 text-ib-primary hover:bg-gray-50 transition-colors">
-                  <td className="p-4">
+                  <td className="tbl-td">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold text-xs shrink-0">{companyName.charAt(0)}</div>
                       <div>
@@ -64,8 +64,8 @@ export default function AdminEmpresas() {
                       </div>
                     </div>
                   </td>
-                  <td className="p-4 text-ib-muted font-mono text-sm">{nif || "—"}</td>
-                  <td className="p-4">
+                  <td className="tbl-td text-ib-muted font-mono">{nif || "—"}</td>
+                  <td className="tbl-td">
                     {e.email && (
                       <span className="flex items-center gap-1.5 text-ib-muted">
                         <Mail className="w-3 h-3" /> {e.email}
@@ -73,7 +73,7 @@ export default function AdminEmpresas() {
                     )}
                     {!e.email && <span className="text-ib-muted">—</span>}
                   </td>
-                  <td className="p-4 text-center">
+                  <td className="tbl-td text-center">
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
                       <FileText className="w-3 h-3" /> {e._count.products} produtos
                     </span>

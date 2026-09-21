@@ -295,30 +295,30 @@ export default function RelatoriosPage() {
           <p className="text-sm text-gray-400 py-4">Nenhum relatório gerado ainda. Os relatórios são criados automaticamente ou via botões acima.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[640px]">
+            <table className="tbl min-w-[640px]">
               <thead>
-                <tr className="border-b border-gray-100 text-gray-500 text-xs uppercase tracking-wider">
-                  <th className="text-left p-3 font-medium">Período</th>
-                  <th className="text-left p-3 font-medium">Mês / Período</th>
-                  <th className="text-right p-3 font-medium">Vendas</th>
-                  <th className="text-right p-3 font-medium">Faturas Pagas</th>
-                  <th className="text-right p-3 font-medium">Despesas</th>
-                  <th className="text-right p-3 font-medium">Resultado</th>
-                  <th className="text-right p-3 font-medium"></th>
+                <tr className="border-b border-[var(--border-color)] text-ib-muted text-xs uppercase tracking-wider">
+                  <th className="tbl-th">Período</th>
+                  <th className="tbl-th">Mês / Período</th>
+                  <th className="tbl-th text-right">Vendas</th>
+                  <th className="tbl-th text-right">Faturas Pagas</th>
+                  <th className="tbl-th text-right">Despesas</th>
+                  <th className="tbl-th text-right">Resultado</th>
+                  <th className="tbl-th text-right"></th>
                 </tr>
               </thead>
               <tbody>
                 {reports.map((r) => (
                   <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                    <td className="p-3">
+                    <td className="tbl-td">
                       <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${
                         r.period === "MENSAL" ? "bg-blue-50 text-blue-700" : r.period === "TRIMESTRAL" ? "bg-indigo-50 text-indigo-700" : "bg-gray-100 text-gray-700"
                       }`}>{r.period}</span>
                     </td>
-                    <td className="p-3 font-medium text-gray-900">{r.label}</td>
-                    <td className="p-3 text-right text-gray-700">{r.totalSales} ({formatCurrency(r.totalRevenue)})</td>
-                    <td className="p-3 text-right text-green-600">{r.invoicesPaid} ({formatCurrency(r.invoicesPaidTotal)})</td>
-                    <td className="p-3 text-right text-red-500">{formatCurrency(r.totalExpenses)}</td>
+                    <td className="tbl-td font-medium">{r.label}</td>
+                    <td className="tbl-td text-right">{r.totalSales} ({formatCurrency(r.totalRevenue)})</td>
+                    <td className="tbl-td text-right text-green-600">{r.invoicesPaid} ({formatCurrency(r.invoicesPaidTotal)})</td>
+                    <td className="tbl-td text-right text-red-500">{formatCurrency(r.totalExpenses)}</td>
                     <td className={`p-3 text-right font-semibold ${r.netResult >= 0 ? "text-green-600" : "text-red-500"}`}>{formatCurrency(r.netResult)}</td>
                     <td className="p-3 text-right">
                       <button onClick={() => exportReportCsv(r)} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-50">

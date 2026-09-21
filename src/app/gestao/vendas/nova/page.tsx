@@ -212,9 +212,9 @@ export default function NovaVendaPage() {
             <p className="text-sm text-ib-muted text-center py-8">Nenhum item adicionado. Clique em &quot;Adicionar Item&quot; para começar.</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="tbl">
                 <thead>
-                  <tr className="border-b border-gray-100">
+                  <tr className="border-b border-[var(--border-color)]">
                     <th className="text-left pb-3 font-medium text-ib-muted">Produto</th>
                     <th className="text-center pb-3 font-medium text-ib-muted w-24">Qtd</th>
                     <th className="text-right pb-3 font-medium text-ib-muted w-32">Preço Unit.</th>

@@ -152,20 +152,20 @@ export default function ClienteDetailPage() {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="tbl">
                   <thead>
-                    <tr className="border-b border-gray-100 text-ib-muted text-xs uppercase tracking-wider">
-                      <th className="text-left p-3 font-medium">Data</th>
-                      <th className="text-right p-3 font-medium">Total</th>
-                      <th className="text-center p-3 font-medium">Estado</th>
+                    <tr className="border-b border-[var(--border-color)] text-ib-muted text-xs uppercase tracking-wider">
+                      <th className="tbl-th">Data</th>
+                      <th className="tbl-th text-right">Total</th>
+                      <th className="tbl-th text-center">Estado</th>
                     </tr>
                   </thead>
                   <tbody>
                     {customer.sales.map((sale) => (
                       <tr key={sale.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                        <td className="p-3 text-ib-primary">{formatDate(sale.date)}</td>
-                        <td className="p-3 text-right font-semibold">{formatCurrency(sale.total)}</td>
-                        <td className="p-3 text-center">
+                        <td className="tbl-td">{formatDate(sale.date)}</td>
+                        <td className="tbl-td text-right font-semibold">{formatCurrency(sale.total)}</td>
+                        <td className="tbl-td text-center">
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                             sale.status === "completed" ? "bg-green-100 text-green-700" :
                             sale.status === "pending" ? "bg-yellow-100 text-yellow-700" :

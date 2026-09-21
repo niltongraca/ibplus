@@ -144,28 +144,28 @@ export default function OrcamentosPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="tbl">
               <thead>
-                <tr className="border-b border-gray-100 text-ib-muted text-xs uppercase tracking-wider">
-                  <th className="text-left p-4 font-medium">N.º</th>
-                  <th className="text-left p-4 font-medium">Cliente</th>
-                  <th className="text-left p-4 font-medium">Data</th>
-                  <th className="text-left p-4 font-medium">Validade</th>
-                  <th className="text-right p-4 font-medium">Total</th>
-                  <th className="text-center p-4 font-medium">Estado</th>
-                  <th className="text-right p-4 font-medium">Acções</th>
+                <tr className="border-b border-[var(--border-color)] text-ib-muted text-xs uppercase tracking-wider">
+                  <th className="tbl-th">N.º</th>
+                  <th className="tbl-th">Cliente</th>
+                  <th className="tbl-th">Data</th>
+                  <th className="tbl-th">Validade</th>
+                  <th className="tbl-th text-right">Total</th>
+                  <th className="tbl-th text-center">Estado</th>
+                  <th className="tbl-th text-right">Acções</th>
                 </tr>
               </thead>
               <tbody>
                 {quotes.map((q) => (
                   <tr key={q.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                    <td className="p-4 font-medium text-ib-primary">{q.number}</td>
-                    <td className="p-4 text-ib-muted">{q.customer || "—"}</td>
-                    <td className="p-4 text-ib-muted">{formatDate(q.date)}</td>
-                    <td className="p-4 text-ib-muted">{q.validUntil ? formatDate(q.validUntil) : "—"}</td>
-                    <td className="p-4 text-right font-semibold">{formatCurrency(q.total)}</td>
-                    <td className="p-4 text-center">{getStatusBadge(q.status)}</td>
-                    <td className="p-4 text-right">
+                    <td className="tbl-td font-medium">{q.number}</td>
+                    <td className="tbl-td text-ib-muted">{q.customer || "—"}</td>
+                    <td className="tbl-td text-ib-muted">{formatDate(q.date)}</td>
+                    <td className="tbl-td text-ib-muted">{q.validUntil ? formatDate(q.validUntil) : "—"}</td>
+                    <td className="tbl-td text-right font-semibold">{formatCurrency(q.total)}</td>
+                    <td className="tbl-td text-center">{getStatusBadge(q.status)}</td>
+                    <td className="tbl-td text-right">
                       <div className="flex items-center justify-end gap-1">
                         <Link
                           href={`/finance/orcamentos/${q.id}`}

@@ -446,20 +446,20 @@ export default function RelatorioPage() {
             </h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[480px]">
+            <table className="tbl min-w-[480px]">
               <thead>
-                <tr className="border-b border-gray-100 text-ib-muted text-xs uppercase tracking-wider">
-                  <th className="text-left p-3 font-medium">Produto</th>
-                  <th className="text-right p-3 font-medium">Quantidade</th>
-                  <th className="text-right p-3 font-medium">Total</th>
+                <tr className="border-b border-[var(--border-color)] text-ib-muted text-xs uppercase tracking-wider">
+                  <th className="tbl-th">Produto</th>
+                  <th className="tbl-th text-right">Quantidade</th>
+                  <th className="tbl-th text-right">Total</th>
                 </tr>
               </thead>
               <tbody>
                 {data.topProducts.map((p, i) => (
                   <tr key={i} className="border-b border-gray-50 hover:bg-gray-50/50">
-                    <td className="p-3 font-medium text-gray-800">{p.name}</td>
-                    <td className="p-3 text-right text-gray-600">{p.quantity}</td>
-                    <td className="p-3 text-right text-gray-800">{formatCurrency(p.total)}</td>
+                    <td className="tbl-td font-medium">{p.name}</td>
+                    <td className="tbl-td text-right">{p.quantity}</td>
+                    <td className="tbl-td text-right">{formatCurrency(p.total)}</td>
                   </tr>
                 ))}
               </tbody>

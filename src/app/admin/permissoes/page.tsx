@@ -84,7 +84,7 @@ export default function AdminPermissoes() {
 
       {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>}
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+      <div className="card overflow-hidden">
         <div className="p-4 border-b border-gray-100">
           <div className="relative max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -93,10 +93,10 @@ export default function AdminPermissoes() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="tbl">
             <thead>
-              <tr className="border-b border-gray-100 text-ib-muted text-left">
-                <th className="p-4 font-medium">Recurso</th>
+              <tr className="border-b border-[var(--border-color)] text-ib-muted text-left">
+                <th className="tbl-th">Recurso</th>
                 {ACCOUNT_TYPES.map((type) => (
                   <th key={type} className="p-4 font-medium text-center">
                     <span className={`px-2 py-1 rounded text-xs font-bold ${TYPE_COLORS[type]}`}>
@@ -111,7 +111,7 @@ export default function AdminPermissoes() {
                 const resource = permissions.find((p) => p.resource.key === resourceKey)?.resource;
                 return (
                   <tr key={resourceKey} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                    <td className="p-4 font-medium text-ib-primary">{resource?.label || resourceKey}</td>
+                    <td className="tbl-td font-medium">{resource?.label || resourceKey}</td>
                     {ACCOUNT_TYPES.map((type) => {
                       const perm = getPerm(resourceKey, type);
                       if (!perm) return <td key={type} className="p-4 text-center text-ib-muted">—</td>;

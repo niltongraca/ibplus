@@ -153,9 +153,9 @@ export default function PermissoesPage() {
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="tbl">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/60">
+                <tr className="border-b border-[var(--border-color)]">
                   <th className="text-left px-4 py-3 font-semibold text-ib-primary w-48 sticky left-0 bg-gray-50/60">Nível</th>
                   {FEATURE_KEYS.map((f) => (
                     <th key={f} className="px-2 py-3 text-center font-medium text-ib-muted whitespace-nowrap min-w-[110px]" title={FEATURE_LABELS[f]}>

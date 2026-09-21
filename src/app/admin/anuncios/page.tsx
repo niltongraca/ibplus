@@ -70,7 +70,7 @@ export default function AdminAnuncios() {
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-6">
+      <div className="card p-6 shadow-sm mb-6">
         <h2 className="font-semibold text-ib-primary mb-4 flex items-center gap-2">
           <Send className="w-4 h-4 text-ib-accent" /> Novo Anúncio
         </h2>
@@ -138,7 +138,7 @@ export default function AdminAnuncios() {
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
+      <div className="card shadow-sm">
         <div className="p-4 border-b border-gray-100">
           <h2 className="font-semibold text-ib-primary flex items-center gap-2">
             <Megaphone className="w-4 h-4 text-ib-accent" /> Histórico de Anúncios
