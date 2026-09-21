@@ -27,8 +27,8 @@
 14. ~~`src/app/recuperar-senha/page.tsx:61-70` — **token de reset exposto no ecrã** ("Token (dev):") em produção. Remover.~~ **✔ RESOLVIDO (2026-09-21)** — na página de sucesso o token deixou de ser impresso em texto; fica apenas um link "Continuar redefinição →" (que navega para `/recuperar-senha/<token>`), exibido **apenas em dev** (`NODE_ENV !== "production"`, como já era). Em produção não existe relato de token no ecrã.
 15. ~~`src/middleware.ts:42` vs `next.config.ts` — `X-Frame-Options DENY` vs `SAMEORIGIN` **conflitantes**. Padronizar.~~ **✔ RESOLVIDO (2026-09-21)** — ambos os locais do middleware (resposta principal e `addSecurityHeaders`) passaram para **`SAMEORIGIN`**, consistente com o CSP `frame-ancestors 'self'` do `next.config.ts`. O comentário do middleware mantém o valor em vigor.
 16. ~~Sem `loading.tsx`/`error.tsx` (0 ocorrências)~~ **✔ RESOLVIDO (2026-09-20)**: componentes partilhados `PageLoading`/`PageError` (`src/components/ui/boundaries/`) e ficheiros `loading.tsx`+`error.tsx` na raiz e em 10 módulos (admin, crm, educacao, finance, gestao, ia, marketing, rede, rh, store) — 22 ficheiros novos; `PageError` com `role="alert"`, retry via `reset()` e detalhe só em dev. **Breadcrumbs continuam em aberto** (UX).
-17. `src/app/praca/page.tsx:20` — `findMany` directo no Server Component **sem `revalidateTag`/`unstable_cache`** → DB hit por request. Correcção: `revalidate = 60`/cache.
-18. `<img>` de produto sem `width/height` em ~5 locais (`praca/page.tsx:166`, `gestao/vendas/page.tsx`, `InvoiceTemplate.tsx:94`, `FileUpload.tsx:92`) → CLS. Usar `next/image`.
+17. ~~`src/app/praca/page.tsx:20` — `findMany` directo no Server Component **sem `revalidateTag`/`unstable_cache`** → DB hit por request. Correcção: `revalidate = 60`/cache.~~ **✔ RESOLVIDO (2026-09-21)** — a página passou de `dynamic = "force-dynamic"` para **`revalidate = 60`**: cache ISR de 60s do HTML/listagem (dados públicos pouco voláteis), eliminando o DB hit por request. A página `[id]` mantém-se dinâmica (depende de dados específicos).
+18. ~~`<img>` de produto sem `width/height` em ~5 locais (`praca/page.tsx:166`, `gestao/vendas/page.tsx`, `InvoiceTemplate.tsx:94`, `FileUpload.tsx:92`) → CLS. Usar `next/image`.~~ **✔ RESOLVIDO (2026-09-21, com nota)** — os 8 `<img>` (perfil avatar, praça logo, praça/[id] capa+logo+avatar, rede thumbnail, FileUpload preview, InvoiceTemplate logo) ganharam **`width`/`height` explícitos**. Na thumbnail da Rede, o contentor passou a `aspect-video` + `object-cover` (elimina o CLS real que existia numa caixa `h-auto`). **Porque não `next/image`**: `/api/upload` guarda as imagens como **data-URLs base64** (`data:<mime>;base64,...`), que o componente `next/image` rejeita em runtime; os contentores dos restantes sítios já têm dimensões fixas via CSS (CLS inexistente). Os avisos de lint `no-img-element` mantêm-se por essa compatibilidade — **próximo passo para otimização real**: migrar o `api/upload` para Vercel Blob (URLs https) e então converter para `next/image`.
 
 ## [MÉDIO]
 
@@ -43,9 +43,9 @@
 
 ## [BAIXO]
 
-27. `src/lib/money.ts:13-15` — `toMoney()` duplica `toNumber()`. Remover alias.
+27. ~~`src/lib/money.ts:13-15` — `toMoney()` duplica `toNumber()`. Remover alias.~~ **✔ RESOLVIDO (2026-09-21)** — `toMoney` removido (`money.ts` e bloco de teste dedicado em `money.test.ts`); fica só `toNumber`.
 28. Tabela faturação: `overflow-x-auto` sem breakpoints mobile cards; linha de item `grid-cols-12` 5 inputs inviável a 375px.
-29. `dev.db` (+ `*.db`) presente na raiz — confirmar se commitado (`.gitignore` tem `*.db`) e remover do histórico se sim.
+29. ~~`dev.db` (+ `*.db`) presente na raiz — confirmar se commitado (`.gitignore` tem `*.db`) e remover do histórico se sim.~~ **✔ VERIFICADO (2026-09-21)** — `dev.db` (192 KB) existe local mas **não está no repositório** (`git ls-files` não lista nenhum `*.db`) e o `.gitignore` cobre o padrão. Sem acção de histórico necessária.
 30. `next.config.ts:24` CSP unsafe + middleware sem `crossOriginIsolated`; `view-transition` não usadas.
 
 ---

@@ -89,7 +89,7 @@ export function FileUpload({ value, onChange, accept = "image/*", label = "Uploa
     <div className="flex items-center gap-3">
       {value && (
         <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-200 shrink-0">
-          <img src={value} alt="preview" className="w-full h-full object-cover" />
+          <img src={value} alt="preview" width={48} height={48} className="w-full h-full object-cover" />
           <button
             type="button"
             onClick={() => onChange("")}

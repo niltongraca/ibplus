@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { toNumber, toMoney } from "./money";
+import { toNumber } from "./money";
 
 describe("toNumber", () => {
   it("devolve o número tal como está quando é finito", () => {
@@ -31,12 +31,5 @@ describe("toNumber", () => {
 
   it("devolve 0 para objetos sem toNumber", () => {
     assert.equal(toNumber({ a: 1 }), 0);
-  });
-});
-
-describe("toMoney", () => {
-  it("é um alias de toNumber", () => {
-    assert.equal(toMoney("9.99"), 9.99);
-    assert.equal(toMoney(null), 0);
   });
 });

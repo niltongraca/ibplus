@@ -163,16 +163,16 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
       <div className="glass-card overflow-hidden mb-8">
         {user?.coverPhoto && (
           <div className="w-full h-32 sm:h-44">
-            <img src={user.coverPhoto} alt="Capa da empresa" className="w-full h-full object-cover" />
+            <img src={user.coverPhoto} alt="Capa da empresa" width={1200} height={300} className="w-full h-full object-cover" />
           </div>
         )}
         <div className="p-8">
         <div className="flex items-start gap-4 mb-6">
           <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ backgroundColor: "rgba(37, 99, 235, 0.1)" }}>
             {company.logo ? (
-              <img src={company.logo} alt={`${company.name} logo`} className="w-full h-full object-contain p-1" />
+              <img src={company.logo} alt={`${company.name} logo`} width={64} height={64} className="w-full h-full object-contain p-1" />
             ) : user?.avatar ? (
-              <img src={user.avatar} alt={user?.name || "Avatar"} className="w-full h-full object-cover" />
+              <img src={user.avatar} alt={user?.name || "Avatar"} width={64} height={64} className="w-full h-full object-cover" />
             ) : user?.name ? (
               <User className="w-8 h-8 text-ib-accent" />
             ) : (

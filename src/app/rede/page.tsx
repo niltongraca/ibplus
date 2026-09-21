@@ -162,7 +162,9 @@ export default function RedePage() {
                       <img
                         src={item.thumbnail}
                         alt={item.title}
-                        className="w-full h-auto max-h-64 object-cover"
+                        width={1200}
+                        height={630}
+                        className="w-full aspect-video object-cover"
                         loading="lazy"
                       />
                     </div>

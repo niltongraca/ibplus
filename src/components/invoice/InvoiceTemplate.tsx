@@ -91,7 +91,7 @@ export function InvoiceTemplate({ data, type, typeLabel, company }: InvoiceTempl
           <div className="flex items-start gap-4">
             {company?.logo && (
               <div className="flex items-center justify-center w-16 h-16 rounded-xl bg-white p-1.5 shrink-0">
-                <img src={company.logo} alt={`${company?.name || "Empresa"} logo`} className="w-full h-full object-contain" />
+                <img src={company.logo} alt={`${company?.name || "Empresa"} logo`} width={64} height={64} className="w-full h-full object-contain" />
               </div>
             )}
             <div>

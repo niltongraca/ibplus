@@ -9,7 +9,3 @@ export function toNumber(value: unknown): number {
   }
   return 0;
 }
-
-export function toMoney(value: unknown): number {
-  return toNumber(value);
-}
