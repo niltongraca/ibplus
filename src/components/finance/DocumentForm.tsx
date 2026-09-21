@@ -337,7 +337,7 @@ export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; 
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[640px]">
                 <thead>
-                  <tr className="border-b border-gray-100 text-ib-muted text-xs uppercase tracking-wider">
+                  <tr className="border-b border-[var(--border-color)] text-ib-muted text-xs uppercase tracking-wider">
                     <th className="text-left p-3 font-medium w-2/5">Descrição</th>
                     <th className="text-center p-3 font-medium w-28">Tipo</th>
                     <th className="text-center p-3 font-medium w-16">Qtd</th>
