@@ -20,7 +20,8 @@ export default function Pagination({ page, totalPages, onPageChange }: Paginatio
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed" style={{ color: "var(--text-muted)" }}
+          className="p-2 hover:bg-[var(--bg-secondary)] rounded-lg disabled:opacity-30 disabled:cursor-not-allowed"
+          style={{ color: "var(--text-muted)" }}
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -39,10 +40,10 @@ export default function Pagination({ page, totalPages, onPageChange }: Paginatio
             <button
               key={pageNum}
               onClick={() => onPageChange(pageNum)}
-              className={`w-8 h-8 rounded-lg text-sm font-medium ${
+              className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
                 pageNum === page
                   ? "bg-ib-accent text-white"
-                  : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                  : "hover:bg-[var(--bg-secondary)]"
               }`}
               style={pageNum !== page ? { color: "var(--text-muted)" } : undefined}
             >
@@ -53,7 +54,8 @@ export default function Pagination({ page, totalPages, onPageChange }: Paginatio
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed" style={{ color: "var(--text-muted)" }}
+          className="p-2 hover:bg-[var(--bg-secondary)] rounded-lg disabled:opacity-30 disabled:cursor-not-allowed"
+          style={{ color: "var(--text-muted)" }}
         >
           <ChevronRight className="w-4 h-4" />
         </button>

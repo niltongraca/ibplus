@@ -72,3 +72,21 @@ export const TICKET_STATUS_STYLES: Record<TicketStatus, string> = {
   USADO: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
   CANCELADO: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
 };
+
+/**
+ * Classes do design system (`badge` + tom) por estado — substituem os
+ * STYLES antigos nas páginas migradas para o design system partilhado.
+ */
+export const EVENT_STATUS_BADGES: Record<EventStatus, string> = {
+  RASCUNHO: "badge-neutral",
+  PUBLICADO: "badge-success",
+  ESGOTADO: "badge-warning",
+  CANCELADO: "badge-danger",
+  TERMINADO: "badge-info",
+};
+
+export const TICKET_STATUS_BADGES: Record<TicketStatus, string> = {
+  VALIDO: "badge-success",
+  USADO: "badge-neutral",
+  CANCELADO: "badge-danger",
+};

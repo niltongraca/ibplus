@@ -4,11 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArrowLeft, Printer, Ticket } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { PageLoading } from "@/components/ui/boundaries/PageLoading";
 import { apiFetch } from "@/lib/api";
-import { toNumber } from "@/lib/money";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
-import { TICKET_KIND_LABELS, TICKET_STATUS_LABELS, TICKET_STATUS_STYLES } from "@/config/events";
+import { TICKET_KIND_LABELS, TICKET_STATUS_LABELS, TICKET_STATUS_BADGES } from "@/config/events";
 import SmartImage from "@/components/SmartImage";
 
 interface TicketEvent {
@@ -38,7 +37,6 @@ export default function BilhetePage() {
   const params = useParams<{ id: string; ticketId: string }>();
   const id = params.id ?? "";
   const ticketId = params.ticketId ?? "";
-  const { user } = useAuth();
   const [ticket, setTicket] = useState<TicketDetail | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -60,11 +58,7 @@ export default function BilhetePage() {
   }, [id, ticketId]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center p-12 text-sm" style={{ color: "var(--text-muted)" }}>
-        A carregar bilhete...
-      </div>
-    );
+    return <PageLoading />;
   }
 
   if (error || !ticket) {
@@ -80,25 +74,20 @@ export default function BilhetePage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Link href={`/eventos/${id}`} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
+      <div className="page-header">
+        <div className="flex items-center gap-3">
+          <Link href={`/eventos/${id}`} className="btn-icon btn-ghost" aria-label="Voltar ao evento">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+            <h1 className="page-title flex items-center gap-2">
               <Ticket className="w-6 h-6 text-ib-accent" />
               Bilhete
             </h1>
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-              Código único para check-in à porta
-            </p>
+            <p className="page-subtitle">Código único para check-in à porta</p>
           </div>
         </div>
-        <button
-          onClick={() => window.print()}
-          className="no-print flex items-center gap-2 rounded-lg bg-ib-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
+        <button onClick={() => window.print()} className="btn btn-primary no-print">
           <Printer className="w-4 h-4" />
           Imprimir
         </button>
@@ -121,8 +110,8 @@ export default function BilhetePage() {
               />
             </div>
           ) : (
-            <div className="w-full h-36 rounded-xl bg-gray-100 dark:bg-gray-800 mb-4 flex items-center justify-center">
-              <Ticket className="w-10 h-10 text-gray-400" />
+            <div className="w-full h-36 rounded-xl mb-4 flex items-center justify-center" style={{ backgroundColor: "var(--bg-secondary)" }}>
+              <Ticket className="w-10 h-10" style={{ color: "var(--text-muted)" }} />
             </div>
           )}
           <h2 className="text-xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>{ticket.event.title}</h2>
@@ -179,9 +168,9 @@ export default function BilhetePage() {
               <span style={{ color: "var(--text-muted)" }}>Preço</span>
               <span style={{ color: "var(--text-primary)" }}>{formatCurrency(ticket.price)}</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span style={{ color: "var(--text-muted)" }}>Estado</span>
-              <span className={`font-medium ${TICKET_STATUS_STYLES[ticket.status] || ""}`}>
+              <span className={`badge ${TICKET_STATUS_BADGES[ticket.status] ?? "badge-neutral"}`}>
                 {TICKET_STATUS_LABELS[ticket.status]}
               </span>
             </div>
@@ -221,17 +210,11 @@ export default function BilhetePage() {
       </div>
 
       <div className="no-print mx-auto max-w-md mt-6 flex justify-center gap-3">
-        <button
-          onClick={() => window.print()}
-          className="flex items-center gap-2 rounded-lg bg-ib-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
+        <button onClick={() => window.print()} className="btn btn-primary">
           <Printer className="w-4 h-4" />
           Imprimir bilhete
         </button>
-        <Link
-          href={`/eventos/${id}`}
-          className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-800"
-        >
+        <Link href={`/eventos/${id}`} className="btn btn-ghost">
           <ArrowLeft className="w-4 h-4" />
           Voltar
         </Link>

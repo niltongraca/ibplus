@@ -25,7 +25,7 @@ export function Breadcrumbs() {
           return (
             <li key={`${i}-${crumb.label}`} className="flex items-center gap-1">
               {i > 0 && (
-                <ChevronRight className="w-3.5 h-3.5 text-gray-400 shrink-0" aria-hidden />
+                <ChevronRight className="w-3.5 h-3.5 text-ib-muted shrink-0" aria-hidden />
               )}
               {clickable ? (
                 <Link

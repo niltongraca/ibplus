@@ -52,9 +52,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                       "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors min-h-[44px]",
                       isActive
                         ? "bg-ib-accent/15 text-ib-accent font-medium"
-                        : "text-ib-muted hover:text-ib-primary hover:bg-gray-100 dark:hover:bg-white/10"
+                        : "text-ib-muted hover:text-ib-primary hover:bg-[var(--bg-secondary)]"
                     )}
-                    style={isActive ? { backgroundColor: "rgba(37, 99, 235, 0.12)" } : undefined}
                   >
                     <item.icon className="h-4 w-4 shrink-0" />
                     {item.label}
@@ -80,9 +79,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors min-h-[44px]",
                     pathname.startsWith("/admin")
                     ? "bg-ib-accent/15 text-ib-accent font-medium"
-                    : "text-ib-muted hover:text-ib-primary hover:bg-gray-100 dark:hover:bg-white/10"
+                    : "text-ib-muted hover:text-ib-primary hover:bg-[var(--bg-secondary)]"
                 )}
-                style={pathname.startsWith("/admin") ? { backgroundColor: "rgba(37, 99, 235, 0.12)" } : undefined}
               >
                 <LayoutDashboard className="h-4 w-4 shrink-0" />
                 Admin da Plataforma
@@ -131,7 +129,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 </Link>
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                  className="p-2 hover:bg-[var(--bg-secondary)] rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                   aria-label="Fechar menu"
                 >
                   <X className="w-5 h-5" style={{ color: "var(--text-muted)" }} />

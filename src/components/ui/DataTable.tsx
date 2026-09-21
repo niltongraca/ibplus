@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
+import { Inbox } from "lucide-react";
 
 export interface Column<T> {
   key: string;
@@ -30,14 +31,35 @@ export function DataTable<T>({
   keyExtractor,
 }: DataTableProps<T>) {
   if (loading) {
-    return <div className="p-12 text-center text-sm" style={{ color: "var(--text-muted)" }}>A carregar...</div>;
+    return (
+      <div className="p-4 space-y-3" role="status" aria-label="A carregar">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div
+            key={i}
+            className="flex items-center gap-6 p-4 rounded-xl border animate-pulse"
+            style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)" }}
+          >
+            <div className="h-4 w-1/4 rounded-md" style={{ backgroundColor: "var(--skeleton)" }} />
+            <div className="h-4 w-1/4 rounded-md hidden sm:block" style={{ backgroundColor: "var(--skeleton)" }} />
+            <div className="h-4 w-1/6 rounded-md hidden md:block" style={{ backgroundColor: "var(--skeleton)" }} />
+          </div>
+        ))}
+      </div>
+    );
   }
 
   if (data.length === 0) {
     return (
-      <div className="p-12 text-center">
-        {emptyIcon}
-        <p className="text-sm" style={{ color: "var(--text-muted)" }}>{emptyText || "Nenhum registo encontrado."}</p>
+      <div className="flex flex-col items-center justify-center py-14 px-4">
+        <div
+          className="w-14 h-14 rounded-full border flex items-center justify-center mb-3"
+          style={{ backgroundColor: "var(--bg-secondary)", borderColor: "var(--border-color)" }}
+        >
+          {emptyIcon || <Inbox className="w-6 h-6" style={{ color: "var(--text-muted)" }} />}
+        </div>
+        <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+          {emptyText || "Nenhum registo encontrado."}
+        </p>
       </div>
     );
   }
@@ -52,9 +74,12 @@ export function DataTable<T>({
     <>
       {/* Mobile card view */}
       {mobileCard && (
-        <div className="sm:hidden space-y-3 p-3">
+        <div className="sm:hidden space-y-3 p-4">
           {data.map((item) => (
-            <div key={keyExtractor(item)} className="rounded-xl border p-4 shadow-sm" style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)" }}>
+            <div
+              key={keyExtractor(item)}
+              className="card card-pad"
+            >
               {mobileCard(item)}
             </div>
           ))}
@@ -62,14 +87,14 @@ export function DataTable<T>({
       )}
 
       {/* Desktop/tablet table view */}
-      <div className={`overflow-x-auto scrollbar-hide ${mobileCard ? "hidden sm:block" : ""}`}>
-        <table className="w-full text-sm">
+      <div className={`table-scroll ${mobileCard ? "hidden sm:block" : ""}`}>
+        <table className="tbl">
           <thead>
-            <tr className="border-b text-xs uppercase tracking-wider" style={{ borderColor: "var(--border-color)", color: "var(--text-muted)" }}>
+            <tr className="border-b" style={{ borderColor: "var(--border-color)" }}>
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`text-left p-4 font-medium ${hideClass(col.hide)} ${col.className || ""}`}
+                  className={`tbl-th ${hideClass(col.hide)} ${col.className || ""}`}
                 >
                   {col.header}
                 </th>
@@ -78,16 +103,11 @@ export function DataTable<T>({
           </thead>
           <tbody>
             {data.map((item) => (
-              <tr
-                key={keyExtractor(item)}
-                className="border-b transition-colors" style={{ borderColor: "var(--border-color)" }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "var(--bg-secondary)"}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
-              >
+              <tr key={keyExtractor(item)} className="tbl-row">
                 {columns.map((col) => (
                   <td
                     key={col.key}
-                    className={`p-4 ${hideClass(col.hide)} ${col.className || ""}`}
+                    className={`tbl-td ${hideClass(col.hide)} ${col.className || ""}`}
                   >
                     {col.render(item)}
                   </td>

@@ -48,7 +48,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={onMenuClick}
-            className="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+            className="md:hidden p-2 hover:bg-[var(--bg-secondary)] rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
             aria-label="Abrir menu"
           >
             <Menu className="w-5 h-5" style={{ color: "var(--text-primary)" }} />
@@ -63,7 +63,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={toggle}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+            className="p-2 hover:bg-[var(--bg-secondary)] rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
             aria-label="Alternar tema"
             title={theme === "dark" ? "Modo claro" : "Modo escuro"}
           >

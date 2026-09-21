@@ -160,17 +160,17 @@ export function ClearInput({ value, onChange, placeholder = "", className = "", 
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className={`w-full pl-9 pr-9 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40 ${inputClassName}`}
+        className={`w-full pl-9 pr-9 py-2 rounded-lg text-sm bg-[var(--bg-primary)] border border-[var(--border-color)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-ib-accent/40 ${inputClassName}`}
       />
-      <div ref={mirrorRef} className="t-clear-mirror pl-9 text-gray-700" aria-hidden="true" />
-      <div ref={fakePhRef} className="t-clear-placeholder pl-9 text-gray-400" aria-hidden="true">
+      <div ref={mirrorRef} className="t-clear-mirror pl-9" style={{ color: "var(--text-primary)" }} aria-hidden="true" />
+      <div ref={fakePhRef} className="t-clear-placeholder pl-9" style={{ color: "var(--text-muted)" }} aria-hidden="true">
         {placeholder}
       </div>
       <div ref={glowRef} className="t-clear-glow" aria-hidden="true" />
       {value.length > 0 && (
         <button
           type="button"
-          className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-600 text-sm leading-none flex items-center justify-center z-[4]"
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-ib-accent/10 hover:bg-ib-accent/20 text-ib-accent text-sm leading-none flex items-center justify-center z-[4]"
           aria-label="Limpar"
           onPointerDown={(e) => { if (document.activeElement === inputRef.current) e.preventDefault(); }}
           onMouseDown={(e) => { if (document.activeElement === inputRef.current) e.preventDefault(); }}

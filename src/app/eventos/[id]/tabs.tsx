@@ -5,9 +5,6 @@ import Link from "next/link";
 import {
   CalendarDays,
   CheckCircle2,
-  Clock,
-  Download,
-  Eye,
   Loader2,
   MapPin,
   Plus,
@@ -16,25 +13,13 @@ import {
   Ticket,
   TicketCheck,
   Trash2,
-  TrendingUp,
-  Loader2 as Spinner,
 } from "lucide-react";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import Pagination from "@/components/Pagination";
-import EmptyState from "@/components/EmptyState";
 import { apiFetch } from "@/lib/api";
 import { toNumber } from "@/lib/money";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
-import {
-  EVENT_CATEGORY_LABELS,
-  EVENT_STATUS_LABELS,
-  EVENT_STATUS_STYLES,
-} from "@/config/events";
-import {
-  TICKET_KIND_LABELS,
-  TICKET_STATUS_LABELS,
-  TICKET_STATUS_STYLES,
-} from "@/config/events";
+import { EVENT_CATEGORY_LABELS, TICKET_KIND_LABELS, TICKET_STATUS_LABELS, TICKET_STATUS_BADGES } from "@/config/events";
 
 /* ------------------------------------------------------------------ */
 /* Tipos                                                                */
@@ -114,21 +99,18 @@ export function StatCard({
   icon: ReactNode;
 }) {
   return (
-    <div
-      className="rounded-xl border p-4"
-      style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)" }}
-    >
+    <div className="card card-pad">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>{label}</p>
-          <p className="text-xl font-bold mt-0.5 truncate" style={{ color: "var(--text-primary)" }}>{value}</p>
+          <p className="text-xl font-bold mt-1 truncate" style={{ color: "var(--text-primary)" }}>{value}</p>
           {sub && <p className="text-xs mt-0.5 truncate" style={{ color: "var(--text-muted)" }}>{sub}</p>}
         </div>
         <div
-          className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-          style={{ backgroundColor: "var(--ib-accent-soft, rgba(37,99,235,0.1))" }}
+          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+          style={{ backgroundColor: "rgba(37, 99, 235, 0.1)" }}
         >
-          <span style={{ color: "var(--ib-accent)" }}>{icon}</span>
+          <span className="text-ib-accent">{icon}</span>
         </div>
       </div>
     </div>
@@ -142,53 +124,47 @@ export function StatCard({
 export function OverviewTab({ event }: { event: EventDetail }) {
   return (
     <div className="space-y-4">
-      <div
-        className="rounded-xl border p-5"
-        style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)" }}
-      >
-        <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>Detalhes</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+      <div className="card card-pad">
+        <h3 className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Detalhes</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
           <div>
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Descrição</span>
-            <p className="mt-0.5" style={{ color: "var(--text-primary)" }}>{event.description || "—"}</p>
+            <span className="text-xs uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>Descrição</span>
+            <p className="mt-1" style={{ color: "var(--text-primary)" }}>{event.description || "—"}</p>
           </div>
           <div>
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Categoria</span>
-            <p className="mt-0.5" style={{ color: "var(--text-primary)" }}>
+            <span className="text-xs uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>Categoria</span>
+            <p className="mt-1" style={{ color: "var(--text-primary)" }}>
               {event.category ? (EVENT_CATEGORY_LABELS[event.category as keyof typeof EVENT_CATEGORY_LABELS] ?? event.category) : "—"}
             </p>
           </div>
           <div>
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Data</span>
-            <p className="mt-0.5 flex items-center gap-1.5" style={{ color: "var(--text-primary)" }}>
-              <CalendarDays className="w-3.5 h-3.5" />
+            <span className="text-xs uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>Data</span>
+            <p className="mt-1 flex items-center gap-1.5" style={{ color: "var(--text-primary)" }}>
+              <CalendarDays className="w-3.5 h-3.5" style={{ color: "var(--text-muted)" }} />
               {formatDateTime(event.startDate)}
               {event.endDate ? ` — ${formatDateTime(event.endDate)}` : ""}
             </p>
           </div>
           <div>
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Local</span>
-            <p className="mt-0.5 flex items-center gap-1.5" style={{ color: "var(--text-primary)" }}>
-              <MapPin className="w-3.5 h-3.5" />
+            <span className="text-xs uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>Local</span>
+            <p className="mt-1 flex items-center gap-1.5" style={{ color: "var(--text-primary)" }}>
+              <MapPin className="w-3.5 h-3.5" style={{ color: "var(--text-muted)" }} />
               {[event.venue, event.municipality, event.province].filter(Boolean).join(", ") || "—"}
             </p>
           </div>
           <div>
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Valor da compra local</span>
-            <p className="mt-0.5" style={{ color: "var(--text-primary)" }}>{formatCurrency(event.localPurchaseValue)}</p>
+            <span className="text-xs uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>Valor da compra local</span>
+            <p className="mt-1 font-medium" style={{ color: "var(--text-primary)" }}>{formatCurrency(event.localPurchaseValue)}</p>
           </div>
           <div>
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Bilhetes planeados</span>
-            <p className="mt-0.5" style={{ color: "var(--text-primary)" }}>{event.totalTickets}</p>
+            <span className="text-xs uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>Bilhetes planeados</span>
+            <p className="mt-1 font-medium" style={{ color: "var(--text-primary)" }}>{event.totalTickets}</p>
           </div>
         </div>
       </div>
 
       {event.notes && (
-        <div
-          className="rounded-xl border p-5"
-          style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)" }}
-        >
+        <div className="card card-pad">
           <h3 className="text-sm font-semibold mb-2" style={{ color: "var(--text-primary)" }}>Notas internas</h3>
           <p className="text-sm whitespace-pre-wrap" style={{ color: "var(--text-muted)" }}>{event.notes}</p>
         </div>
@@ -213,10 +189,7 @@ export function TypesTab({
   const [error, setError] = useState("");
   const [form, setForm] = useState({ name: "", kind: "INGRESSO" as const, price: "", quantity: "" });
 
-  const inputClass =
-    "w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40";
-
-  async function refresh(list = true) {
+  async function refresh() {
     const res = await apiFetch<{ event: EventDetail }>(`/api/events/${event.id}`);
     if (res.event) onChanged?.(res.event);
   }
@@ -227,7 +200,7 @@ export function TypesTab({
     if (!form.name.trim()) return setError("O nome é obrigatório.");
     setSaving(true);
     try {
-      const res = await apiFetch<{ ticketType: { id: string } }>(`/api/events/${event.id}/ticket-types`, {
+      await apiFetch<{ ticketType: { id: string } }>(`/api/events/${event.id}/ticket-types`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -282,7 +255,7 @@ export function TypesTab({
       header: "Preço",
       hide: "tablet",
       render: (t) => (
-        <span className="text-sm" style={{ color: "var(--text-primary)" }}>{formatCurrency(t.price)}</span>
+        <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{formatCurrency(t.price)}</span>
       ),
     },
     {
@@ -290,25 +263,21 @@ export function TypesTab({
       header: "Quantidade",
       hide: "tablet",
       render: (t) => (
-        <span className="text-sm" style={{ color: "var(--text-muted)" }}>{t.quantity}</span>
+        <span className="text-sm" style={{ color: "var(--text-secondary)" }}>{t.quantity}</span>
       ),
     },
     {
       key: "issued",
       header: "Emitidos",
       render: (t) => (
-        <span className="text-sm" style={{ color: "var(--text-muted)" }}>{t.ticketsIssued}</span>
+        <span className="text-sm" style={{ color: "var(--text-secondary)" }}>{t.ticketsIssued}</span>
       ),
     },
     {
       key: "active",
       header: "Estado",
       render: (t) => (
-        <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-            t.active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
-          }`}
-        >
+        <span className={`badge ${t.active ? "badge-success" : "badge-neutral"}`}>
           {t.active ? "Activo" : "Inactivo"}
         </span>
       ),
@@ -319,10 +288,20 @@ export function TypesTab({
       className: "text-right",
       render: (t) => (
         <div className="flex items-center justify-end gap-1">
-          <button onClick={() => toggleActive(t)} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" title={t.active ? "Desactivar" : "Activar"}>
-            <CheckCircle2 className="w-4 h-4" />
+          <button
+            onClick={() => toggleActive(t)}
+            className="btn-icon btn-ghost"
+            title={t.active ? "Desactivar" : "Activar"}
+            aria-label={t.active ? "Desactivar tipo" : "Activar tipo"}
+          >
+            <CheckCircle2 className="w-4 h-4 text-green-600" />
           </button>
-          <button onClick={() => handleDelete(t)} className="p-2 rounded-lg text-red-500 hover:bg-red-50" title="Eliminar">
+          <button
+            onClick={() => handleDelete(t)}
+            className="btn-icon text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40"
+            title="Eliminar"
+            aria-label="Eliminar tipo de bilhete"
+          >
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
@@ -332,49 +311,68 @@ export function TypesTab({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <p className="text-sm" style={{ color: "var(--text-muted)" }}>
           Define os tipos de bilhete deste evento (convites, ingressos, bilhetes de entrada).
         </p>
-        <button
-          onClick={() => setOpen((v) => !v)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-ib-accent hover:bg-blue-700 text-white"
-        >
+        <button onClick={() => setOpen((v) => !v)} className="btn btn-primary btn-sm self-start">
           <Plus className="w-4 h-4" />
           Novo Tipo
         </button>
       </div>
 
       {open && (
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-xl border p-5 space-y-3"
-          style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)" }}
-        >
-          {error && <p className="text-sm text-red-500">{error}</p>}
+        <form onSubmit={handleSubmit} className="card card-pad space-y-3">
+          {error && <p className="text-sm" style={{ color: "var(--color-ib-danger)" }}>{error}</p>}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
             <div className="md:col-span-1">
-              <label className="block text-xs font-medium mb-1" style={{ color: "var(--text-muted)" }}>Nome *</label>
-              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={`${inputClass} w-full`} style={{ backgroundColor: "var(--bg-primary)", borderColor: "var(--border-color)", color: "var(--text-primary)" }} />
+              <label className="label text-xs" htmlFor="type-name">Nome *</label>
+              <input
+                id="type-name"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className="input"
+                placeholder="Ex.: Ingresso VIP"
+              />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1" style={{ color: "var(--text-muted)" }}>Tipo</label>
-              <select value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as typeof form.kind })} className={`${inputClass} w-full`} style={{ backgroundColor: "var(--bg-primary)", borderColor: "var(--border-color)", color: "var(--text-primary)" }}>
+              <label className="label text-xs" htmlFor="type-kind">Tipo</label>
+              <select
+                id="type-kind"
+                value={form.kind}
+                onChange={(e) => setForm({ ...form, kind: e.target.value as typeof form.kind })}
+                className="select"
+              >
                 <option value="CONVITE">Convite</option>
                 <option value="INGRESSO">Ingresso</option>
                 <option value="BILHETE">Bilhete de entrada</option>
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1" style={{ color: "var(--text-muted)" }}>Preço (Kz)</label>
-              <input type="number" min="0" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className={`${inputClass} w-full`} style={{ backgroundColor: "var(--bg-primary)", borderColor: "var(--border-color)", color: "var(--text-primary)" }} />
+              <label className="label text-xs" htmlFor="type-price">Preço (Kz)</label>
+              <input
+                id="type-price"
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.price}
+                onChange={(e) => setForm({ ...form, price: e.target.value })}
+                className="input"
+              />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1" style={{ color: "var(--text-muted)" }}>Quantidade</label>
-              <input type="number" min="0" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} className={`${inputClass} w-full`} style={{ backgroundColor: "var(--bg-primary)", borderColor: "var(--border-color)", color: "var(--text-primary)" }} />
+              <label className="label text-xs" htmlFor="type-qty">Quantidade</label>
+              <input
+                id="type-qty"
+                type="number"
+                min="0"
+                value={form.quantity}
+                onChange={(e) => setForm({ ...form, quantity: e.target.value })}
+                className="input"
+              />
             </div>
             <div className="flex items-end">
-              <button type="submit" disabled={saving} className="flex items-center gap-2 w-full justify-center px-4 py-2.5 rounded-lg text-sm bg-ib-accent hover:bg-blue-700 text-white disabled:opacity-50">
+              <button type="submit" disabled={saving} className="btn btn-primary w-full justify-center">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                 Criar
               </button>
@@ -480,7 +478,7 @@ export function TicketsTab({
       key: "code",
       header: "Código",
       render: (t) => (
-        <span className="font-mono text-sm font-medium" style={{ color: "var(--text-primary)" }}>{t.code}</span>
+        <span className="font-mono text-sm font-medium tracking-wide" style={{ color: "var(--text-primary)" }}>{t.code}</span>
       ),
     },
     {
@@ -505,7 +503,7 @@ export function TicketsTab({
       key: "status",
       header: "Estado",
       render: (t) => (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${TICKET_STATUS_STYLES[t.status] ?? ""}`}>
+        <span className={`badge ${TICKET_STATUS_BADGES[t.status] ?? "badge-neutral"}`}>
           {TICKET_STATUS_LABELS[t.status] ?? t.status}
         </span>
       ),
@@ -527,11 +525,21 @@ export function TicketsTab({
       render: (t) => (
         <div className="flex items-center justify-end gap-1">
           {!t.checkedIn && t.status === "VALIDO" && (
-            <button onClick={() => checkin(t)} className="p-2 rounded-lg text-green-600 hover:bg-green-50" title="Marcar check-in">
+            <button
+              onClick={() => checkin(t)}
+              className="btn-icon text-green-600 hover:bg-green-50 dark:hover:bg-green-950/40"
+              title="Marcar check-in"
+              aria-label="Marcar check-in"
+            >
               <TicketCheck className="w-4 h-4" />
             </button>
           )}
-          <Link href={`/eventos/${eventId}/bilhetes/${t.id}`} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" title="Ver bilhete">
+          <Link
+            href={`/eventos/${eventId}/bilhetes/${t.id}`}
+            className="btn-icon btn-ghost"
+            title="Ver bilhete"
+            aria-label="Ver bilhete"
+          >
             <Printer className="w-4 h-4" />
           </Link>
         </div>
@@ -543,31 +551,28 @@ export function TicketsTab({
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }} />
+          <Search
+            className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 z-[2]"
+            style={{ color: "var(--text-muted)" }}
+          />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") load(); }}
             placeholder="Pesquisar por código, nome ou email..."
-            className="w-full pl-9 pr-3 py-2.5 rounded-lg border text-sm focus:outline-none"
-            style={{ backgroundColor: "var(--bg-primary)", borderColor: "var(--border-color)", color: "var(--text-primary)" }}
+            className="input pl-9"
           />
         </div>
-        <select
-          value={status}
-          onChange={(e) => { setStatus(e.target.value); }}
-          className="px-3 py-2.5 rounded-lg border text-sm focus:outline-none"
-          style={{ backgroundColor: "var(--bg-primary)", borderColor: "var(--border-color)", color: "var(--text-primary)" }}
-        >
+        <select value={status} onChange={(e) => setStatus(e.target.value)} className="select md:max-w-[170px]" aria-label="Filtrar por estado do bilhete">
           <option value="">Todos os estados</option>
           <option value="VALIDO">Válido</option>
           <option value="USADO">Usado</option>
           <option value="CANCELADO">Cancelado</option>
         </select>
-        <button onClick={() => load()} className="px-4 py-2.5 rounded-lg border text-sm" style={{ borderColor: "var(--border-color)" }}>
+        <button onClick={() => load()} className="btn btn-outline" aria-label="Pesquisar">
           <Search className="w-4 h-4" />
         </button>
-        <button onClick={() => setOpen((v) => !v)} className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-ib-accent hover:bg-blue-700 text-white">
+        <button onClick={() => setOpen((v) => !v)} className="btn btn-primary">
           <Plus className="w-4 h-4" />
           Emitir
         </button>
@@ -576,12 +581,17 @@ export function TicketsTab({
       {open && (
         <form
           onSubmit={handleIssue}
-          className="rounded-xl border p-5 grid grid-cols-1 md:grid-cols-6 gap-3"
-          style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)" }}
+          className="card card-pad grid grid-cols-1 md:grid-cols-6 gap-3"
         >
           <div className="md:col-span-2">
-            <label className="block text-xs font-medium mb-1" style={{ color: "var(--text-muted)" }}>Tipo de bilhete *</label>
-            <select required value={form.ticketTypeId} onChange={(e) => setForm({ ...form, ticketTypeId: e.target.value })} className="w-full px-3 py-2.5 border rounded-lg text-sm" style={{ backgroundColor: "var(--bg-primary)", borderColor: "var(--border-color)", color: "var(--text-primary)" }}>
+            <label className="label text-xs" htmlFor="issue-type">Tipo de bilhete *</label>
+            <select
+              id="issue-type"
+              required
+              value={form.ticketTypeId}
+              onChange={(e) => setForm({ ...form, ticketTypeId: e.target.value })}
+              className="select"
+            >
               <option value="">Selecionar</option>
               {event.ticketTypes.filter((t) => t.active).map((t) => (
                 <option key={t.id} value={t.id}>{t.name} — {formatCurrency(t.price)}</option>
@@ -589,19 +599,37 @@ export function TicketsTab({
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium mb-1" style={{ color: "var(--text-muted)" }}>Quantidade</label>
-            <input type="number" min="1" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} className="w-full px-3 py-2.5 border rounded-lg text-sm" style={{ backgroundColor: "var(--bg-primary)", borderColor: "var(--border-color)", color: "var(--text-primary)" }} />
+            <label className="label text-xs" htmlFor="issue-qty">Quantidade</label>
+            <input
+              id="issue-qty"
+              type="number"
+              min="1"
+              value={form.quantity}
+              onChange={(e) => setForm({ ...form, quantity: e.target.value })}
+              className="input"
+            />
           </div>
           <div>
-            <label className="block text-xs font-medium mb-1" style={{ color: "var(--text-muted)" }}>Nome do titular</label>
-            <input value={form.holderName} onChange={(e) => setForm({ ...form, holderName: e.target.value })} className="w-full px-3 py-2.5 border rounded-lg text-sm" style={{ backgroundColor: "var(--bg-primary)", borderColor: "var(--border-color)", color: "var(--text-primary)" }} />
+            <label className="label text-xs" htmlFor="issue-name">Nome do titular</label>
+            <input
+              id="issue-name"
+              value={form.holderName}
+              onChange={(e) => setForm({ ...form, holderName: e.target.value })}
+              className="input"
+            />
           </div>
           <div>
-            <label className="block text-xs font-medium mb-1" style={{ color: "var(--text-muted)" }}>Email</label>
-            <input type="email" value={form.holderEmail} onChange={(e) => setForm({ ...form, holderEmail: e.target.value })} className="w-full px-3 py-2.5 border rounded-lg text-sm" style={{ backgroundColor: "var(--bg-primary)", borderColor: "var(--border-color)", color: "var(--text-primary)" }} />
+            <label className="label text-xs" htmlFor="issue-email">Email</label>
+            <input
+              id="issue-email"
+              type="email"
+              value={form.holderEmail}
+              onChange={(e) => setForm({ ...form, holderEmail: e.target.value })}
+              className="input"
+            />
           </div>
           <div className="flex items-end">
-            <button type="submit" disabled={issuing} className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg text-sm bg-ib-accent hover:bg-blue-700 text-white disabled:opacity-50">
+            <button type="submit" disabled={issuing} className="btn btn-primary w-full justify-center">
               {issuing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ticket className="w-4 h-4" />}
               Emitir
             </button>
@@ -640,11 +668,10 @@ export function CheckinTab({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    e.preventDefault();
     setLoading(true);
     setResult(null);
     try {
-      const res = await apiFetch<{ success: true }>(
+      await apiFetch<{ success: true }>(
         "/api/events/checkin",
         { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: code.trim() }) }
       );
@@ -662,38 +689,45 @@ export function CheckinTab({
 
   return (
     <div className="max-w-xl">
-      <p className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>
-        Verifique o código do bilhete na entrada. A validação funciona por código único, sem depender do evento.
-      </p>
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>
-          Código do bilhete
-        </label>
-        <input
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          placeholder="IB-XXXXX-XXXXX"
-          className="w-full px-3 py-3 border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ib-accent/40"
-          style={{ backgroundColor: "var(--bg-primary)", borderColor: "var(--border-color)", color: "var(--text-primary)" }}
-        />
-        <button
-          type="submit"
-          disabled={loading || !code.trim()}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium bg-ib-accent hover:bg-blue-700 text-white disabled:opacity-50"
-        >
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <TicketCheck className="w-4 h-4" />}
-          Validar e fazer check-in
-        </button>
-      </form>
-      {result && (
-        <div
-          className={`mt-4 rounded-lg border px-4 py-3 text-sm ${
-            result.ok ? "border-green-200 bg-green-50 text-green-700" : "border-red-200 bg-red-50 text-red-600"
-          }`}
-        >
-          {result.message}
+      <div className="card card-pad space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>Verificação à porta</h3>
+          <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+            Verifique o código do bilhete na entrada. A validação funciona por código único, sem depender do evento.
+          </p>
         </div>
-      )}
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <label className="label" htmlFor="ck-code">Código do bilhete</label>
+          <input
+            id="ck-code"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="IB-XXXXX-XXXXX"
+            className="input font-mono tracking-widest py-3"
+            autoComplete="off"
+          />
+          <button
+            type="submit"
+            disabled={loading || !code.trim()}
+            className="btn btn-primary w-full sm:w-auto"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <TicketCheck className="w-4 h-4" />}
+            Validar e fazer check-in
+          </button>
+        </form>
+        {result && (
+          <div
+            role="status"
+            className={`rounded-xl border px-4 py-3 text-sm ${
+              result.ok
+                ? "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300"
+                : "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-300"
+            }`}
+          >
+            {result.message}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -4,22 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, Pencil, Upload, Save } from "lucide-react";
+import { PageLoading } from "@/components/ui/boundaries/PageLoading";
 import { useToast } from "@/components/Toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { parseEventDateTime } from "@/lib/events";
-import { EVENT_CATEGORIES, EVENT_CATEGORY_LABELS, EVENT_STATUS_LABELS } from "@/config/events";
-
-const inputClass =
-  "rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40";
-const inputStyle = {
-  backgroundColor: "var(--bg-primary)",
-  borderColor: "var(--border-color)",
-  color: "var(--text-primary)",
-};
-const saveClass =
-  "relative flex items-center justify-center gap-2 rounded-lg bg-ib-accent px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50";
-const saveStyle = { backgroundColor: "var(--accent-color, #2563eb)" };
+import { EVENT_CATEGORIES, EVENT_CATEGORY_LABELS } from "@/config/events";
 
 interface EventForm {
   title: string;
@@ -177,66 +167,71 @@ export default function EditarEventoPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center p-12">
-        <Loader2 className="w-6 h-6 animate-spin" style={{ color: "var(--text-muted)" }} />
-      </div>
-    );
+    return <PageLoading />;
   }
 
   return (
-    <div>
-      <div className="flex items-center gap-4 mb-6">
-        <Link href={`/eventos/${id}`} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
-            <Pencil className="w-6 h-6 text-ib-accent" />
-            Editar Evento
-          </h1>
-          <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-            Atualize os dados do evento e a configuração de ingressos.
-          </p>
+    <div className="max-w-2xl">
+      <div className="page-header">
+        <div className="flex items-center gap-3">
+          <Link href={`/eventos/${id}`} className="btn-icon btn-ghost" aria-label="Voltar ao evento">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div>
+            <h1 className="page-title flex items-center gap-2">
+              <Pencil className="w-6 h-6 text-ib-accent" />
+              Editar Evento
+            </h1>
+            <p className="page-subtitle">Atualize os dados do evento e a configuração de ingressos.</p>
+          </div>
         </div>
       </div>
 
       {error && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
+        <div
+          className="mb-6 rounded-xl border px-4 py-3 text-sm"
+          style={{
+            borderColor: "rgba(239, 68, 68, 0.3)",
+            backgroundColor: "rgba(239, 68, 68, 0.08)",
+            color: "var(--color-ib-danger)",
+          }}
+        >
+          {error}
+        </div>
       )}
 
-      <form onSubmit={handleSubmit} className="max-w-2xl space-y-5 rounded-xl border p-6" style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)" }}>
+      <form onSubmit={handleSubmit} className="card card-pad space-y-5">
         <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Título *</label>
+          <label className="label" htmlFor="ev-title">Título *</label>
           <input
+            id="ev-title"
             type="text"
             required
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className={`${inputClass} w-full`}
-            style={inputStyle}
+            className="input"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Descrição</label>
+          <label className="label" htmlFor="ev-desc">Descrição</label>
           <textarea
+            id="ev-desc"
             rows={3}
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className={`${inputClass} w-full`}
-            style={inputStyle}
+            className="textarea"
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Categoria</label>
+            <label className="label" htmlFor="ev-cat">Categoria</label>
             <select
+              id="ev-cat"
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value })}
-              className={`${inputClass} w-full`}
-              style={inputStyle}
+              className="select"
             >
               <option value="">Selecionar</option>
               {EVENT_CATEGORIES.map((c) => (
@@ -245,12 +240,12 @@ export default function EditarEventoPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Estado</label>
+            <label className="label" htmlFor="ev-status">Estado</label>
             <select
+              id="ev-status"
               value={form.status}
               onChange={(e) => setForm({ ...form, status: e.target.value })}
-              className={`${inputClass} w-full`}
-              style={inputStyle}
+              className="select"
             >
               <option value="RASCUNHO">Rascunho</option>
               <option value="PUBLICADO">Publicado</option>
@@ -262,144 +257,139 @@ export default function EditarEventoPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Local / Recinto</label>
+            <label className="label" htmlFor="ev-venue">Local / Recinto</label>
             <input
+              id="ev-venue"
               type="text"
               value={form.venue}
               onChange={(e) => setForm({ ...form, venue: e.target.value })}
-              className={`${inputClass} w-full`}
-              style={inputStyle}
+              className="input"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Endereço</label>
+            <label className="label" htmlFor="ev-address">Endereço</label>
             <input
+              id="ev-address"
               type="text"
               value={form.address}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
-              className={`${inputClass} w-full`}
-              style={inputStyle}
+              className="input"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Província</label>
+            <label className="label" htmlFor="ev-province">Província</label>
             <input
+              id="ev-province"
               type="text"
               value={form.province}
               onChange={(e) => setForm({ ...form, province: e.target.value })}
-              className={`${inputClass} w-full`}
-              style={inputStyle}
+              className="input"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Município</label>
+            <label className="label" htmlFor="ev-municipality">Município</label>
             <input
+              id="ev-municipality"
               type="text"
               value={form.municipality}
               onChange={(e) => setForm({ ...form, municipality: e.target.value })}
-              className={`${inputClass} w-full`}
-              style={inputStyle}
+              className="input"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Data de início *</label>
+            <label className="label" htmlFor="ev-start">Data de início *</label>
             <input
+              id="ev-start"
               type="datetime-local"
               required
               value={form.startDate}
               onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-              className={`${inputClass} w-full`}
-              style={inputStyle}
+              className="input"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Data de fim</label>
+            <label className="label" htmlFor="ev-end">Data de fim</label>
             <input
+              id="ev-end"
               type="datetime-local"
               value={form.endDate}
               onChange={(e) => setForm({ ...form, endDate: e.target.value })}
-              className={`${inputClass} w-full`}
-              style={inputStyle}
+              className="input"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Valor da compra local (Kz)</label>
+            <label className="label" htmlFor="ev-cost">Valor da compra local (Kz)</label>
             <input
+              id="ev-cost"
               type="number"
               min="0"
               step="0.01"
               value={form.localPurchaseValue}
               onChange={(e) => setForm({ ...form, localPurchaseValue: e.target.value })}
-              className={`${inputClass} w-full`}
-              style={inputStyle}
+              className="input"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Nº total de ingressos</label>
+            <label className="label" htmlFor="ev-total">Nº total de ingressos</label>
             <input
+              id="ev-total"
               type="number"
               min="0"
               value={form.totalTickets}
               onChange={(e) => setForm({ ...form, totalTickets: e.target.value })}
-              className={`${inputClass} w-full`}
-              style={inputStyle}
+              className="input"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Notas internas</label>
+          <label className="label" htmlFor="ev-notes">Notas internas</label>
           <textarea
+            id="ev-notes"
             rows={2}
             value={form.notes}
             onChange={(e) => setForm({ ...form, notes: e.target.value })}
-            className={`${inputClass} w-full`}
-            style={inputStyle}
+            className="textarea"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Capa</label>
+          <span className="label">Capa</span>
           {form.coverImage ? (
             <div className="mb-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={form.coverImage} alt="Capa do evento" className="h-32 w-full rounded-lg object-cover" />
+              <img src={form.coverImage} alt="Capa do evento" className="h-32 w-full rounded-xl object-cover" />
             </div>
           ) : null}
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-50 dark:hover:bg-gray-800" style={{ borderColor: "var(--border-color)" }}>
+          <label className="btn btn-outline cursor-pointer">
             <Upload className="w-4 h-4" />
             {uploading ? "A enviar..." : "Enviar imagem"}
             <input type="file" accept="image/*" className="hidden" onChange={handleUpload} />
           </label>
         </div>
 
-        <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: "var(--text-muted)" }}>
+        <label className="flex items-center gap-2 text-sm cursor-pointer select-none" style={{ color: "var(--text-muted)" }}>
           <input
             type="checkbox"
             checked={form.published}
             onChange={(e) => setForm({ ...form, published: e.target.checked })}
-            className="accent-ib-accent"
+            className="accent-ib-accent w-4 h-4"
           />
           Publicar imediatamente
         </label>
 
         <div className="flex items-center gap-3 pt-2">
-          <button
-            type="submit"
-            disabled={saving}
-            className={saveClass}
-            style={saveStyle}
-          >
+          <button type="submit" disabled={saving} className="btn btn-primary">
             <Save className="w-4 h-4" />
             {saving ? "A guardar..." : "Guardar alterações"}
           </button>
-          <Link href={`/eventos/${id}`} className="text-sm px-4 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+          <Link href={`/eventos/${id}`} className="btn btn-ghost">
             Cancelar
           </Link>
         </div>
