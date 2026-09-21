@@ -58,7 +58,7 @@ interface RegisterPayload {
 const baseSchema = z.object({
   accountType: accountTypeEnum,
   email: z.string().email("Email inválido"),
-  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+  password: z.string().min(8, "A senha deve ter pelo menos 8 caracteres"),
   telefone: z.string().optional(),
   nome: z.string().min(1, "O nome é obrigatório"),
   cargoName: z.string().optional(),

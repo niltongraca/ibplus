@@ -6,7 +6,7 @@ import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit"
 
 const schema = z.object({
   token: z.string().min(1, "Token é obrigatório"),
-  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+  password: z.string().min(8, "A senha deve ter pelo menos 8 caracteres"),
 });
 
 export async function POST(request: Request) {

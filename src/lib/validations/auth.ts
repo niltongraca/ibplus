@@ -12,7 +12,7 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, "Senha actual e nova são obrigatórias.").max(200),
-    newPassword: z.string().min(6, "A nova senha deve ter pelo menos 6 caracteres.").max(200),
+    newPassword: z.string().min(8, "A nova senha deve ter pelo menos 8 caracteres.").max(200),
   })
   .refine((v) => v.currentPassword !== v.newPassword, {
     message: "A nova senha deve ser diferente da actual.",
@@ -41,7 +41,7 @@ export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 // --- Repor senha com token ---
 export const resetPasswordSchema = z.object({
   token: z.string().min(1, "O token é obrigatório.").max(500),
-  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres.").max(200),
+  password: z.string().min(8, "A senha deve ter pelo menos 8 caracteres.").max(200),
 });
 
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;

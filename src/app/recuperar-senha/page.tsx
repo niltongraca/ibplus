@@ -59,13 +59,13 @@ export default function RecuperarSenhaPage() {
             <p className="text-ib-primary font-medium">{success}</p>
 
             {token && process.env.NODE_ENV !== "production" && (
-              <div className="p-3 rounded-lg bg-blue-50 border border-blue-200 text-sm text-blue-800 break-all">
-                <p className="font-medium mb-1">Token (dev):</p>
+              <div className="p-3 rounded-lg bg-blue-50 border border-blue-200 text-sm text-blue-800">
+                <p className="font-medium mb-1">Link de redefinição (apenas dev):</p>
                 <Link
                   href={`/recuperar-senha/${token}`}
-                  className="text-blue-600 hover:underline"
+                  className="text-blue-600 hover:underline font-medium"
                 >
-                  {token}
+                  Continuar redefinição →
                 </Link>
               </div>
             )}

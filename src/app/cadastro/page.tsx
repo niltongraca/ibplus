@@ -86,6 +86,7 @@ function CadastroPage() {
   const [form, setForm] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const { register } = useAuth();
@@ -112,6 +113,12 @@ function CadastroPage() {
 
   function updateField(key: string, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
+    setFieldErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
   }
 
   function selectType(value: string) {
@@ -127,10 +134,9 @@ function CadastroPage() {
   function canProceed(): boolean {
     const t = accountType;
     if (step === 1) {
-      if (!(form.nome && form.email && form.password)) return false;
+      if (!(form.nome && form.email && form.password && form.confirmPassword)) return false;
+      if (form.password && form.password !== form.confirmPassword) return false;
       if (isInviteFlow) return true;
-      if (t === "EMPREENDEDOR") return !!form.confirmPassword;
-      if (t !== "EMPREENDEDOR" && t !== "EMPRESA" && t !== "ONG" && !form.confirmPassword) return false;
       if (t !== "EMPREENDEDOR" && !form.cargoName) return false;
       return true;
     }
@@ -149,10 +155,25 @@ function CadastroPage() {
     else { setAccountType(null); setStep(0); }
   }
 
+  function validateStep1(): Record<string, string> {
+    const errs: Record<string, string> = {};
+    if (!form.nome || !form.nome.trim()) errs.nome = "Informe o seu nome.";
+    if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      errs.email = "Informe um email válido.";
+    }
+    if (!form.password) errs.password = "A senha é obrigatória.";
+    else if (form.password.length < 8) errs.password = "A senha deve ter pelo menos 8 caracteres.";
+    if (form.password !== form.confirmPassword) errs.confirmPassword = "As senhas não coincidem.";
+    return errs;
+  }
+
   async function handleSubmit() {
     setError("");
-    if (accountType !== "EMPRESA" && !isInviteFlow && form.password !== form.confirmPassword) {
-      setError("As senhas não coincidem."); return;
+    setFieldErrors({});
+    const errs = validateStep1();
+    if (Object.keys(errs).length > 0) {
+      setFieldErrors(errs);
+      return;
     }
     if (isInviteFlow) {
       const cargo = inviteData?.cargos?.find((c) => c.id === form.cargoId);
@@ -282,12 +303,18 @@ function CadastroPage() {
                       <input value={form.nome || ""} onChange={(e) => updateField("nome", e.target.value)}
                         className="glass-input w-full px-3 py-2.5 text-sm" style={{ color: "var(--text-primary)" }}
                         placeholder="Seu nome completo" required />
+                      {fieldErrors.nome && (
+                        <p className="text-xs mt-1" style={{ color: "var(--color-ib-danger)" }}>{fieldErrors.nome}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Email</label>
                       <input type="email" value={form.email || ""} onChange={(e) => updateField("email", e.target.value)}
                         className="glass-input w-full px-3 py-2.5 text-sm" style={{ color: "var(--text-primary)" }}
                         placeholder="seu@email.com" required />
+                      {fieldErrors.email && (
+                        <p className="text-xs mt-1" style={{ color: "var(--color-ib-danger)" }}>{fieldErrors.email}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Telefone <span style={{ color: "var(--text-muted)" }} className="font-normal">(opcional)</span></label>
@@ -300,21 +327,25 @@ function CadastroPage() {
                       <div className="relative">
                         <input type={showPassword ? "text" : "password"} value={form.password || ""} onChange={(e) => updateField("password", e.target.value)}
                           className="glass-input w-full px-3 py-2.5 text-sm pr-10" style={{ color: "var(--text-primary)" }}
-                          placeholder="Mínimo 6 caracteres" required minLength={6} />
+                          placeholder="Mínimo 8 caracteres" required minLength={8} />
                         <button type="button" onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }}>
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
+                      {fieldErrors.password && (
+                        <p className="text-xs mt-1" style={{ color: "var(--color-ib-danger)" }}>{fieldErrors.password}</p>
+                      )}
                     </div>
-                    {accountType !== "EMPRESA" && (
-                      <div>
-                        <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Confirmar senha</label>
-                        <input type={showPassword ? "text" : "password"} value={form.confirmPassword || ""} onChange={(e) => updateField("confirmPassword", e.target.value)}
-                          className="glass-input w-full px-3 py-2.5 text-sm" style={{ color: "var(--text-primary)" }}
-                          placeholder="Repita a senha" required minLength={6} />
-                      </div>
-                    )}
+                    <div>
+                      <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Confirmar senha</label>
+                      <input type={showPassword ? "text" : "password"} value={form.confirmPassword || ""} onChange={(e) => updateField("confirmPassword", e.target.value)}
+                        className="glass-input w-full px-3 py-2.5 text-sm" style={{ color: "var(--text-primary)" }}
+                        placeholder="Repita a senha" required minLength={8} />
+                      {fieldErrors.confirmPassword && (
+                        <p className="text-xs mt-1" style={{ color: "var(--color-ib-danger)" }}>{fieldErrors.confirmPassword}</p>
+                      )}
+                    </div>
                     {!isInviteFlow && accountType && accountType !== "EMPREENDEDOR" && (
                       <div className="sm:col-span-2">
                         <label className="block text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>
