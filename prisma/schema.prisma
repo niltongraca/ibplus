@@ -179,6 +179,7 @@ opportunities       Opportunity[]
   reports             Report[]
   cargos              Cargo[]
   cargoPermissions    CargoPermission[]
+  events              Event[]
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
   acquisitionCode     String?     @unique
@@ -723,6 +724,84 @@ model Announcement {
   requiresUpdate Boolean  @default(false)
   createdBy      String?
   createdAt      DateTime @default(now())
+}
+
+// ---- Eventos & Bilhetes ----
+// Gestão interna de eventos por empresa: tipos de bilhete (convite/ingresso/
+// bilhete) e emissão de bilhetes com código único + check-in na entrada.
+model Event {
+  id                 String    @id @default(cuid())
+  companyId          String
+  company            Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  title              String
+  description        String?
+  // concerto | conferencia | workshop | desporto | cultural | religioso | outro
+  category           String?
+  venue              String?   // local do evento
+  address            String?
+  province           String?
+  municipality       String?
+  startDate          DateTime
+  endDate            DateTime?
+  coverImage         String?
+  // "valor da compra local do evento": custo/despesa local para realizar o evento
+  localPurchaseValue Decimal   @default(0) @db.Decimal(18, 2)
+  // número total de ingressos planeados (soma dos tipos, mantido para consulta)
+  totalTickets       Int       @default(0)
+  // RASCUNHO | PUBLICADO | ESGOTADO | CANCELADO | TERMINADO
+  status             String    @default("RASCUNHO")
+  published          Boolean   @default(false)
+  notes              String?
+  ticketTypes        EventTicketType[]
+  tickets            EventTicket[]
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([companyId])
+  @@index([startDate])
+}
+
+model EventTicketType {
+  id          String        @id @default(cuid())
+  eventId     String
+  event       Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name        String
+  // CONVITE | INGRESSO | BILHETE
+  kind        String        @default("INGRESSO")
+  description String?
+  price       Decimal       @default(0) @db.Decimal(18, 2)
+  // número de ingressos deste tipo (quantidade planeada)
+  quantity    Int           @default(0)
+  active      Boolean       @default(true)
+  tickets     EventTicket[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([eventId])
+}
+
+model EventTicket {
+  id           String           @id @default(cuid())
+  eventId      String
+  event        Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  ticketTypeId String?
+  ticketType   EventTicketType? @relation(fields: [ticketTypeId], references: [id], onDelete: SetNull)
+  code         String           @unique
+  holderName   String?
+  holderEmail  String?
+  holderPhone  String?
+  price        Decimal          @default(0) @db.Decimal(18, 2)
+  // VALIDO | USADO | CANCELADO
+  status       String           @default("VALIDO")
+  checkedIn    Boolean          @default(false)
+  checkedInAt  DateTime?
+  notes        String?
+  issuedAt     DateTime         @default(now())
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([eventId])
+  @@index([ticketTypeId])
 }
 
 // Core Web Vitals reportadas pelo browser (via `/api/vitals`), agregadas por

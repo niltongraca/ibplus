@@ -16,6 +16,7 @@ const MODULE_HOME: Record<string, { label: string; href: string }> = {
   rh: { label: "RH", href: "/rh/funcionarios" },
   marketing: { label: "Marketing", href: "/marketing/campanhas" },
   educacao: { label: "Educação", href: "/educacao/alunos" },
+  eventos: { label: "Eventos", href: "/eventos" },
   store: { label: "Loja", href: "/store/catalogo" },
   admin: { label: "Administração", href: "/admin" },
 };
@@ -90,6 +91,16 @@ const PAGES: Record<string, BreadcrumbItem[]> = {
   "educacao/alunos": [{ label: "Alunos" }],
   "educacao/alunos/novo": [{ label: "Alunos", href: "/educacao/alunos" }, { label: "Novo Aluno" }],
 
+  // Eventos
+  eventos: [{ label: "Eventos" }],
+  "eventos/novo": [{ label: "Eventos", href: "/eventos" }, { label: "Novo Evento" }],
+  "eventos/[id]": [{ label: "Eventos", href: "/eventos" }, { label: "Detalhes" }],
+  "eventos/[id]/editar": [{ label: "Eventos", href: "/eventos" }, { label: "Editar" }],
+  "eventos/[id]/bilhetes/[id]": [
+    { label: "Eventos", href: "/eventos" },
+    { label: "Bilhete" },
+  ],
+
   // Loja
   "store/catalogo": [{ label: "Catálogo" }],
   "store/encomendas": [{ label: "Encomendas" }],
@@ -113,7 +124,7 @@ const PAGES: Record<string, BreadcrumbItem[]> = {
 // rotas dinâmicas como /finance/faturacao/[id]) normaliza para [id].
 const LITERAL_SEGMENTS = new Set([
   // raízes de módulo (primeiro segmento de MODULE_HOME)
-  "admin", "gestao", "finance", "crm", "ia", "rh", "marketing", "educacao", "store",
+  "admin", "gestao", "finance", "crm", "ia", "rh", "marketing", "educacao", "store", "eventos",
   // páginas
   "dashboard", "perfil", "configuracao", "cargos", "organizacoes", "clientes",
   "produtos", "servicos", "stock", "movimento", "compras", "despesas", "vendas",
@@ -124,6 +135,7 @@ const LITERAL_SEGMENTS = new Set([
   "campanhas", "email-marketing", "fidelizacao", "promocoes", "alunos",
   "catalogo", "encomendas", "loja", "pagamentos", "usuarios", "empresas",
   "recursos", "anuncios", "logs", "conteudos", "novo", "nova", "editar",
+  "bilhetes",
 ]);
 
 function normalizeKey(pathname: string): string | null {

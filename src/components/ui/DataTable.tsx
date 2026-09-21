@@ -2,7 +2,7 @@
 
 import { ReactNode } from "react";
 
-interface Column<T> {
+export interface Column<T> {
   key: string;
   header: string;
   render: (item: T) => ReactNode;
@@ -10,7 +10,7 @@ interface Column<T> {
   className?: string;
 }
 
-interface DataTableProps<T> {
+export interface DataTableProps<T> {
   columns: Column<T>[];
   data: T[];
   loading?: boolean;

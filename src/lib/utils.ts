@@ -17,6 +17,19 @@ export function formatDate(date: Date | string): string {
   return new Intl.DateTimeFormat("pt-AO").format(new Date(date));
 }
 
+/** Data + hora no fuso da empresa (por omissão Africa/Luanda). */
+export function formatDateTime(date: Date | string, tz = "Africa/Luanda"): string {
+  return new Intl.DateTimeFormat("pt-AO", {
+    timeZone: tz,
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date(date));
+}
+
 /**
  * Converte um valor date-only ("YYYY-MM-DD" de <input type="date">) no meio-dia local.
  * Evita o desvio de dia: `new Date("YYYY-MM-DD")` interpreta meia-noite UTC, o que no

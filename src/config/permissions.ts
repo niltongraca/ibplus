@@ -36,6 +36,7 @@ export const FEATURE_KEYS = [
   "crm",
   "ia",
   "educacao",
+  "eventos",
 ] as const;
 export type FeatureKey = (typeof FEATURE_KEYS)[number];
 
@@ -60,6 +61,7 @@ export const FEATURE_LABELS: Record<FeatureKey, string> = {
   crm: "CRM",
   ia: "Inteligência Artificial",
   educacao: "Educação",
+  eventos: "Eventos",
 };
 
 export const FEATURE_DESCRIPTIONS: Record<FeatureKey, string> = {
@@ -83,6 +85,7 @@ export const FEATURE_DESCRIPTIONS: Record<FeatureKey, string> = {
   crm: "Funil de vendas e oportunidades",
   ia: "Funcionalidades de inteligência artificial",
   educacao: "Gestão de alunos / instituição de ensino",
+  eventos: "Gestão de eventos e emissão/validação de bilhetes",
 };
 
 // Matriz default (tecto por nível). As empresas podem apenas remover acesso.
@@ -112,6 +115,7 @@ export const DEFAULT_FEATURE_PERMISSIONS: Record<CargoLevel, Record<FeatureKey, 
     crm: false,
     ia: false,
     educacao: false,
+    eventos: true,
   },
   viewer: {
     dashboard: true,
@@ -134,6 +138,7 @@ export const DEFAULT_FEATURE_PERMISSIONS: Record<CargoLevel, Record<FeatureKey, 
     crm: false,
     ia: false,
     educacao: false,
+    eventos: true,
   },
 };
 
@@ -166,4 +171,5 @@ export const ROUTE_FEATURE_MAP: Record<string, FeatureKey> = {
   "/rh": "rh",
   "/marketing": "marketing",
   "/educacao": "educacao",
+  "/eventos": "eventos",
 };

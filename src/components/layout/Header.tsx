@@ -25,6 +25,8 @@ const pageNames: Record<string, string> = {
   "rh/funcionarios": "Funcionários",
   "marketing/campanhas": "Campanhas",
   "educacao/alunos": "Alunos",
+  eventos: "Eventos",
+  "eventos/novo": "Novo Evento",
 };
 
 interface HeaderProps {

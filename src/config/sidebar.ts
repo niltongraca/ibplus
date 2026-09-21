@@ -23,6 +23,7 @@ import {
   ClipboardCheck,
   Building2,
   BadgeCheck,
+  Ticket,
   type LucideIcon,
 } from "lucide-react";
 import type { FeatureKey } from "./permissions";
@@ -51,6 +52,7 @@ const relatorioItem: SidebarItem = { label: "Relatório", icon: BarChart3, href:
 const cargosItem: SidebarItem = { label: "Cargos", icon: BadgeCheck, href: "/gestao/cargos", ownerOnly: true };
 const organizacoesItem: SidebarItem = { label: "Organizações", icon: Building2, href: "/gestao/organizacoes", ownerOnly: true };
 const permissoesItem: SidebarItem = { label: "Permissões", icon: ShieldCheck, href: "/rh/permissoes", feature: "rh", ownerOnly: true };
+const eventosItem: SidebarItem = { label: "Eventos", icon: Ticket, href: "/eventos", feature: "eventos" };
 
 const SIDEBAR_CONFIG: Record<string, SidebarGroup[]> = {
   EMPREENDEDOR: [
@@ -62,6 +64,7 @@ const SIDEBAR_CONFIG: Record<string, SidebarGroup[]> = {
         { label: "Clientes", icon: Users, href: "/gestao/clientes", feature: "clientes" },
         { label: "Serviços", icon: FileText, href: "/gestao/servicos", feature: "servicos" },
         { label: "Vendas", icon: DollarSign, href: "/gestao/vendas", feature: "vendas" },
+        eventosItem,
       ],
     },
     {
@@ -85,6 +88,7 @@ const SIDEBAR_CONFIG: Record<string, SidebarGroup[]> = {
         { label: "Stock", icon: Warehouse, href: "/gestao/stock", feature: "stock" },
         { label: "Compras", icon: ShoppingCart, href: "/gestao/compras", feature: "compras" },
         { label: "Vendas", icon: DollarSign, href: "/gestao/vendas", feature: "vendas" },
+        eventosItem,
       ],
     },
     {
@@ -135,6 +139,7 @@ const SIDEBAR_CONFIG: Record<string, SidebarGroup[]> = {
         relatorioItem,
         { label: "Beneficiários", icon: Users, href: "/gestao/clientes", feature: "clientes" },
         { label: "Doações", icon: Gift, href: "/gestao/vendas", feature: "vendas" },
+        eventosItem,
       ],
     },
     {
@@ -159,6 +164,7 @@ const SIDEBAR_CONFIG: Record<string, SidebarGroup[]> = {
         dashboardItem,
         relatorioItem,
         { label: "Associados", icon: Users, href: "/gestao/clientes", feature: "clientes" },
+        eventosItem,
       ],
     },
     {
@@ -177,6 +183,7 @@ const SIDEBAR_CONFIG: Record<string, SidebarGroup[]> = {
         dashboardItem,
         relatorioItem,
         { label: "Alunos", icon: GraduationCap, href: "/educacao/alunos", feature: "educacao" },
+        eventosItem,
       ],
     },
     {
@@ -197,6 +204,7 @@ const SIDEBAR_CONFIG: Record<string, SidebarGroup[]> = {
         { label: "Cooperados", icon: Users, href: "/gestao/clientes", feature: "clientes" },
         { label: "Produtos", icon: Package, href: "/gestao/produtos", feature: "produtos" },
         { label: "Stock", icon: Warehouse, href: "/gestao/stock", feature: "stock" },
+        eventosItem,
       ],
     },
     {
