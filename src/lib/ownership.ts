@@ -35,8 +35,10 @@ export async function ensureCompanyOwner(
   if (otherOwner) return { isOwner: false, cargoLevel: null };
 
   const ownerCargo = await prisma.cargo.findFirst({ where: { companyId: user.companyId, level: "owner" } });
-  const cargo = ownerCargo ?? (await prisma.cargo.create({
-    data: { companyId: user.companyId, name: "Dono", level: "owner", isDefault: false },
+  const cargo = ownerCargo ?? (await prisma.cargo.upsert({
+    where: { companyId_name: { companyId: user.companyId, name: "Dono" } },
+    update: { level: "owner" }, // se existir um cargo "Dono" com outro nível, corrige
+    create: { companyId: user.companyId, name: "Dono", level: "owner", isDefault: false },
   }));
 
   await prisma.employee.createMany({

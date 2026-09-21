@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
@@ -43,7 +44,10 @@ export async function POST(request: Request) {
     });
     await logAction("create", "subcompany", subCompany.id, `Subempresa "${subCompany.name}" registada`);
     return NextResponse.json({ subCompany }, { status: 201 });
-  } catch {
+  } catch (error: unknown) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json({ error: "Já existe uma subempresa com esse nome." }, { status: 409 });
+    }
     return NextResponse.json({ error: "Erro ao registar subempresa." }, { status: 400 });
   }
 }

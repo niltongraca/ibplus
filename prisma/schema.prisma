@@ -199,6 +199,7 @@ model SubCompany {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@unique([companyId, name])
   @@index([companyId])
 }
 
@@ -516,6 +517,7 @@ model Cargo {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
+  @@unique([companyId, name])
   @@index([companyId])
 }
 
@@ -554,6 +556,7 @@ model Attendance {
   status     String   @default("present")
   notes      String?
 
+  @@unique([employeeId, date])
   @@index([employeeId])
 }
 

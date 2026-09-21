@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { logAction } from "@/lib/audit";
@@ -81,6 +82,9 @@ export async function POST(request: Request) {
     await logAction("create", "attendance", attendance.id, `Presença registada para "${employee.name}"`);
     return NextResponse.json({ attendance }, { status: 201 });
   } catch (err: unknown) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      return NextResponse.json({ error: "Já existe uma presença para este funcionário nessa data." }, { status: 409 });
+    }
     const message = err instanceof Error ? err.message : "";
     const error = /funcionário|data|entrada|saída/.test(message) ? message : "Erro ao registar presença.";
     return NextResponse.json({ error }, { status: 400 });
