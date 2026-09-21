@@ -32,7 +32,11 @@ export async function signToken(payload: JwtPayload): Promise<string> {
   return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime(TOKEN_MAX_AGE_SECONDS)
+    // jose: setExpirationTime com número é um timestamp Unix ABSOLUTO
+    // (não duração como o antigo jsonwebtoken expiresIn). O valor 604800 cru
+    // era interpretado como 1970-01-08 => "exp" sempre no passado => todos os
+    // tokens rejeitados pelo middleware/apis (regressão da migração jose).
+    .setExpirationTime(Math.floor(Date.now() / 1000) + TOKEN_MAX_AGE_SECONDS)
     .sign(jwtKey());
 }
 
