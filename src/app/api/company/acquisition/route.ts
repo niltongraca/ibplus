@@ -44,7 +44,7 @@ export async function POST(request: Request) {
         where: { id: user.companyId! },
         data: { acquisitionCode: code },
       });
-      await logAction("update", "company", user.companyId!, "Código de aquisição gerado");
+      await logAction("update", "company", user.companyId!, "Código de aquisição gerado", user);
       return NextResponse.json({ code });
     }
 
@@ -118,7 +118,7 @@ export async function POST(request: Request) {
       await tx.company.update({ where: { id: target.id }, data: { acquisitionCode: null } });
     });
 
-    await logAction("update", "company", target.id, `Empresa adquirida por ${currentUser.name} (código usado)`);
+    await logAction("update", "company", target.id, `Empresa adquirida por ${currentUser.name} (código usado)`, user);
 
     // Nova sessão apontando para a empresa adquirida
     const token = await signToken({

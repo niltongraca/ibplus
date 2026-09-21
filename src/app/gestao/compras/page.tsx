@@ -74,7 +74,7 @@ export default function ComprasPage() {
             { key: "total", header: "Total", className: "text-right", render: (p) => <span className="font-semibold">{formatCurrency(p.total)}</span> },
             { key: "status", header: "Estado", hide: "mobile", className: "text-center", render: (p) => statusBadge(p.status) },
             { key: "actions", header: "Acções", hide: "mobile", className: "text-center", render: (p) => (
-              <button onClick={() => handleDelete(p.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
+              <button onClick={() => handleDelete(p.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center" title="Eliminar">
                 <Trash2 className="w-4 h-4" />
               </button>
             )},

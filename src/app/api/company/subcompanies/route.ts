@@ -42,7 +42,7 @@ export async function POST(request: Request) {
         active: body.active === false ? false : true,
       },
     });
-    await logAction("create", "subcompany", subCompany.id, `Subempresa "${subCompany.name}" registada`);
+    await logAction("create", "subcompany", subCompany.id, `Subempresa "${subCompany.name}" registada`, user);
     return NextResponse.json({ subCompany }, { status: 201 });
   } catch (error: unknown) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {

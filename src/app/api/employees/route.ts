@@ -85,7 +85,7 @@ export async function POST(request: Request) {
         active: body.active === false ? false : true,
       },
     });
-    await logAction("create", "employee", employee.id, `Funcionário "${employee.name}" criado`);
+    await logAction("create", "employee", employee.id, `Funcionário "${employee.name}" criado`, user);
     return NextResponse.json({ employee: { ...employee, salary: toNumber(employee.salary) } }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Erro ao criar funcionário." }, { status: 400 });

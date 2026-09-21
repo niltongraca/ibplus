@@ -180,6 +180,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: result.error || "Falha ao enviar o email." }, { status: 500 });
   }
 
-  await logAction("send", type === "FATURA" ? "invoice" : "quote", id, `${type} enviado por email para ${recipient}`);
+  await logAction("send", type === "FATURA" ? "invoice" : "quote", id, `${type} enviado por email para ${recipient}`, user);
   return NextResponse.json({ success: true, to: recipient });
 }

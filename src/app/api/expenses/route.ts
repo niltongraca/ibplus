@@ -71,7 +71,7 @@ export async function POST(request: Request) {
         },
       });
       if (created.paid) {
-        await recordExpensePayment(companyId, created.id, created.description, toNumber(created.amount), tx);
+        await recordExpensePayment(companyId, created.id, created.description, toNumber(created.amount), tx, user);
       }
       return created;
     });

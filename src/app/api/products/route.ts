@@ -112,7 +112,7 @@ export async function POST(request: Request) {
       return created;
     });
 
-    await logAction("create", "product", product.id, `Produto "${product.name}" criado`);
+    await logAction("create", "product", product.id, `Produto "${product.name}" criado`, user);
     return NextResponse.json({ product: serializeProduct(product as never) }, { status: 201 });
   } catch (err) {
     console.error("Erro ao criar produto:", err);

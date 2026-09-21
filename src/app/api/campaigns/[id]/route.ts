@@ -64,7 +64,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   if (start && end && end < start) return NextResponse.json({ error: "A data de fim deve ser posterior à de início." }, { status: 400 });
 
   await prisma.campaign.update({ where: { id }, data });
-  await logAction("update", "campaign", id, `Campanha actualizada`);
+  await logAction("update", "campaign", id, `Campanha actualizada`, user);
   return NextResponse.json({ success: true });
 }
 
@@ -77,6 +77,6 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   const result = await prisma.campaign.deleteMany({ where: { id, companyId: user.companyId } });
 
   if (!result.count) return NextResponse.json({ error: "Campanha não encontrada." }, { status: 404 });
-  await logAction("delete", "campaign", id, `Campanha eliminada`);
+  await logAction("delete", "campaign", id, `Campanha eliminada`, user);
   return NextResponse.json({ success: true });
 }

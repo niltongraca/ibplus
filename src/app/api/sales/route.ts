@@ -141,7 +141,7 @@ export async function POST(request: Request) {
     });
 
     const customerName = sale.customer?.name || "Cliente";
-    await logAction("create", "sale", sale.id, `Venda de ${toNumber(sale.total).toLocaleString()} Kz - ${customerName}`);
+    await logAction("create", "sale", sale.id, `Venda de ${toNumber(sale.total).toLocaleString()} Kz - ${customerName}`, user);
     await createNotification(
       user.companyId, "sale", `Nova venda de ${toNumber(sale.total).toLocaleString()} Kz`,
       `Venda registada para ${customerName}`, "/gestao/vendas"

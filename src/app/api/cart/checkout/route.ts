@@ -97,7 +97,7 @@ export async function POST(request: Request) {
       return created;
     });
 
-    await logAction("create", "sale", sale.id, `Venda na loja no valor de ${Math.round(total * 100) / 100} Kz`);
+    await logAction("create", "sale", sale.id, `Venda na loja no valor de ${Math.round(total * 100) / 100} Kz`, user);
     return NextResponse.json({ sale }, { status: 201 });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "";

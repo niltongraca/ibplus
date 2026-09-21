@@ -77,7 +77,7 @@ export async function POST(request: Request) {
       },
       include: { customer: { select: { name: true, email: true, phone: true } } },
     });
-    await logAction("create", "opportunity", opportunity.id, `Oportunidade "${title}" criada`);
+    await logAction("create", "opportunity", opportunity.id, `Oportunidade "${title}" criada`, user);
     return NextResponse.json({ opportunity: { ...opportunity, value: toNumber(opportunity.value) } }, { status: 201 });
   } catch (err: unknown) {
     const message = err instanceof Error && /Cliente não encontrado|título/.test(err.message) ? err.message : "Erro ao criar oportunidade.";
@@ -107,7 +107,7 @@ export async function PATCH(request: Request) {
 
     const result = await prisma.opportunity.updateMany({ where: { id, companyId: user.companyId }, data });
     if (!result.count) return NextResponse.json({ error: "Oportunidade não encontrada." }, { status: 404 });
-    await logAction("update", "opportunity", id, `Oportunidade actualizada`);
+    await logAction("update", "opportunity", id, `Oportunidade actualizada`, user);
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Erro ao actualizar." }, { status: 400 });
@@ -125,7 +125,7 @@ export async function DELETE(request: Request) {
     const { id } = parsed.data;
     const result = await prisma.opportunity.deleteMany({ where: { id, companyId: user.companyId } });
     if (!result.count) return NextResponse.json({ error: "Oportunidade não encontrada." }, { status: 404 });
-    await logAction("delete", "opportunity", id, `Oportunidade eliminada`);
+    await logAction("delete", "opportunity", id, `Oportunidade eliminada`, user);
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Erro ao eliminar." }, { status: 400 });

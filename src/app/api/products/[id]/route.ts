@@ -58,7 +58,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
 
     const newStock = await prisma.product.findFirst({ where: { id }, select: { stock: true } });
-    await logAction("update", "product", id, `Stock de "${existing.name}" ajustado em ${adjust > 0 ? "+" : ""}${adjust}`);
+    await logAction("update", "product", id, `Stock de "${existing.name}" ajustado em ${adjust > 0 ? "+" : ""}${adjust}`, user);
     return NextResponse.json({ success: true, stock: newStock?.stock });
   }
 
@@ -100,7 +100,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   });
 
   if (!result.count) return NextResponse.json({ error: "Produto não encontrado." }, { status: 404 });
-  await logAction("update", "product", id, `Produto "${nameTrimmed || existing.name}" atualizado`);
+  await logAction("update", "product", id, `Produto "${nameTrimmed || existing.name}" atualizado`, user);
   return NextResponse.json({ success: true });
 }
 
@@ -120,11 +120,11 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
 
   if (hasHistory) {
     await prisma.product.update({ where: { id }, data: { active: false } });
-    await logAction("delete", "product", id, `Produto "${product.name}" desativado (tem histórico)`);
+    await logAction("delete", "product", id, `Produto "${product.name}" desativado (tem histórico)`, user);
     return NextResponse.json({ success: true, message: "Produto desativado porque tem histórico." });
   }
 
   await prisma.product.delete({ where: { id } });
-  await logAction("delete", "product", id, `Produto "${product.name}" eliminado`);
+  await logAction("delete", "product", id, `Produto "${product.name}" eliminado`, user);
   return NextResponse.json({ success: true });
 }

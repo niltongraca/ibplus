@@ -137,7 +137,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         });
       });
 
-      await logAction("update", "sale", id, `Venda atualizada - ${toNumber(sale.total).toLocaleString()} Kz`);
+      await logAction("update", "sale", id, `Venda atualizada - ${toNumber(sale.total).toLocaleString()} Kz`, user);
       return NextResponse.json({ sale: serializeSale(sale as never) });
     }
 
@@ -156,7 +156,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       where: { id, companyId: user.companyId },
       include: { customer: { select: { name: true } }, items: { include: { product: { select: { name: true } } } } },
     });
-    await logAction("update", "sale", id, `Venda atualizada`);
+    await logAction("update", "sale", id, `Venda atualizada`, user);
     return NextResponse.json({ sale: serializeSale(sale as never) });
   } catch (err) {
     if (err instanceof Error && err.message === "INVALID_ITEM") {
@@ -205,6 +205,6 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     return NextResponse.json({ error: "Erro ao cancelar venda." }, { status: 400 });
   }
 
-  await logAction("delete", "sale", id, `Venda cancelada`);
+  await logAction("delete", "sale", id, `Venda cancelada`, user);
   return NextResponse.json({ success: true, message: "Venda cancelada e stock reposto." });
 }

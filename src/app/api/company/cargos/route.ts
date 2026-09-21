@@ -44,7 +44,7 @@ export async function POST(request: Request) {
         active: body.active === false ? false : true,
       },
     });
-    await logAction("create", "cargo", cargo.id, `Cargo "${cargo.name}" criado`);
+    await logAction("create", "cargo", cargo.id, `Cargo "${cargo.name}" criado`, user);
     return NextResponse.json({ cargo }, { status: 201 });
   } catch (error: unknown) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {

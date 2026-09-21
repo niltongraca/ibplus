@@ -61,7 +61,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       },
       include: { items: true },
     });
-    await logAction("update", "purchase", id, `Compra atualizada - ${toNumber(purchase.total).toLocaleString()} Kz`);
+    await logAction("update", "purchase", id, `Compra atualizada - ${toNumber(purchase.total).toLocaleString()} Kz`, user);
     return NextResponse.json({ purchase: serializePurchase(purchase as never) });
   }
 
@@ -122,7 +122,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       });
     });
 
-    await logAction("update", "purchase", id, `Compra atualizada - ${toNumber(purchase.total).toLocaleString()} Kz`);
+    await logAction("update", "purchase", id, `Compra atualizada - ${toNumber(purchase.total).toLocaleString()} Kz`, user);
     return NextResponse.json({ purchase: serializePurchase(purchase as never) });
   } catch (err) {
     if (err instanceof Error && err.message === "INVALID_ITEM") {
@@ -155,6 +155,6 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     await tx.purchase.delete({ where: { id } });
   });
 
-  await logAction("delete", "purchase", id, `Compra eliminada`);
+  await logAction("delete", "purchase", id, `Compra eliminada`, user);
   return NextResponse.json({ success: true });
 }

@@ -117,9 +117,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     await tx.invoice.update({ where: { id }, data });
 
     if (isPaid) {
-      await recordInvoicePayment(companyId, id, existing.number, data.paidAmount as number, tx);
+      await recordInvoicePayment(companyId, id, existing.number, data.paidAmount as number, tx, user);
     } else if (wasPaid) {
-      await revertInvoicePayment(companyId, id, existing.number, tx);
+      await revertInvoicePayment(companyId, id, existing.number, tx, user);
     }
   });
 

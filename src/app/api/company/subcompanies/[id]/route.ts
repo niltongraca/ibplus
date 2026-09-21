@@ -35,7 +35,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   if (body.active !== undefined) data.active = body.active === true;
 
   const subCompany = await prisma.subCompany.update({ where: { id }, data });
-  await logAction("update", "subcompany", id, `Subempresa "${subCompany.name}" atualizada`);
+  await logAction("update", "subcompany", id, `Subempresa "${subCompany.name}" atualizada`, user);
   return NextResponse.json({ subCompany });
 }
 
@@ -49,6 +49,6 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   if (!existing) return NextResponse.json({ error: "Subempresa não encontrada." }, { status: 404 });
 
   await prisma.subCompany.delete({ where: { id } });
-  await logAction("delete", "subcompany", id, `Subempresa "${existing.name}" eliminada`);
+  await logAction("delete", "subcompany", id, `Subempresa "${existing.name}" eliminada`, user);
   return NextResponse.json({ success: true });
 }

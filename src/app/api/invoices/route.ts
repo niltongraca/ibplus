@@ -92,8 +92,8 @@ export async function POST(request: Request) {
     const paidAmount = status === "paid" ? total : body.paidAmount ?? 0;
 
     const invoice = await prisma.$transaction(async (tx) => {
-    await findOrCreateCustomer(companyId, customer || "", tx);
-    await ensureItemsInCatalog(companyId, normalizedItems, tx);
+    await findOrCreateCustomer(companyId, customer || "", tx, user);
+    await ensureItemsInCatalog(companyId, normalizedItems, tx, user);
 
     const number = await nextInvoiceNumber(tx, companyId);
 
@@ -125,7 +125,7 @@ export async function POST(request: Request) {
 
     const payable = Math.min(paidAmount, total);
     if (payable > 0) {
-      await recordInvoicePayment(companyId, created.id, number, payable, tx);
+      await recordInvoicePayment(companyId, created.id, number, payable, tx, user);
     }
 
     return created;

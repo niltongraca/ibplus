@@ -269,7 +269,7 @@ export default function NovaVendaPage() {
                           <button
                             type="button"
                             onClick={() => removeItem(index)}
-                            className="p-1.5 hover:bg-red-50 rounded-lg"
+                            className="p-1.5 hover:bg-red-50 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center"
                           >
                             <Trash2 className="w-4 h-4 text-red-400" />
                           </button>

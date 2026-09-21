@@ -60,9 +60,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const refreshed = await tx.expense.findFirst({ where: { id, companyId } });
     if (refreshed?.paid) {
-      await recordExpensePayment(companyId, refreshed.id, refreshed.description, toNumber(refreshed.amount), tx);
+      await recordExpensePayment(companyId, refreshed.id, refreshed.description, toNumber(refreshed.amount), tx, user);
     } else if (existing.paid) {
-      await revertExpensePayment(companyId, refreshed!.id, refreshed!.description, tx);
+      await revertExpensePayment(companyId, refreshed!.id, refreshed!.description, tx, user);
     }
     return refreshed!;
   }).catch((err) => {
@@ -72,7 +72,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   if (!updated) return NextResponse.json({ error: "Despesa não encontrada." }, { status: 404 });
 
-  await logAction("update", "expense", id, `Despesa atualizada`);
+  await logAction("update", "expense", id, `Despesa atualizada`, user);
   return NextResponse.json({ success: true });
 }
 
@@ -87,7 +87,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   if (!existing) return NextResponse.json({ error: "Despesa não encontrada." }, { status: 404 });
 
   await prisma.$transaction(async (tx) => {
-    if (existing.paid) await revertExpensePayment(companyId, id, existing.description, tx);
+    if (existing.paid) await revertExpensePayment(companyId, id, existing.description, tx, user);
     const result = await tx.expense.deleteMany({ where: { id, companyId } });
     if (!result.count) throw new Error("EXPENSE_NOT_FOUND");
   }).catch((err) => {
@@ -95,6 +95,6 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     throw err;
   });
 
-  await logAction("delete", "expense", id, `Despesa eliminada`);
+  await logAction("delete", "expense", id, `Despesa eliminada`, user);
   return NextResponse.json({ success: true });
 }

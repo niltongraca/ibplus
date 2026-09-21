@@ -64,7 +64,7 @@ export async function POST(request: Request) {
         notes: body.notes || null,
       },
     });
-    await logAction("create", "customer", customer.id, `Cliente "${customer.name}" criado`);
+    await logAction("create", "customer", customer.id, `Cliente "${customer.name}" criado`, user);
     await createNotification(user.companyId, "customer", `Novo cliente: ${customer.name}`, undefined, "/gestao/clientes");
     return NextResponse.json({ customer }, { status: 201 });
   } catch {

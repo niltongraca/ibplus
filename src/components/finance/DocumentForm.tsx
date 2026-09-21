@@ -384,7 +384,7 @@ export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; 
                       </td>
                       <td className="p-1 text-right font-semibold text-ib-primary">{formatCurrency(item.quantity * item.unitPrice, currency)}</td>
                       <td className="p-1 text-center">
-                        <button type="button" onClick={() => removeItem(i)} className="p-1.5 hover:bg-red-50 rounded-lg transition-colors">
+                        <button type="button" onClick={() => removeItem(i)} className="p-1.5 hover:bg-red-50 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center">
                           <Trash2 className="w-4 h-4 text-red-400" />
                         </button>
                       </td>

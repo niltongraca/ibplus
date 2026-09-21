@@ -82,7 +82,7 @@ export async function POST(request: Request) {
     const campaign = await prisma.campaign.create({
       data: { companyId: user.companyId, name, type, status, startDate, endDate, budget, notes },
     });
-    await logAction("create", "campaign", campaign.id, `Campanha "${name}" criada`);
+    await logAction("create", "campaign", campaign.id, `Campanha "${name}" criada`, user);
     return NextResponse.json({ campaign: { ...campaign, budget: campaign.budget === null ? null : toNumber(campaign.budget) } }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Erro ao criar campanha." }, { status: 400 });

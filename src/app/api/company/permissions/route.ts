@@ -79,7 +79,7 @@ export async function PUT(request: Request) {
       }
     });
 
-    await logAction("update", "cargoPermission", user.companyId!, "Permissões por cargo atualizadas");
+    await logAction("update", "cargoPermission", user.companyId!, "Permissões por cargo atualizadas", user);
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Erro ao guardar permissões." }, { status: 400 });

@@ -47,7 +47,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const service = await prisma.service.updateMany({ where: { id, companyId: user.companyId }, data: update });
     if (service.count === 0) return NextResponse.json({ error: "Serviço não encontrado." }, { status: 404 });
-    await logAction("update", "service", id, `Serviço atualizado`);
+    await logAction("update", "service", id, `Serviço atualizado`, user);
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("Erro ao actualizar serviço:", err);
@@ -64,6 +64,6 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
 
   const result = await prisma.service.deleteMany({ where: { id, companyId: user.companyId } });
   if (result.count === 0) return NextResponse.json({ error: "Serviço não encontrado." }, { status: 404 });
-  await logAction("delete", "service", id, `Serviço eliminado`);
+  await logAction("delete", "service", id, `Serviço eliminado`, user);
   return NextResponse.json({ success: true });
 }

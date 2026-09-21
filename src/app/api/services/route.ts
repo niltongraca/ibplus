@@ -70,7 +70,7 @@ export async function POST(request: Request) {
       },
     });
 
-    await logAction("create", "service", service.id, `Serviço "${service.name}" criado`);
+    await logAction("create", "service", service.id, `Serviço "${service.name}" criado`, user);
     return NextResponse.json({ service: { ...service, price: toNumber(service.price) } }, { status: 201 });
   } catch (err) {
     console.error("Erro ao criar serviço:", err);

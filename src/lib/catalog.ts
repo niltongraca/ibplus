@@ -1,10 +1,10 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { logAction } from "@/lib/audit";
+import { logAction, type AuditActor } from "@/lib/audit";
 
 type CatalogClient = Prisma.TransactionClient | typeof prisma;
 
-export async function findOrCreateCustomer(companyId: string, name: string, db: CatalogClient = prisma): Promise<void> {
+export async function findOrCreateCustomer(companyId: string, name: string, db: CatalogClient = prisma, user?: AuditActor): Promise<void> {
   const trimmed = typeof name === "string" ? name.trim() : "";
   if (!trimmed) return;
 
@@ -17,13 +17,14 @@ export async function findOrCreateCustomer(companyId: string, name: string, db: 
   const customer = await db.customer.create({
     data: { companyId, name: trimmed },
   });
-  await logAction("create", "customer", customer.id, `Cliente "${customer.name}" criado automaticamente na faturação`);
+  await logAction("create", "customer", customer.id, `Cliente "${customer.name}" criado automaticamente na faturação`, user);
 }
 
 export async function ensureItemsInCatalog(
   companyId: string,
   items: { description: string; unitPrice: number; kind?: string }[],
-  db: CatalogClient = prisma
+  db: CatalogClient = prisma,
+  user?: AuditActor
 ): Promise<void> {
   const [products, services] = await Promise.all([
     db.product.findMany({ where: { companyId }, select: { id: true, name: true } }),
@@ -50,12 +51,12 @@ export async function ensureItemsInCatalog(
       const service = await db.service.create({
         data: { companyId, name, price },
       });
-      await logAction("create", "service", service.id, `Serviço "${name}" criado automaticamente na faturação`);
+      await logAction("create", "service", service.id, `Serviço "${name}" criado automaticamente na faturação`, user);
     } else {
       const product = await db.product.create({
         data: { companyId, name, price, stock: 0, minStock: 0 },
       });
-      await logAction("create", "product", product.id, `Produto "${name}" criado automaticamente na faturação`);
+      await logAction("create", "product", product.id, `Produto "${name}" criado automaticamente na faturação`, user);
     }
   }
 }

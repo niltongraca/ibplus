@@ -79,7 +79,7 @@ export async function POST(request: Request) {
     const attendance = await prisma.attendance.create({
       data: { employeeId, date, checkIn, checkOut, status, notes },
     });
-    await logAction("create", "attendance", attendance.id, `Presença registada para "${employee.name}"`);
+    await logAction("create", "attendance", attendance.id, `Presença registada para "${employee.name}"`, user);
     return NextResponse.json({ attendance }, { status: 201 });
   } catch (err: unknown) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {

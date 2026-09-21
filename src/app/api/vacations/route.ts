@@ -71,7 +71,7 @@ export async function POST(request: Request) {
     const vacation = await prisma.vacation.create({
       data: { employeeId, startDate, endDate, status, notes },
     });
-    await logAction("create", "vacation", vacation.id, `Férias para "${employee.name}" solicitadas`);
+    await logAction("create", "vacation", vacation.id, `Férias para "${employee.name}" solicitadas`, user);
     return NextResponse.json({ vacation }, { status: 201 });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "";

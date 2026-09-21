@@ -51,7 +51,7 @@ export async function POST(request: Request) {
       });
     }
 
-    logAction("create", "announcement", announcement.id, title);
+    logAction("create", "announcement", announcement.id, title, user);
 
     return NextResponse.json({ announcement, broadcast: companies.length }, { status: 201 });
   } catch {

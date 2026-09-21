@@ -101,8 +101,8 @@ export async function POST(request: Request) {
     const bankDetails = body.bankDetails || null;
 
     const quote = await prisma.$transaction(async (tx) => {
-      await findOrCreateCustomer(companyId, customer || "", tx);
-      await ensureItemsInCatalog(companyId, normalizedItems, tx);
+      await findOrCreateCustomer(companyId, customer || "", tx, user);
+      await ensureItemsInCatalog(companyId, normalizedItems, tx, user);
 
       const number = await nextQuoteNumber(tx, companyId);
 

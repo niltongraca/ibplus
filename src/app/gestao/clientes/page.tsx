@@ -99,8 +99,8 @@ export default function ClientesPage() {
                 )},
                 { key: "actions", header: "Acções", hide: "mobile", className: "text-right", render: (c) => (
                   <div className="flex items-center justify-end gap-1">
-                    <Link href={`/gestao/clientes/${c.id}/editar`} className="p-1.5 hover:bg-gray-100 rounded-lg"><Edit3 className="w-4 h-4 text-ib-muted" /></Link>
-                    <button onClick={() => handleDelete(c.id)} className="p-1.5 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4 text-red-400" /></button>
+                    <Link href={`/gestao/clientes/${c.id}/editar`} className="p-1.5 hover:bg-gray-100 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center"><Edit3 className="w-4 h-4 text-ib-muted" /></Link>
+                    <button onClick={() => handleDelete(c.id)} className="p-1.5 hover:bg-red-50 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center"><Trash2 className="w-4 h-4 text-red-400" /></button>
                   </div>
                 )},
               ]}

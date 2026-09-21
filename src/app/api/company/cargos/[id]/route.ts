@@ -35,7 +35,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   if (body.active !== undefined) data.active = body.active === true;
 
   const cargo = await prisma.cargo.update({ where: { id }, data });
-  await logAction("update", "cargo", id, `Cargo "${cargo.name}" atualizado`);
+  await logAction("update", "cargo", id, `Cargo "${cargo.name}" atualizado`, user);
   return NextResponse.json({ cargo });
 }
 
@@ -55,11 +55,11 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   const count = await prisma.employee.count({ where: { cargoId: id } });
   if (count > 0) {
     await prisma.cargo.update({ where: { id }, data: { active: false } });
-    await logAction("delete", "cargo", id, `Cargo "${existing.name}" desativado (tem funcionários)`);
+    await logAction("delete", "cargo", id, `Cargo "${existing.name}" desativado (tem funcionários)`, user);
     return NextResponse.json({ success: true, message: "Cargo desativado porque tem funcionários atribuídos." });
   }
 
   await prisma.cargo.delete({ where: { id } });
-  await logAction("delete", "cargo", id, `Cargo "${existing.name}" eliminado`);
+  await logAction("delete", "cargo", id, `Cargo "${existing.name}" eliminado`, user);
   return NextResponse.json({ success: true });
 }

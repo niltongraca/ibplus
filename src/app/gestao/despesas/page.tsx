@@ -98,10 +98,10 @@ export default function DespesasPage() {
             )},
             { key: "actions", header: "Acções", hide: "mobile", className: "text-center", render: (e) => (
               <div className="flex items-center justify-center gap-1">
-                <button onClick={() => handleTogglePaid(e.id, e.paid)} className={`p-1.5 rounded-lg transition-colors ${e.paid ? "text-yellow-600 hover:bg-yellow-50" : "text-green-600 hover:bg-green-50"}`} title={e.paid ? "Marcar como não paga" : "Marcar como paga"}>
+                <button onClick={() => handleTogglePaid(e.id, e.paid)} className={`p-1.5 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${e.paid ? "text-yellow-600 hover:bg-yellow-50" : "text-green-600 hover:bg-green-50"}`} title={e.paid ? "Marcar como não paga" : "Marcar como paga"}>
                   {e.paid ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
                 </button>
-                <button onClick={() => handleDelete(e.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
+                <button onClick={() => handleDelete(e.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center" title="Eliminar">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>

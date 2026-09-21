@@ -59,7 +59,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const result = await prisma.customer.updateMany({ where: { id, companyId: user.companyId }, data });
 
   if (!result.count) return NextResponse.json({ error: "Cliente não encontrado." }, { status: 404 });
-  await logAction("update", "customer", id, `Cliente atualizado`);
+  await logAction("update", "customer", id, `Cliente atualizado`, user);
   return NextResponse.json({ success: true });
 }
 
@@ -84,6 +84,6 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
 
   const result = await prisma.customer.deleteMany({ where: { id, companyId: user.companyId } });
   if (!result.count) return NextResponse.json({ error: "Cliente não encontrado." }, { status: 404 });
-  await logAction("delete", "customer", id, `Cliente eliminado`);
+  await logAction("delete", "customer", id, `Cliente eliminado`, user);
   return NextResponse.json({ success: true });
 }

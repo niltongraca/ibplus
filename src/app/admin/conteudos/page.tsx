@@ -155,10 +155,10 @@ export default function AdminConteudosPage() {
                   <td className="p-3 text-center text-xs text-ib-muted">{formatDate(item.createdAt)}</td>
                   <td className="p-3 text-center">
                     <div className="flex items-center justify-center gap-1">
-                      <a href={item.url} target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-gray-100 rounded-lg" title="Abrir URL">
+                      <a href={item.url} target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-gray-100 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center" title="Abrir URL">
                         <ExternalLink className="w-4 h-4 text-ib-muted" />
                       </a>
-                      <button onClick={() => handleDelete(item.id)} className="p-1.5 hover:bg-red-50 rounded-lg" title="Eliminar">
+                      <button onClick={() => handleDelete(item.id)} className="p-1.5 hover:bg-red-50 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center" title="Eliminar">
                         <Trash2 className="w-4 h-4 text-red-400" />
                       </button>
                     </div>

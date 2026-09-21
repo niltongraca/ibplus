@@ -79,7 +79,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   const result = await prisma.employee.updateMany({ where: { id, companyId: user.companyId }, data });
   if (!result.count) return NextResponse.json({ error: "Funcionário não encontrado." }, { status: 404 });
-  await logAction("update", "employee", id, `Funcionário atualizado`);
+  await logAction("update", "employee", id, `Funcionário atualizado`, user);
   return NextResponse.json({ success: true });
 }
 
@@ -97,12 +97,12 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
 
   if (employee._count.attendances > 0 || employee._count.vacations > 0) {
     await prisma.employee.update({ where: { id }, data: { active: false } });
-    await logAction("delete", "employee", id, `Funcionário "${employee.name}" desativado (tem histórico)`);
+    await logAction("delete", "employee", id, `Funcionário "${employee.name}" desativado (tem histórico)`, user);
     return NextResponse.json({ success: true, message: "Funcionário desativado porque tem histórico." });
   }
 
   const result = await prisma.employee.deleteMany({ where: { id, companyId: user.companyId } });
   if (!result.count) return NextResponse.json({ error: "Funcionário não encontrado." }, { status: 404 });
-  await logAction("delete", "employee", id, `Funcionário eliminado`);
+  await logAction("delete", "employee", id, `Funcionário eliminado`, user);
   return NextResponse.json({ success: true });
 }

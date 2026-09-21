@@ -163,7 +163,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     await tx.quote.update({ where: { id }, data });
   });
 
-  await logAction("update", "quote", id, `Orçamento atualizado`);
+  await logAction("update", "quote", id, `Orçamento atualizado`, user);
   return NextResponse.json({ success: true });
 }
 

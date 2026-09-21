@@ -57,6 +57,6 @@ export async function POST(request: Request) {
 
   const report = await generateReportForCompany(user.companyId, period);
 
-  await logAction("create", "report", report.id, `Relatório ${report.period} "${report.label}" gerado`);
+  await logAction("create", "report", report.id, `Relatório ${report.period} "${report.label}" gerado`, user);
   return NextResponse.json({ report: serializeReport(report as never) }, { status: 201 });
 }

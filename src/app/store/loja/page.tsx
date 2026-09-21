@@ -171,7 +171,7 @@ export default function LojaOnlinePage() {
           <div className="w-full max-w-md bg-white h-full flex flex-col" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <h2 className="text-lg font-bold text-ib-primary flex items-center gap-2"><ShoppingCart className="w-5 h-5" /> Carrinho ({cartCount})</h2>
-              <button onClick={() => setShowCart(false)} className="p-1 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5" /></button>
+              <button onClick={() => setShowCart(false)} className="p-1 hover:bg-gray-100 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center"><X className="w-5 h-5" /></button>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {cart.length === 0 ? (

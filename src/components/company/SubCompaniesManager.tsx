@@ -143,7 +143,7 @@ export function SubCompaniesManager() {
           <div className="mb-4 p-4 rounded-lg bg-gray-50 border border-gray-100 space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold text-ib-primary">{editing ? "Editar" : "Registar nova subempresa / organização"}</p>
-              <button onClick={() => setShowForm(false)} className="p-1 text-gray-400 hover:text-gray-600">
+              <button onClick={() => setShowForm(false)} aria-label="Fechar" className="p-1 text-gray-400 hover:text-gray-600 min-w-[44px] min-h-[44px] flex items-center justify-center">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -208,10 +208,10 @@ export function SubCompaniesManager() {
                     )}
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
-                    <button onClick={() => openEdit(s)} className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded" title="Editar">
+                    <button onClick={() => openEdit(s)} className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded min-w-[44px] min-h-[44px] flex items-center justify-center" title="Editar" aria-label={`Editar ${s.name}`}>
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
-                    <button onClick={() => handleDelete(s)} className="p-1 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded" title="Remover">
+                    <button onClick={() => handleDelete(s)} className="p-1 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded min-w-[44px] min-h-[44px] flex items-center justify-center" title="Remover" aria-label={`Remover ${s.name}`}>
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>

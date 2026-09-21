@@ -166,12 +166,12 @@ export function CargosManager({ compact = false }: { compact?: boolean }) {
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     {c.name !== "Dono" && (
-                      <button onClick={() => startEdit(c)} className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded" title="Editar">
+                      <button onClick={() => startEdit(c)} className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded min-w-[44px] min-h-[44px] flex items-center justify-center" title="Editar" aria-label={`Editar ${c.name}`}>
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                     )}
                     {c.name !== "Dono" && !c.isDefault && (
-                      <button onClick={() => remove(c)} className="p-1 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded" title="Remover">
+                      <button onClick={() => remove(c)} className="p-1 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded min-w-[44px] min-h-[44px] flex items-center justify-center" title="Remover" aria-label={`Remover ${c.name}`}>
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     )}

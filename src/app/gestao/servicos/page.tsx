@@ -95,10 +95,10 @@ export default function ServicosPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-ib-primary">{formatCurrency(service.price)}</span>
                   <div className="flex items-center gap-1">
-                    <Link href={`/gestao/servicos/${service.id}/editar`} className="p-1.5 hover:bg-gray-100 rounded-lg text-ib-muted hover:text-ib-primary">
+                    <Link href={`/gestao/servicos/${service.id}/editar`} className="p-1.5 hover:bg-gray-100 rounded-lg text-ib-muted hover:text-ib-primary min-w-[44px] min-h-[44px] flex items-center justify-center">
                       <Pencil className="w-4 h-4" />
                     </Link>
-                    <button onClick={() => handleDelete(service.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-ib-muted hover:text-ib-danger">
+                    <button onClick={() => handleDelete(service.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-ib-muted hover:text-ib-danger min-w-[44px] min-h-[44px] flex items-center justify-center">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>

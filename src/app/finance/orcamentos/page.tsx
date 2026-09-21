@@ -167,20 +167,20 @@ export default function OrcamentosPage() {
                       <div className="flex items-center justify-end gap-1">
                         <Link
                           href={`/finance/orcamentos/${q.id}`}
-                          className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                          className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                         >
                           <Eye className="w-4 h-4 text-ib-muted" />
                         </Link>
                         <Link
                           href={`/finance/orcamentos/${q.id}/editar`}
-                          className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                          className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                         >
                           <Pencil className="w-4 h-4 text-ib-muted" />
                         </Link>
-                        <button onClick={() => handleExportPDF(q)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
+                        <button onClick={() => handleExportPDF(q)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center">
                           <FileDown className="w-4 h-4 text-ib-muted" />
                         </button>
-                        <button onClick={() => removeQuote(q.id)} className="p-1.5 hover:bg-red-50 rounded-lg transition-colors">
+                        <button onClick={() => removeQuote(q.id)} className="p-1.5 hover:bg-red-50 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center">
                           <Trash2 className="w-4 h-4 text-red-400" />
                         </button>
                       </div>

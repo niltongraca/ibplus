@@ -210,10 +210,10 @@ export default function FuncionariosPage() {
             )},
             { key: "actions", header: "Acções", hide: "tablet", className: "text-center", render: (e: Employee) => (
               <div className="flex items-center justify-center gap-1">
-                <button onClick={() => openEdit(e)} className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
+                <button onClick={() => openEdit(e)} className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center" title="Editar" aria-label={`Editar ${e.name}`}>
                   <Pencil className="w-4 h-4" />
                 </button>
-                <button onClick={() => handleDelete(e.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
+                <button onClick={() => handleDelete(e.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center" title="Eliminar" aria-label={`Eliminar ${e.name}`}>
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -232,10 +232,10 @@ export default function FuncionariosPage() {
                   <div className="flex items-center gap-2 mt-1">{cargoBadge(e)}</div>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => openEdit(e)} className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg" title="Editar">
+                  <button onClick={() => openEdit(e)} className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center" title="Editar" aria-label={`Editar ${e.name}`}>
                     <Pencil className="w-4 h-4" />
                   </button>
-                  <button onClick={() => handleDelete(e.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg" title="Eliminar">
+                  <button onClick={() => handleDelete(e.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center" title="Eliminar" aria-label={`Eliminar ${e.name}`}>
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -257,7 +257,7 @@ export default function FuncionariosPage() {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-ib-primary">{editing ? "Editar Funcionário" : "Novo Funcionário"}</h2>
-              <button onClick={() => setShowForm(false)} className="p-1 text-gray-400 hover:text-gray-600">
+              <button onClick={() => setShowForm(false)} aria-label="Fechar" className="p-2 text-gray-400 hover:text-gray-600 min-w-[44px] min-h-[44px] flex items-center justify-center">
                 <X className="w-5 h-5" />
               </button>
             </div>
