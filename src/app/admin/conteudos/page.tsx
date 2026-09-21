@@ -105,7 +105,7 @@ export default function AdminConteudosPage() {
         </div>
         <table className="tbl">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-200 text-ib-muted text-xs uppercase tracking-wider">
+            <tr className="border-b border-[var(--border-color)] bg-[var(--bg-secondary)] text-ib-muted text-xs uppercase tracking-wider">
               <th className="tbl-th">Título</th>
               <th className="tbl-th text-center w-20">Tipo</th>
               <th className="tbl-th text-center w-20">Destaque</th>

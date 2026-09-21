@@ -397,7 +397,7 @@ function SummaryRow({ label, value, color, bold }: { label: string; value: strin
 function ExportButton({ icon: Icon, label, color, onClick }: { icon: LucideIcon; label: string; color: string; onClick: () => void }) {
   const colors: Record<string, string> = { green: "text-green-600", blue: "text-blue-600", purple: "text-purple-600" };
   return (
-    <button onClick={onClick} className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 border border-gray-100 transition-colors">
+    <button onClick={onClick} className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-[var(--bg-secondary)] border border-[var(--border-color)] transition-colors">
       <div className="flex items-center gap-3">
         <Icon className={`w-4 h-4 ${colors[color]}`} />
         <span className="text-sm font-medium text-gray-700">{label}</span>
