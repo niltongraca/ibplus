@@ -10,6 +10,7 @@ import {
   MessageCircle, CheckCircle, AlertCircle, Moon, Sun
 } from "lucide-react";
 import { FileUpload } from "@/components/FileUpload";
+import { SmartImage } from "@/components/SmartImage";
 import { InviteManager } from "@/components/InviteManager";
 import { useTheme } from "@/contexts/ThemeContext";
 import { AnimatedTabs } from "@/components/ui/transitions/AnimatedTabs";
@@ -163,7 +164,7 @@ export default function PerfilPage() {
             <div className="flex items-center gap-4 mb-4">
               <div className="w-16 h-16 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
                 {user?.avatar ? (
-                  <img src={user.avatar} alt="avatar" width={64} height={64} className="w-full h-full object-cover" />
+                  <SmartImage src={user.avatar} alt="avatar" width={64} height={64} className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-xl font-bold text-ib-muted">{user?.name?.charAt(0)?.toUpperCase() || "U"}</span>
                 )}

@@ -5,6 +5,7 @@ import { ThumbsUp, MessageCircle, Share2, ExternalLink, Search, Users, BookOpen 
 import Link from "next/link";
 import SiteHeader from "@/components/site/Header";
 import SiteFooter from "@/components/site/Footer";
+import { SmartImage } from "@/components/SmartImage";
 
 interface ContentItem {
   id: string;
@@ -159,7 +160,7 @@ export default function RedePage() {
 
                   {item.thumbnail && (
                     <div className="rounded-lg overflow-hidden mb-3 -mx-1">
-                      <img
+                      <SmartImage
                         src={item.thumbnail}
                         alt={item.title}
                         width={1200}

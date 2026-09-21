@@ -3,6 +3,7 @@ import { Store, ShoppingBag, MapPin, Phone, Mail, ArrowRight } from "lucide-reac
 import Link from "next/link";
 import SiteHeader from "@/components/site/Header";
 import SiteFooter from "@/components/site/Footer";
+import { SmartImage } from "@/components/SmartImage";
 import type { Metadata } from "next";
 
 export const revalidate = 60;
@@ -59,7 +60,7 @@ export default async function PracaPage() {
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden" style={{ backgroundColor: "rgba(37, 99, 235, 0.1)" }}>
                     {company.logo ? (
-                      <img src={company.logo} alt={`${company.name} logo`} width={48} height={48} className="w-full h-full object-contain p-0.5" />
+                      <SmartImage src={company.logo} alt={`${company.name} logo`} width={48} height={48} className="w-full h-full object-contain p-0.5" />
                     ) : (
                       <Store className="w-6 h-6 text-ib-accent" />
                     )}

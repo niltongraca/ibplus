@@ -3,6 +3,7 @@
 import { Upload, X, Loader2 } from "lucide-react";
 import { useState, useRef } from "react";
 import { apiFetch } from "@/lib/api";
+import { SmartImage } from "./SmartImage";
 
 interface FileUploadProps {
   value: string;
@@ -19,7 +20,7 @@ function hasTransparency(file: File): boolean {
   return t === "image/png" || t === "image/webp" || t === "image/gif";
 }
 
-async function resizeImage(file: File, maxDimension: number): Promise<File | string> {
+async function resizeImage(file: File, maxDimension: number): Promise<File> {
   if (!file.type.startsWith("image/")) return file;
 
   const url = URL.createObjectURL(file);
@@ -51,9 +52,12 @@ async function resizeImage(file: File, maxDimension: number): Promise<File | str
     const mime = file.type === "image/webp" || file.type === "image/png" || file.type === "image/gif"
       ? "image/png"
       : "image/jpeg";
-    const quality = mime === "image/png" ? undefined : 0.85;
-    const dataUrl = canvas.toDataURL(mime, quality);
-    return dataUrl;
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, mime, mime === "image/png" ? undefined : 0.85)
+    );
+    if (!blob) return file;
+    // Devolve sempre um File — todos os uploads passam por /api/upload (Blob).
+    return new File([blob], file.name, { type: mime });
   } finally {
     URL.revokeObjectURL(url);
   }
@@ -69,14 +73,10 @@ export function FileUpload({ value, onChange, accept = "image/*", label = "Uploa
     setUploading(true);
     try {
       const processed = await resizeImage(file, maxDimension);
-      if (typeof processed === "string") {
-        onChange(processed);
-      } else {
-        const formData = new FormData();
-        formData.append("file", processed);
-        const data = await apiFetch<{ url?: string }>("/api/upload", { method: "POST", body: formData });
-        if (data.url) onChange(data.url);
-      }
+      const formData = new FormData();
+      formData.append("file", processed);
+      const data = await apiFetch<{ url?: string }>("/api/upload", { method: "POST", body: formData });
+      if (data.url) onChange(data.url);
     } catch {
       // silent
     } finally {
@@ -89,7 +89,7 @@ export function FileUpload({ value, onChange, accept = "image/*", label = "Uploa
     <div className="flex items-center gap-3">
       {value && (
         <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-200 shrink-0">
-          <img src={value} alt="preview" width={48} height={48} className="w-full h-full object-cover" />
+          <SmartImage src={value} alt="preview" width={48} height={48} className="w-full h-full object-cover" />
           <button
             type="button"
             onClick={() => onChange("")}

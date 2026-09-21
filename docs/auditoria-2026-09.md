@@ -64,3 +64,25 @@
 1. ~~**Validação inexistente a 90% das rotas** — a cada módulo novo a superfície de inputs mal tipados cresce; multiplicador de bugs.~~ **✔ RESOLVIDO (2026-09-20)**: 0 de 71 rotas `/api/*` usam `request.json()` sem schema (restam apenas as rotas já validadas — auth register/forgot/reset e students com zod inline — e `/api/upload` que consome `formData()`). Regressão mitigada porque os novos módulos de `validations/*` são o único ponto de entrada.
 2. **Arquitectura client-heavy** (~137 `"use client"`, sem Server Actions) — waterfalls de fetch e bundle grande; incompatível com o modelo Server Component; custoso de reverter depois.
 3. ~~**Zero testes + lint desligado no build** — regressões de numerário/stock passam a produção sem barreira.~~ **✔ RESOLVIDO (2026-09-20)**: 90 testes unitários (`node:test` + `tsx`, sem dependências novas) sobre `validations/*` (helpers/finance/catalog/company), `money`, `utils`, `csrf` e `rateLimit`; correm com `npm test` no CI local/comandos; lint volta a correr no `next build` (0 erros; 8 avisos `no-img-element` de UX, tarefa da auditoria #18).
+
+---
+
+## Follow-up (fora da lista de 30) — migração de uploads para Vercel Blob (pré-requisito do `next/image` real, #18)
+
+**✔ IMPLEMENTADO (2026-09-21)**, com ativação dependente do token (ver runbook abaixo).
+
+Antes: `/api/upload` devolvia um **data-URL base64** (`data:image/...;base64,`) que era gravado tal-qual na BD (`User.avatar/coverPhoto`, `Profile.logo`, `Company.logo`, `Product.image`, `Content.thumbnail`) — imagens pesadas, sem cache CDN nem otimização.
+
+O que mudou:
+- **`npm i @vercel/blob`** (v2); rota `src/app/api/upload/route.ts` usa agora **`put()` do Vercel Blob** (`access: "public"`, `addRandomSuffix`, prefixo `uploads/`). Autenticação, rate-limit e validação (extensão/tamanho/tipo) mantêm-se — a validação foi extraída para `src/lib/upload.ts` (`resolveUpload`) e testada.
+- **Fallback legado**: sem `BLOB_READ_WRITE_TOKEN` na env a rota volta ao data-URL (com `console.error` se o Blob falhar) — os uploads nunca quebram, apenas ficam por otimizar até o token ser configurado.
+- **`FileUpload.tsx`**: o redimensionamento por canvas passou a devolver **File** (antes devolvia data-URL e contornava o `/api/upload`, reintroduzindo base64 na BD) — agora todos os uploads passam pela rota.
+- **`SmartImage` (`src/components/SmartImage.tsx`)**: render com `next/image` para URLs http(s) e `<img>` nativo para data-URLs legados (o `next/image` não suporta `data:`). Aplicado em: `FileUpload` (preview), `gestao/perfil` (avatar), `praca` (logo), `praca/[id]` (capa/logo/avatar) e `rede` (thumbnail). `InvoiceTemplate` mantém `<img>` (é o builder HTML dos popups de export, fora do React).
+- **Backfill**: `scripts/backfill-blob.ts` (`npm run backfill:blob`) varre os 6 campos de imagem e migra os registos `data:` para o Blob (idempotente por prefixo `data:`; relatório final por modelo).
+
+Runbook de ativação:
+1. Vercel → projeto → **Storage → Blob → Create token** (escolher *Production* e/ou desenvolver local) → copiar `BLOB_READ_WRITE_TOKEN`.
+2. Definir a env no Vercel (e em `.env`/`.env.local` local para dev).
+3. Correr `npm run backfill:blob` com a env definida (migra as imagens existentes; os novos uploads já vão para o Blob a partir do *deploy* seguinte).
+
+Notas de segurança: `next.config.ts` já aceita qualquer hostname https em `images.remotePatterns`, e o CSP `img-src 'self' data: blob: https:` cobre o domínio `*.public.blob.vercel-storage.com` — sem alterações adicionais. A verificação end-to-end do `put()` depende do token (por testar em produção/preview).
