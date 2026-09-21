@@ -7,6 +7,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import { jsonToCsv, downloadCsv } from "@/lib/csv";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Legend } from "recharts";
 import { buildReportHtml } from "@/lib/reportDocument";
+import { getCspNonce } from "@/lib/cspNonce";
 
 const COLORS = ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
 
@@ -174,8 +175,9 @@ export default function RelatoriosPage() {
             },
           }] : []),
         ],
-      })
-    );
+      },
+      getCspNonce()
+    ));
     win.document.close();
   }
 

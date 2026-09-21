@@ -22,6 +22,8 @@ const API_PUBLIC_PREFIXES = [
   "/api/plans",
   "/api/praca",
   "/api/cron",
+  // Web Vitals: beacon anónimo do browser (sem sessão/CSRF; validado na rota)
+  "/api/vitals",
 ];
 
 function isApiPublic(pathname: string): boolean {
@@ -56,13 +58,45 @@ function matchFeatureRoute(pathname: string, routes: Record<string, string>): st
   return null;
 }
 
+// CSP com nonce por request (auditoria #24): o Next aplica o nonce aos scripts
+// inline que emite (lê o header x-nonce). Em produção fica sem `unsafe-inline`/
+// `unsafe-eval`; em dev mantêm-se (react-refresh/webpack e2e). O CSP vive aqui
+// (middleware) e não no next.config — precisa do nonce per-request.
+function buildCsp(nonce: string): string {
+  const dev = process.env.NODE_ENV !== "production";
+  const scriptExtra = dev ? " 'unsafe-eval' 'unsafe-inline'" : "";
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' https://*.botpress.cloud https://va.vercel-scripts.com${scriptExtra}`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data:",
+    "connect-src 'self' https://*.botpress.cloud https://vitals.vercel-insights.com https://*.vercel-scripts.com wss:",
+    "frame-src 'self' https://*.botpress.cloud",
+    "worker-src 'self' blob:",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'self'",
+  ].join("; ");
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const response = NextResponse.next();
+  const nonce = crypto.randomUUID();
 
+  // Propaga o nonce para o SSR (o Next aplica-o aos scripts inline que emite);
+  // o layout lê o header e expõe `data-nonce` no <html> para os popups de
+  // exportação PDF (herdam o CSP do opener e precisam do mesmo nonce).
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+
+  response.headers.set("Content-Security-Policy", buildCsp(nonce));
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("X-Frame-Options", "SAMEORIGIN");
+  response.headers.set("Cross-Origin-Opener-Policy", "same-origin");
   response.headers.set("X-XSS-Protection", "1; mode=block");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
@@ -98,7 +132,7 @@ export async function middleware(request: NextRequest) {
           { error: "Não autenticado." },
           { status: 401 }
         );
-        addSecurityHeaders(unauthorized);
+        addSecurityHeaders(unauthorized, nonce);
         return unauthorized;
       }
 
@@ -118,7 +152,7 @@ export async function middleware(request: NextRequest) {
             { status: 403 }
           );
           forbidden.cookies.delete(CSRF_COOKIE);
-          addSecurityHeaders(forbidden);
+          addSecurityHeaders(forbidden, nonce);
           return forbidden;
         }
       }
@@ -132,7 +166,7 @@ export async function middleware(request: NextRequest) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     const redirectRes = NextResponse.redirect(loginUrl);
-    addSecurityHeaders(redirectRes);
+    addSecurityHeaders(redirectRes, nonce);
     return redirectRes;
   }
 
@@ -140,7 +174,7 @@ export async function middleware(request: NextRequest) {
   if (!payload) {
     const res = NextResponse.redirect(new URL("/login", request.url));
     res.cookies.delete("ibplus_session");
-    addSecurityHeaders(res);
+    addSecurityHeaders(res, nonce);
     return res;
   }
 
@@ -154,13 +188,13 @@ export async function middleware(request: NextRequest) {
 
     if (allowedTypes.includes("admin") && role !== "admin") {
       const res = NextResponse.redirect(new URL("/login", request.url));
-      addSecurityHeaders(res);
+      addSecurityHeaders(res, nonce);
       return res;
     }
 
     if (!allowedTypes.includes(accountType) && !allowedTypes.includes("admin")) {
       const res = NextResponse.redirect(new URL("/gestao/dashboard", request.url));
-      addSecurityHeaders(res);
+      addSecurityHeaders(res, nonce);
       return res;
     }
   }
@@ -176,7 +210,7 @@ export async function middleware(request: NextRequest) {
       const level = cargoLevel && CARGO_LEVELS.includes(cargoLevel) ? cargoLevel : null;
       if (level && DEFAULT_FEATURE_PERMISSIONS[level][feature] === false) {
         const res = NextResponse.redirect(new URL("/gestao/dashboard", request.url));
-        addSecurityHeaders(res);
+        addSecurityHeaders(res, nonce);
         return res;
       }
     }
@@ -185,9 +219,11 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
-function addSecurityHeaders(res: NextResponse) {
+function addSecurityHeaders(res: NextResponse, nonce: string) {
+  res.headers.set("Content-Security-Policy", buildCsp(nonce));
   res.headers.set("X-Content-Type-Options", "nosniff");
   res.headers.set("X-Frame-Options", "SAMEORIGIN");
+  res.headers.set("Cross-Origin-Opener-Policy", "same-origin");
   res.headers.set("X-XSS-Protection", "1; mode=block");
   res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 }

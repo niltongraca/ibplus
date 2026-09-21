@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useConfirm } from "@/components/ConfirmModal";
 import { InvoiceTemplate } from "@/components/invoice/InvoiceTemplate";
 import { buildDocumentHtml } from "@/lib/exportDocument";
+import { getCspNonce } from "@/lib/cspNonce";
 import { formatCurrency } from "@/lib/utils";
 
 interface InvoiceItem {
@@ -154,7 +155,8 @@ export default function FaturaDetailPage() {
           paidAmount: invoice.paidAmount,
           total: invoice.total,
         },
-        company
+        company,
+        getCspNonce()
       )
     );
     win.document.close();

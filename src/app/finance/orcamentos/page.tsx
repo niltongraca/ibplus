@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Plus, Search, FileDown, Eye, Trash2, ScrollText, Pencil } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { buildDocumentHtml } from "@/lib/exportDocument";
+import { getCspNonce } from "@/lib/cspNonce";
 import { useConfirm } from "@/components/ConfirmModal";
 import Link from "next/link";
 import Pagination from "@/components/Pagination";
@@ -95,7 +96,8 @@ export default function OrcamentosPage() {
             bankDetails: full.bankDetails,
             total: full.total,
           },
-          company
+          company,
+          getCspNonce()
         )
       );
       win.document.close();

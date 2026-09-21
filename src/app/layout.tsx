@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { headers } from "next/headers";
 import { Providers } from "@/components/Providers";
+import { WebVitals } from "@/components/WebVitals";
 import BotpressChat from "@/components/BotpressChat";
 import "./globals.css";
 
@@ -58,15 +60,20 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Nonce do CSP (#24): exposto no <html> para os popups de exportação PDF
+  // (herdam o CSP do opener e precisam do nonce nos scripts inline).
+  const requestHeaders = await headers();
+  const nonce = requestHeaders.get("x-nonce") ?? "";
   return (
-    <html lang="pt-AO">
+    <html lang="pt-AO" data-nonce={nonce}>
       <body>
         <Providers>{children}</Providers>
+        <WebVitals />
         <BotpressChat />
         <Analytics />
         <SpeedInsights />

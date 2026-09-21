@@ -121,21 +121,21 @@ export default function PropostasPage() {
                     ))}
                   </div>
                 )}
-                <div className="grid grid-cols-12 gap-2 items-end">
-                  <div className="col-span-5">
+                <div className="grid grid-cols-2 gap-2 items-end sm:grid-cols-12">
+                  <div className="col-span-2 sm:col-span-5">
                     <label className="block text-xs text-ib-muted mb-1">Descrição</label>
                     <input value={form.itemDesc} onChange={(e) => setForm({ ...form, itemDesc: e.target.value })} className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm" placeholder="Produto/serviço" />
                   </div>
-                  <div className="col-span-2">
+                  <div className="col-span-1 sm:col-span-2">
                     <label className="block text-xs text-ib-muted mb-1">Qtd</label>
                     <input type="number" min="1" value={form.itemQty} onChange={(e) => setForm({ ...form, itemQty: e.target.value })} className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm" />
                   </div>
-                  <div className="col-span-3">
+                  <div className="col-span-1 sm:col-span-3">
                     <label className="block text-xs text-ib-muted mb-1">Preço Unit.</label>
                     <input type="number" step="0.01" value={form.itemPrice} onChange={(e) => setForm({ ...form, itemPrice: e.target.value })} className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm" />
                   </div>
-                  <div className="col-span-2">
-                    <button type="button" onClick={addItem} className="w-full px-2 py-1.5 bg-gray-100 text-ib-primary rounded text-sm font-medium hover:bg-gray-200 transition-colors">+</button>
+                  <div className="col-span-2 sm:col-span-2">
+                    <button type="button" onClick={addItem} className="w-full px-2 py-1.5 bg-gray-100 text-ib-primary rounded text-sm font-medium hover:bg-gray-200 transition-colors min-h-[44px]">+</button>
                   </div>
                 </div>
               </div>

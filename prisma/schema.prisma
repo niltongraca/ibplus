@@ -724,3 +724,18 @@ model Announcement {
   createdBy      String?
   createdAt      DateTime @default(now())
 }
+
+// Core Web Vitals reportadas pelo browser (via `/api/vitals`), agregadas por
+// nome/métrica para o relatório de performance (auditoria #23).
+model WebVital {
+  id        String   @id @default(cuid())
+  name      String
+  rating    String
+  value     Float
+  delta     Float?
+  path      String?
+  createdAt DateTime @default(now())
+
+  @@index([name])
+  @@index([createdAt])
+}

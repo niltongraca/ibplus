@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useConfirm } from "@/components/ConfirmModal";
 import { InvoiceTemplate } from "@/components/invoice/InvoiceTemplate";
 import { buildDocumentHtml } from "@/lib/exportDocument";
+import { getCspNonce } from "@/lib/cspNonce";
 
 interface QuoteItem {
   id: string;
@@ -140,7 +141,8 @@ export default function OrcamentoDetailPage() {
           bankDetails: quote.bankDetails,
           total: quote.total,
         },
-        company
+        company,
+        getCspNonce()
       )
     );
     win.document.close();

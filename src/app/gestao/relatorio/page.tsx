@@ -7,6 +7,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import { jsonToCsv, downloadCsv } from "@/lib/csv";
 import { ChartsWidget } from "@/dashboard/widgets/ChartsWidget";
 import { buildReportHtml } from "@/lib/reportDocument";
+import { getCspNonce } from "@/lib/cspNonce";
 
 interface ReportPageData {
   totalRevenue: number;
@@ -210,8 +211,9 @@ export default function RelatorioPage() {
             },
           }] : []),
         ],
-      })
-    );
+      },
+      getCspNonce()
+    ));
     win.document.close();
   }
 

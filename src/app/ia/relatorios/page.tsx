@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { BarChart3, Download, TrendingUp, DollarSign, ShoppingCart, Users, FileText, Bot } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { buildReportHtml } from "@/lib/reportDocument";
+import { getCspNonce } from "@/lib/cspNonce";
 
 interface ReportData {
   totalRevenue: number;
@@ -61,8 +62,9 @@ export default function RelatoriosIAPage() {
           },
         ],
         footnote: "Relatório elaborado com recurso a inteligência artificial de apoio à gestão",
-      })
-    );
+      },
+      getCspNonce()
+    ));
     win.document.close();
   }
 

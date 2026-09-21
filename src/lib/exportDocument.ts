@@ -116,7 +116,7 @@ function docFooter(_company: ExportCompanyInfo | null): string {
   return "Documento gerado na plataforma <b>IBPlus+</b>";
 }
 
-export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompanyInfo | null): string {
+export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompanyInfo | null, nonce?: string): string {
   const status: StatusStyle = statusMap[data.status] || { label: data.status, bg: "#f3f4f6", color: "#6b7280", border: "#e5e7eb" };
   const currency = data.currency || "AOA";
   const subtotal = data.subtotal ?? data.total;
@@ -231,7 +231,7 @@ export function buildDocumentHtml(data: ExportDocumentData, company: ExportCompa
 </style>
 </head>
 <body>
-  <script>
+  <script${nonce ? ` nonce="${esc(nonce)}"` : ""}>
     setTimeout(function () { window.print(); }, 250);
   <\/script>
   <div class="sheet">

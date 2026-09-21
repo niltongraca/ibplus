@@ -4,9 +4,11 @@ import { useState, useEffect } from "react";
 import { Plus, Search, FileDown, Eye, Trash2, FileText, Pencil } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { buildDocumentHtml } from "@/lib/exportDocument";
+import { getCspNonce } from "@/lib/cspNonce";
 import { useConfirm } from "@/components/ConfirmModal";
 import Link from "next/link";
 import Pagination from "@/components/Pagination";
+import { DataTable } from "@/components/ui/DataTable";
 import { useList } from "@/hooks/useList";
 
 interface Invoice {
@@ -98,7 +100,8 @@ export default function FaturacaoPage() {
             paidAmount: full.paidAmount,
             total: full.total,
           },
-          company
+          company,
+          getCspNonce()
         )
       );
       win.document.close();
@@ -136,58 +139,63 @@ export default function FaturacaoPage() {
           </div>
         </div>
 
-        {loading ? (
-          <div className="p-12 text-center text-ib-muted">A carregar...</div>
-        ) : invoices.length === 0 ? (
-          <div className="p-12 text-center">
-            <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-ib-muted">Nenhuma fatura encontrada.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 text-ib-muted text-xs uppercase tracking-wider">
-                  <th className="text-left p-4 font-medium">N.º</th>
-                  <th className="text-left p-4 font-medium">Cliente</th>
-                  <th className="text-left p-4 font-medium">Data</th>
-                  <th className="text-left p-4 font-medium">Vencimento</th>
-                  <th className="text-right p-4 font-medium">Total</th>
-                  <th className="text-center p-4 font-medium">Estado</th>
-                  <th className="text-right p-4 font-medium">Acções</th>
-                </tr>
-              </thead>
-              <tbody>
-                {invoices.map((inv) => (
-                  <tr key={inv.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                    <td className="p-4 font-medium text-ib-primary">{inv.number}</td>
-                    <td className="p-4 text-ib-muted">{inv.customer || "—"}</td>
-                    <td className="p-4 text-ib-muted">{formatDate(inv.date)}</td>
-                    <td className="p-4 text-ib-muted">{inv.dueDate ? formatDate(inv.dueDate) : "—"}</td>
-                    <td className="p-4 text-right font-semibold">{formatCurrency(inv.total)}</td>
-                    <td className="p-4 text-center">{getStatusBadge(inv.status)}</td>
-                    <td className="p-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Link href={`/finance/faturacao/${inv.id}`} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center">
-                          <Eye className="w-4 h-4 text-ib-muted" />
-                        </Link>
-                        <Link href={`/finance/faturacao/${inv.id}/editar`} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center">
-                          <Pencil className="w-4 h-4 text-ib-muted" />
-                        </Link>
-                        <button onClick={() => handleExportPDF(inv)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center">
-                          <FileDown className="w-4 h-4 text-ib-muted" />
-                        </button>
-                        <button onClick={() => removeInvoice(inv.id)} className="p-1.5 hover:bg-red-50 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center">
-                          <Trash2 className="w-4 h-4 text-red-400" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <DataTable
+          columns={[
+            { key: "number", header: "N.º", render: (inv: Invoice) => <span className="font-medium text-ib-primary">{inv.number}</span> },
+            { key: "customer", header: "Cliente", hide: "mobile", render: (inv: Invoice) => <span className="text-ib-muted">{inv.customer || "—"}</span> },
+            { key: "date", header: "Data", hide: "tablet", render: (inv: Invoice) => <span className="text-ib-muted">{formatDate(inv.date)}</span> },
+            { key: "dueDate", header: "Vencimento", hide: "tablet", render: (inv: Invoice) => <span className="text-ib-muted">{inv.dueDate ? formatDate(inv.dueDate) : "—"}</span> },
+            { key: "total", header: "Total", className: "text-right", render: (inv: Invoice) => <span className="font-semibold">{formatCurrency(inv.total)}</span> },
+            { key: "status", header: "Estado", className: "text-center", render: (inv: Invoice) => getStatusBadge(inv.status) },
+            { key: "actions", header: "Acções", hide: "tablet", className: "text-right", render: (inv: Invoice) => (
+              <div className="flex items-center justify-end gap-1">
+                <Link href={`/finance/faturacao/${inv.id}`} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center" title="Ver">
+                  <Eye className="w-4 h-4 text-ib-muted" />
+                </Link>
+                <Link href={`/finance/faturacao/${inv.id}/editar`} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center" title="Editar">
+                  <Pencil className="w-4 h-4 text-ib-muted" />
+                </Link>
+                <button onClick={() => handleExportPDF(inv)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center" title="PDF">
+                  <FileDown className="w-4 h-4 text-ib-muted" />
+                </button>
+                <button onClick={() => removeInvoice(inv.id)} className="p-1.5 hover:bg-red-50 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center" title="Eliminar">
+                  <Trash2 className="w-4 h-4 text-red-400" />
+                </button>
+              </div>
+            )},
+          ]}
+          data={invoices}
+          loading={loading}
+          keyExtractor={(inv: Invoice) => inv.id}
+          emptyIcon={<FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />}
+          emptyText="Nenhuma fatura encontrada."
+          mobileCard={(inv: Invoice) => (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Link href={`/finance/faturacao/${inv.id}`} className="font-semibold text-ib-primary hover:underline">{inv.number}</Link>
+                {getStatusBadge(inv.status)}
+              </div>
+              <p className="text-sm text-ib-muted">{inv.customer || "—"}</p>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-ib-muted">{formatDate(inv.date)}{inv.dueDate ? ` · Venc. ${formatDate(inv.dueDate)}` : ""}</span>
+                <span className="font-bold text-ib-primary">{formatCurrency(inv.total)}</span>
+              </div>
+              <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: "var(--border-color)" }}>
+                <div className="flex items-center gap-1">
+                  <Link href={`/finance/faturacao/${inv.id}/editar`} className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center" title="Editar" aria-label={`Editar ${inv.number}`}>
+                    <Pencil className="w-4 h-4" />
+                  </Link>
+                  <button onClick={() => handleExportPDF(inv)} className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center" title="PDF" aria-label={`Baixar PDF da ${inv.number}`}>
+                    <FileDown className="w-4 h-4" />
+                  </button>
+                </div>
+                <button onClick={() => removeInvoice(inv.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center" title="Eliminar" aria-label={`Eliminar ${inv.number}`}>
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        />
       </div>
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>

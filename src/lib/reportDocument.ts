@@ -93,7 +93,7 @@ function renderSection(section: ReportSection): string {
       </section>`;
 }
 
-export function buildReportHtml(opts: ReportDocumentOptions): string {
+export function buildReportHtml(opts: ReportDocumentOptions, nonce?: string): string {
   const company = opts.company;
   const brand = company?.name || "IBPlus+";
   const periodLabel = opts.period ? `<p class="period">${esc(opts.period)}</p>` : "";
@@ -161,7 +161,7 @@ export function buildReportHtml(opts: ReportDocumentOptions): string {
 </style>
 </head>
 <body>
-  <script>
+  <script${nonce ? ` nonce="${esc(nonce)}"` : ""}>
     setTimeout(function () { window.print(); }, 250);
   <\/script>
   <div class="sheet">
