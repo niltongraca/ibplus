@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { LayoutDashboard, Users, Building2, Wrench, Activity, Shield, LogOut, Home, ChevronLeft, ChevronRight, Globe, ArrowLeftFromLine, Settings, ToggleLeft, KeyRound, BookOpen, Megaphone } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { useState } from "react";
 
 const adminNav = [
@@ -154,6 +155,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
         {/* Content */}
         <div className="max-w-7xl mx-auto p-6 lg:p-8">
+          <Breadcrumbs />
           {children}
         </div>
       </main>
