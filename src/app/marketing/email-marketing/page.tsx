@@ -54,12 +54,12 @@ export default function EmailMarketingPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">E-mail Marketing</h1>
+          <h1 className="page-title">E-mail Marketing</h1>
           <p className="text-ib-muted text-sm">Campanhas de e-mail marketing automatizadas</p>
         </div>
-        <button onClick={() => setShowForm(true)} className="flex items-center gap-2 px-4 py-2.5 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-ib-accent/90 transition-colors">
+        <button onClick={() => setShowForm(true)} className="btn btn-primary">
           <Plus className="w-4 h-4" /> Nova Campanha
         </button>
       </div>
@@ -83,7 +83,7 @@ export default function EmailMarketingPage() {
               </div>
               <div className="flex gap-3 justify-end pt-2">
                 <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 text-sm text-ib-muted hover:text-ib-primary transition-colors">Cancelar</button>
-                <button type="submit" className="px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-ib-accent/90 transition-colors">Criar Campanha</button>
+                <button type="submit" className="btn btn-primary transition-colors">Criar Campanha</button>
               </div>
             </form>
           </div>

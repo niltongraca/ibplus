@@ -60,7 +60,7 @@ export default function FluxoCaixaPage() {
       <div className="flex items-center gap-3 mb-6">
         <BarChart3 className="w-6 h-6 text-ib-accent" />
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Fluxo de Caixa</h1>
+          <h1 className="page-title">Fluxo de Caixa</h1>
           <p className="text-ib-muted text-sm">Acompanhe as entradas e saídas financeiras</p>
         </div>
       </div>

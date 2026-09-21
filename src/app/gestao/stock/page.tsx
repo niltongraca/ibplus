@@ -50,12 +50,12 @@ export default function StockPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Stock</h1>
+          <h1 className="page-title">Stock</h1>
           <p className="text-ib-muted text-sm">Gestão de inventário e movimentos</p>
         </div>
-        <Link href="/gestao/stock/movimento" className="flex items-center gap-2 bg-ib-accent hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium">
+        <Link href="/gestao/stock/movimento" className="btn btn-primary">
           <Plus className="w-4 h-4" /> Movimento
         </Link>
       </div>

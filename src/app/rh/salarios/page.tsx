@@ -28,7 +28,7 @@ export default function SalariosPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ib-primary">Salários</h1>
+        <h1 className="page-title">Salários</h1>
         <p className="text-ib-muted text-sm">Gestão de salários e processamento</p>
       </div>
 

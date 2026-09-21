@@ -118,7 +118,7 @@ export default function PermissoesPage() {
     <div className="max-w-[1200px] mx-auto">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary flex items-center gap-2">
+          <h1 className="page-title flex items-center gap-2">
             <ShieldCheck className="w-6 h-6 text-ib-accent" />
             Permissões por Cargo
           </h1>
@@ -137,7 +137,7 @@ export default function PermissoesPage() {
           <button
             onClick={save}
             disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 bg-ib-accent hover:bg-blue-700 text-white rounded-lg text-sm font-medium disabled:opacity-50"
+            className="btn btn-primary disabled:opacity-50"
           >
             <Save className="w-4 h-4" /> {saving ? "A guardar..." : "Guardar"}
           </button>

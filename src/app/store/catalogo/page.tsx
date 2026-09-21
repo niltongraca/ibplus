@@ -36,9 +36,9 @@ export default function CatalogoPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Catálogo Digital</h1>
+          <h1 className="page-title">Catálogo Digital</h1>
           <p className="text-ib-muted text-sm">Catálogo completo de produtos e serviços</p>
         </div>
       </div>

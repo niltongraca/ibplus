@@ -26,7 +26,7 @@ export default function CargosPage() {
     <div className="max-w-[1200px] mx-auto">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary flex items-center gap-2">
+          <h1 className="page-title flex items-center gap-2">
             <BadgeCheck className="w-6 h-6 text-ib-accent" />
             Cargos
           </h1>
@@ -36,7 +36,7 @@ export default function CargosPage() {
         </div>
         <Link
           href="/rh/permissoes"
-          className="flex items-center gap-2 px-4 py-2 bg-ib-accent hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+          className="btn btn-primary"
         >
           <ShieldCheck className="w-4 h-4" /> Permissões por cargo
           <ArrowRight className="w-4 h-4" />

@@ -35,7 +35,7 @@ export default function DashboardPage() {
           <p className="text-sm text-ib-muted">
             {greeting},{firstName ? ` ${firstName}` : ""} 👋
           </p>
-          <h1 className="text-2xl font-bold text-ib-primary">Dashboard</h1>
+          <h1 className="page-title">Dashboard</h1>
         </div>
         <div className="flex items-center gap-3">
           <div className="hidden md:flex items-center gap-1 text-sm text-ib-muted">
@@ -47,7 +47,7 @@ export default function DashboardPage() {
           </div>
           <Link
             href="/gestao/vendas/nova"
-            className="inline-flex items-center gap-2 bg-ib-accent hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-blue-600/20 transition-all hover:-translate-y-0.5"
+            className="btn btn-primary rounded-xl shadow-lg shadow-blue-600/20"
           >
             <FilePlus2 className="w-4 h-4" /> Registrar Venda
           </Link>

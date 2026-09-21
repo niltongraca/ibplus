@@ -28,9 +28,9 @@ export default function PagamentosStorePage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Pagamentos</h1>
+          <h1 className="page-title">Pagamentos</h1>
           <p className="text-ib-muted text-sm">Histórico de pagamentos da loja online</p>
         </div>
       </div>

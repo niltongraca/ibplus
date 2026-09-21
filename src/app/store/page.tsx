@@ -10,7 +10,7 @@ const links = [
 export default function StorePage() {
   return (
     <div>
-      <h2 className="text-2xl font-bold text-ib-primary mb-6">IBPlus Store</h2>
+      <h2 className="page-title mb-6">IBPlus Store</h2>
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {links.map((link) => (
           <Link

@@ -49,7 +49,7 @@ export default function AdminUsuarios() {
       <div className="flex items-center gap-3 mb-6">
         <Users className="w-6 h-6 text-ib-accent" />
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Utilizadores</h1>
+          <h1 className="page-title">Utilizadores</h1>
           <p className="text-sm text-ib-muted">Todos os utilizadores registados na plataforma IBPlus+</p>
         </div>
       </div>

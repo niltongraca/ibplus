@@ -117,7 +117,7 @@ export function AcquisitionSection() {
               </button>
             </div>
           ) : (
-            <button onClick={generate} disabled={generating} className="flex items-center gap-2 px-4 py-2.5 bg-ib-accent hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium">
+            <button onClick={generate} disabled={generating} className="btn btn-primary disabled:opacity-50">
               <KeyRound className="w-4 h-4" /> {generating ? "A gerar..." : "Gerar código de aquisição"}
             </button>
           )}

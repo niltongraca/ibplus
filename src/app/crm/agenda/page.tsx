@@ -80,16 +80,16 @@ export default function AgendaPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Agenda</h1>
+          <h1 className="page-title">Agenda</h1>
           <p className="text-ib-muted text-sm">Calendário de compromissos e eventos</p>
         </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
+          <div className="page-header">
             <button onClick={prevMonth} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><ChevronLeft className="w-5 h-5 text-ib-muted" /></button>
             <h2 className="text-lg font-bold text-ib-primary">{monthNames[currentMonth]} {currentYear}</h2>
             <button onClick={nextMonth} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><ChevronRight className="w-5 h-5 text-ib-muted" /></button>

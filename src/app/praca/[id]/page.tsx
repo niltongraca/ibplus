@@ -236,7 +236,7 @@ export default async function CompanyDetailPage({ params }: { params: Promise<{ 
         </div>
       </div>
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="page-header">
         <h2 className="text-xl font-bold flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
           <Package className="w-5 h-5" /> Produtos e Serviços
         </h2>

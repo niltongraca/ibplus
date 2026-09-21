@@ -63,7 +63,7 @@ export default function NovoClientePage() {
           <ArrowLeft className="w-5 h-5 text-ib-muted" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Novo Cliente</h1>
+          <h1 className="page-title">Novo Cliente</h1>
           <p className="text-ib-muted text-sm">Adicionar novo cliente à base de dados</p>
         </div>
       </div>
@@ -153,7 +153,7 @@ export default function NovoClientePage() {
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-2 bg-ib-accent hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium disabled:opacity-50"
+            className="btn btn-primary disabled:opacity-50"
           >
             <Save className="w-4 h-4" /> {saving ? "A guardar..." : "Guardar"}
           </button>

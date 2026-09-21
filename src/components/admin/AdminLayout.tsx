@@ -35,7 +35,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </div>
           <h1 className="text-2xl font-bold text-ib-primary mb-2">Acesso Restrito</h1>
           <p className="text-ib-muted mb-6">Esta área é exclusiva para administradores da plataforma IBPlus+.</p>
-          <Link href="/gestao/dashboard" className="inline-flex items-center gap-2 px-5 py-2.5 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-ib-accent/90 transition-colors shadow-sm">
+          <Link href="/gestao/dashboard" className="btn btn-primary shadow-sm">
             <ArrowLeftFromLine className="w-4 h-4" /> Voltar ao Painel
           </Link>
         </div>

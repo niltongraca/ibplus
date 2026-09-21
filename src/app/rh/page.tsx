@@ -14,7 +14,7 @@ export default function RhPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">IBPlus RH</h1>
+        <h1 className="page-title">IBPlus RH</h1>
         <p className="text-gray-500 text-sm">Gestão de recursos humanos e equipa</p>
       </div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">

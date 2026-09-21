@@ -78,7 +78,7 @@ export default function AdminRecursos() {
       <div className="flex items-center gap-3 mb-6">
         <ToggleRight className="w-6 h-6 text-ib-accent" />
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Recursos</h1>
+          <h1 className="page-title">Recursos</h1>
           <p className="text-sm text-ib-muted">Activar ou desactivar funcionalidades da plataforma</p>
         </div>
       </div>

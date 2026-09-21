@@ -95,7 +95,7 @@ export default function ContasPagarPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Contas a Pagar</h1>
+        <h1 className="page-title">Contas a Pagar</h1>
         <p className="text-gray-500 text-sm">Gerencie todas as contas a pagar do seu negócio.</p>
       </div>
 

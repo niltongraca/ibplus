@@ -25,7 +25,7 @@ export default function OrganizacoesPage() {
     <div className="max-w-3xl mx-auto">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary flex items-center gap-2">
+          <h1 className="page-title flex items-center gap-2">
             <Building2 className="w-6 h-6 text-ib-accent" />
             Organizações
           </h1>

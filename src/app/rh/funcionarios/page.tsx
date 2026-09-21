@@ -167,12 +167,12 @@ export default function FuncionariosPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Funcionários</h1>
+          <h1 className="page-title">Funcionários</h1>
           <p className="text-ib-muted text-sm">Gestão da equipa, cargos e acessos</p>
         </div>
-        <button onClick={openCreate} className="flex items-center gap-2 bg-ib-accent hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium">
+        <button onClick={openCreate} className="btn btn-primary">
           <Plus className="w-4 h-4" /> Novo Funcionário
         </button>
       </div>
@@ -313,7 +313,7 @@ export default function FuncionariosPage() {
                   </label>
                 </div>
               )}
-              <button type="submit" disabled={saving} className="w-full bg-ib-accent hover:bg-blue-700 disabled:opacity-50 text-white py-2.5 rounded-lg text-sm font-medium">
+              <button type="submit" disabled={saving} className="btn btn-primary w-full disabled:opacity-50">
                 {saving ? "A salvar..." : "Salvar"}
               </button>
             </form>

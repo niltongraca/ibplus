@@ -147,7 +147,7 @@ export default function CobrancasPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ib-primary">Cobranças</h1>
+        <h1 className="page-title">Cobranças</h1>
         <p className="text-ib-muted text-sm">Controle e gerencie as suas cobranças pendentes.</p>
       </div>
 

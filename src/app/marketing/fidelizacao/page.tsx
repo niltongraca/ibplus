@@ -50,7 +50,7 @@ export default function FidelizacaoPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ib-primary">Fidelização</h1>
+        <h1 className="page-title">Fidelização</h1>
         <p className="text-ib-muted text-sm">Programa de fidelização e análise de clientes</p>
       </div>
 

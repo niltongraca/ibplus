@@ -26,7 +26,7 @@ export default function AdminEmpresas() {
       <div className="flex items-center gap-3 mb-6">
         <Building2 className="w-6 h-6 text-ib-accent" />
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Empresas</h1>
+          <h1 className="page-title">Empresas</h1>
           <p className="text-sm text-ib-muted">Organizações e empresas registadas na plataforma</p>
         </div>
       </div>

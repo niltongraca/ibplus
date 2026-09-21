@@ -40,11 +40,11 @@ export default function ServicosPage() {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-ib-primary">Serviços</h1>
+      <div className="page-header">
+        <h1 className="page-title">Serviços</h1>
         <Link
           href="/gestao/servicos/novo"
-          className="inline-flex items-center gap-2 bg-ib-accent hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          className="btn btn-primary"
         >
           <Plus className="h-4 w-4" /> Novo Serviço
         </Link>

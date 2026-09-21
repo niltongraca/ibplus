@@ -482,7 +482,7 @@ export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; 
 
         <div className="flex justify-end gap-3">
           <Link href={backUrl} className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-ib-muted hover:bg-gray-50 transition-colors">Cancelar</Link>
-          <button type="submit" disabled={saving} className="flex items-center gap-2 bg-ib-accent hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50">
+          <button type="submit" disabled={saving} className="btn btn-primary px-6 disabled:opacity-50">
             <Save className="w-4 h-4" /> {saving ? "A guardar..." : isEdit ? "Guardar Alterações" : isInvoice ? "Salvar Fatura" : "Salvar Orçamento"}
           </button>
         </div>

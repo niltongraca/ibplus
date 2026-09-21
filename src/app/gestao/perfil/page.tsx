@@ -137,7 +137,7 @@ export default function PerfilPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ib-primary">Configurações</h1>
+        <h1 className="page-title">Configurações</h1>
         <p className="text-ib-muted text-sm">Gerir perfil, loja e preferências</p>
       </div>
 
@@ -193,7 +193,7 @@ export default function PerfilPage() {
               </div>
             </div>
             <div className="flex justify-end mt-4">
-              <button onClick={saveProfile} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+              <button onClick={saveProfile} disabled={saving} className="btn btn-primary disabled:opacity-50">
                 <Save className="w-4 h-4" /> {saving ? "A salvar..." : "Salvar Perfil"}
               </button>
             </div>
@@ -220,7 +220,7 @@ export default function PerfilPage() {
               </div>
             </div>
             <div className="flex justify-end mt-4">
-              <button onClick={() => saveCompany({ whatsappStore: company.whatsappStore, whatsappNumber: company.whatsappNumber })} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+              <button onClick={() => saveCompany({ whatsappStore: company.whatsappStore, whatsappNumber: company.whatsappNumber })} disabled={saving} className="btn btn-primary disabled:opacity-50">
                 <Save className="w-4 h-4" /> Salvar Contactos
               </button>
             </div>
@@ -251,7 +251,7 @@ export default function PerfilPage() {
               </div>
             </div>
             <div className="flex justify-end mt-4">
-              <button onClick={() => saveCompany({ address: company.address, provinciaOperacao: company.provinciaOperacao })} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+              <button onClick={() => saveCompany({ address: company.address, provinciaOperacao: company.provinciaOperacao })} disabled={saving} className="btn btn-primary disabled:opacity-50">
                 <Save className="w-4 h-4" /> Salvar Endereço
               </button>
             </div>
@@ -304,7 +304,7 @@ export default function PerfilPage() {
               <textarea value={company.sobreNos} onChange={(e) => updateCompany("sobreNos", e.target.value)} rows={4} placeholder="História, missão, valores..." className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40 resize-none" />
             </div>
             <div className="flex justify-end mt-4">
-              <button onClick={() => saveCompany({ name: company.name, nif: company.nif, email: company.email, phone: company.phone, descricaoLoja: company.descricaoLoja, sobreNos: company.sobreNos, logo: company.logo })} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+              <button onClick={() => saveCompany({ name: company.name, nif: company.nif, email: company.email, phone: company.phone, descricaoLoja: company.descricaoLoja, sobreNos: company.sobreNos, logo: company.logo })} disabled={saving} className="btn btn-primary disabled:opacity-50">
                 <Save className="w-4 h-4" /> Salvar Loja
               </button>
             </div>
@@ -332,7 +332,7 @@ export default function PerfilPage() {
               </div>
             </div>
             <div className="flex justify-end mt-4">
-              <button onClick={() => saveCompany({ corPrincipal: company.corPrincipal, logo: company.logo })} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+              <button onClick={() => saveCompany({ corPrincipal: company.corPrincipal, logo: company.logo })} disabled={saving} className="btn btn-primary disabled:opacity-50">
                 <Save className="w-4 h-4" /> Salvar Personalização
               </button>
             </div>
@@ -385,7 +385,7 @@ export default function PerfilPage() {
               <textarea value={company.horarioFuncionamento} onChange={(e) => updateCompany("horarioFuncionamento", e.target.value)} rows={4} placeholder="Segunda a Sexta: 08:00 - 18:00&#10;Sábado: 08:00 - 13:00&#10;Domingo: Fechado" className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40 resize-none" />
             </div>
             <div className="flex justify-end mt-4">
-              <button onClick={() => saveCompany({ horarioFuncionamento: company.horarioFuncionamento })} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+              <button onClick={() => saveCompany({ horarioFuncionamento: company.horarioFuncionamento })} disabled={saving} className="btn btn-primary disabled:opacity-50">
                 <Save className="w-4 h-4" /> Salvar Horários
               </button>
             </div>

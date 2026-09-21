@@ -101,12 +101,12 @@ export default function LojaOnlinePage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Loja Online</h1>
+          <h1 className="page-title">Loja Online</h1>
           <p className="text-ib-muted text-sm">Catálogo de produtos disponíveis</p>
         </div>
-        <button onClick={() => setShowCart(true)} className="relative flex items-center gap-2 px-4 py-2.5 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-ib-accent/90 transition-colors">
+        <button onClick={() => setShowCart(true)} className="relative btn btn-primary">
           <ShoppingCart className="w-4 h-4" /> Carrinho
           {cartCount > 0 && (
             <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">{cartCount}</span>
@@ -202,7 +202,7 @@ export default function LojaOnlinePage() {
                   <span className="text-ib-muted text-sm">Total</span>
                   <span className="text-xl font-bold text-ib-primary">{formatCurrency(cartTotal)}</span>
                 </div>
-                <button onClick={() => { setShowCheckout(true); }} className="w-full py-3 bg-ib-accent text-white rounded-lg font-medium hover:bg-ib-accent/90 transition-colors flex items-center justify-center gap-2">
+                <button onClick={() => { setShowCheckout(true); }} className="btn btn-primary w-full">
                   <CreditCard className="w-4 h-4" /> Finalizar Compra
                 </button>
               </div>
@@ -252,7 +252,7 @@ export default function LojaOnlinePage() {
                       <option value="multicaixa">Multicaixa</option>
                     </select>
                   </div>
-                  <button onClick={handleCheckout} disabled={checkingOut} className="w-full py-3 bg-ib-accent text-white rounded-lg font-medium hover:bg-ib-accent/90 disabled:opacity-50 transition-colors">
+                  <button onClick={handleCheckout} disabled={checkingOut} className="btn btn-primary w-full disabled:opacity-50">
                     {checkingOut ? "A processar..." : `Pagar ${formatCurrency(cartTotal)}`}
                   </button>
                 </div>

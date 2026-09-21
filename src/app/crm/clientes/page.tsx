@@ -26,12 +26,12 @@ export default function CrmClientesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">CRM — Clientes</h1>
+          <h1 className="page-title">CRM — Clientes</h1>
           <p className="text-ib-muted text-sm">Gestão avançada de clientes com histórico</p>
         </div>
-        <Link href="/gestao/clientes/novo" className="flex items-center gap-2 bg-ib-accent hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium">
+        <Link href="/gestao/clientes/novo" className="btn btn-primary">
           <Users className="w-4 h-4" /> Novo Cliente
         </Link>
       </div>

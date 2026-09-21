@@ -56,7 +56,7 @@ export default function ConfiguracaoPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ib-primary flex items-center gap-2">
+        <h1 className="page-title flex items-center gap-2">
           <ClipboardCheck className="w-6 h-6 text-ib-accent" /> Completar a Conta
         </h1>
         <p className="text-ib-muted text-sm">Passos para activar todas as novas funções do IBPlus.</p>
@@ -91,7 +91,7 @@ export default function ConfiguracaoPage() {
               ) : (
                 <Link
                   href={`/gestao/perfil?tab=${step.tab}`}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shrink-0"
+                  className="btn btn-primary transition-colors shrink-0"
                 >
                   Completar <ArrowRight className="w-4 h-4" />
                 </Link>

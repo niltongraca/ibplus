@@ -79,12 +79,12 @@ export default function AdminConteudosPage() {
   return (
     <AdminLayout>
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Conteúdos</h1>
+          <h1 className="page-title">Conteúdos</h1>
           <p className="text-ib-muted text-sm">Gerir vídeos, posts, ebooks e artigos</p>
         </div>
-        <Link href="/admin/conteudos/novo" className="flex items-center gap-1.5 px-3 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+        <Link href="/admin/conteudos/novo" className="btn btn-primary btn-sm">
           <Plus className="w-4 h-4" /> Novo Conteúdo
         </Link>
       </div>

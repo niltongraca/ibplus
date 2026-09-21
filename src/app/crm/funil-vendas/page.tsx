@@ -88,12 +88,12 @@ export default function FunilVendasPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Funil de Vendas</h1>
+          <h1 className="page-title">Funil de Vendas</h1>
           <p className="text-ib-muted text-sm">Acompanhe as oportunidades do negócio</p>
         </div>
-        <button onClick={() => setShowModal(true)} className="flex items-center gap-1.5 px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+        <button onClick={() => setShowModal(true)} className="btn btn-primary">
           <Plus className="w-4 h-4" /> Nova Oportunidade
         </button>
       </div>
@@ -204,7 +204,7 @@ export default function FunilVendasPage() {
             </div>
             <div className="flex justify-end gap-2 mt-6">
               <button onClick={() => setShowModal(false)} className="px-4 py-2 border border-gray-200 rounded-lg text-sm">Cancelar</button>
-              <button onClick={createOpportunity} disabled={creating || !form.title} className="px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium disabled:opacity-50">{creating ? "A criar..." : "Criar"}</button>
+              <button onClick={createOpportunity} disabled={creating || !form.title} className="btn btn-primary disabled:opacity-50">{creating ? "A criar..." : "Criar"}</button>
             </div>
           </div>
         </div>

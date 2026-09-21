@@ -153,7 +153,7 @@ export default function ContasReceberPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Contas a Receber</h1>
+        <h1 className="page-title">Contas a Receber</h1>
         <p className="text-gray-500 text-sm">Acompanhe as contas a receber e recebimentos pendentes.</p>
       </div>
 

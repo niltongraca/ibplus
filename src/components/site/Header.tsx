@@ -39,7 +39,7 @@ export default function SiteHeader() {
             </Link>
             <Link
               href="/cadastro"
-              className="bg-ib-accent hover:bg-blue-700 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all shadow-lg shadow-blue-600/20"
+              className="btn btn-primary rounded-full shadow-lg shadow-blue-600/20"
             >
               Criar Conta Grátis
             </Link>
@@ -68,7 +68,7 @@ export default function SiteHeader() {
             ))}
             <div className="pt-3 border-t border-gray-100 flex flex-col gap-2 px-3">
               <Link href="/login" className="text-center text-sm text-ib-muted hover:text-ib-primary px-4 py-2.5 rounded-full border border-gray-200" onClick={() => setOpen(false)}>Entrar</Link>
-              <Link href="/cadastro" className="text-center bg-ib-accent hover:bg-blue-700 text-white px-4 py-2.5 rounded-full text-sm font-medium" onClick={() => setOpen(false)}>Criar Conta Grátis</Link>
+              <Link href="/cadastro" className="btn btn-primary rounded-full" onClick={() => setOpen(false)}>Criar Conta Grátis</Link>
             </div>
           </div>
         )}

@@ -175,7 +175,7 @@ export default function FaturaDetailPage() {
             <ArrowLeft className="w-5 h-5 text-ib-muted" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-ib-primary">Fatura {invoice.number}</h1>
+            <h1 className="page-title">Fatura {invoice.number}</h1>
             <p className="text-ib-muted text-sm">Detalhes da fatura</p>
           </div>
         </div>
@@ -189,7 +189,7 @@ export default function FaturaDetailPage() {
           <button onClick={handleExportPDF} className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg text-sm text-ib-muted hover:bg-gray-50">
             <Printer className="w-4 h-4" /> Imprimir
           </button>
-          <button onClick={handleSendEmail} disabled={sending} className="flex items-center gap-1.5 px-3 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+          <button onClick={handleSendEmail} disabled={sending} className="btn btn-primary btn-sm disabled:opacity-50">
             <Mail className="w-4 h-4" /> {sending ? "A enviar..." : "Enviar por email"}
           </button>
           {invoice.status !== "paid" && (
@@ -226,7 +226,7 @@ export default function FaturaDetailPage() {
               />
             </div>
           )}
-          <button onClick={() => saveStatus()} disabled={saving} className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+          <button onClick={() => saveStatus()} disabled={saving} className="btn btn-primary disabled:opacity-50">
             <Save className="w-4 h-4" /> {saving ? "A guardar..." : "Guardar estado"}
           </button>
           {invoice.status !== "pending" && (

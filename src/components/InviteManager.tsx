@@ -88,7 +88,7 @@ export function InviteManager() {
           <button
             onClick={createInvite}
             disabled={loading}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+            className="btn btn-primary disabled:opacity-50"
           >
             <Link2 className="w-4 h-4" /> {loading ? "A criar..." : "Gerar Link"}
           </button>

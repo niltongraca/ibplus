@@ -118,7 +118,7 @@ export function CargosManager({ compact = false }: { compact?: boolean }) {
           <Shield className="w-4 h-4 text-ib-accent" />
           <h2 className="font-semibold text-ib-primary">Cargos da organização</h2>
         </div>
-        <button onClick={() => { reset(); setShowAdd(true); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-ib-accent hover:bg-blue-700 text-white rounded-lg text-xs font-medium">
+        <button onClick={() => { reset(); setShowAdd(true); }} className="btn btn-primary btn-sm">
           <Plus className="w-3.5 h-3.5" /> Novo Cargo
         </button>
       </div>
@@ -146,7 +146,7 @@ export function CargosManager({ compact = false }: { compact?: boolean }) {
             </div>
             {error && <p className="text-sm text-red-600">{error}</p>}
             <div className="flex gap-2">
-              <button onClick={save} disabled={saving} className="px-4 py-2 bg-ib-accent hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium">
+              <button onClick={save} disabled={saving} className="btn btn-primary disabled:opacity-50">
                 {saving ? "A guardar..." : "Guardar"}
               </button>
               <button onClick={reset} className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Cancelar</button>

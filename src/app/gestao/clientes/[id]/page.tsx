@@ -71,13 +71,13 @@ export default function ClienteDetailPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="page-header">
         <div className="flex items-center gap-4">
           <Link href="/gestao/clientes" className="p-2 hover:bg-gray-100 rounded-lg">
             <ArrowLeft className="w-5 h-5 text-ib-muted" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-ib-primary">{customer.name}</h1>
+            <h1 className="page-title">{customer.name}</h1>
             <p className="text-ib-muted text-sm">Detalhes do cliente</p>
           </div>
         </div>

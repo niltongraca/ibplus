@@ -237,7 +237,7 @@ export default function OnboardingWizard() {
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-ib-accent/10 mb-3">
             <Store className="w-7 h-7 text-ib-accent" />
           </div>
-          <h1 className="text-2xl font-bold text-ib-primary">Configurar o seu Painel</h1>
+          <h1 className="page-title">Configurar o seu Painel</h1>
           <p className="text-sm text-ib-muted mt-1">Complete os passos abaixo para personalizar a sua conta.</p>
         </div>
 
@@ -269,7 +269,7 @@ export default function OnboardingWizard() {
               <CheckCircle className="w-4 h-4" /> {saving ? "A salvar..." : "Concluir"}
             </button>
           ) : (
-            <button onClick={next} className="flex items-center gap-1.5 px-5 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+            <button onClick={next} className="btn btn-primary">
               Próximo <ArrowRight className="w-4 h-4" />
             </button>
           )}

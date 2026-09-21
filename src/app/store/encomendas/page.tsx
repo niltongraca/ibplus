@@ -27,9 +27,9 @@ export default function EncomendasPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Encomendas</h1>
+          <h1 className="page-title">Encomendas</h1>
           <p className="text-ib-muted text-sm">Acompanhe e gerencie as encomendas</p>
         </div>
       </div>

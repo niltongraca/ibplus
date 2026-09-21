@@ -65,7 +65,7 @@ export default function AdminAnuncios() {
       <div className="flex items-center gap-3 mb-6">
         <Megaphone className="w-6 h-6 text-ib-accent" />
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Anúncios / Novas Funções</h1>
+          <h1 className="page-title">Anúncios / Novas Funções</h1>
           <p className="text-sm text-ib-muted">Enviar avisos a todas as empresas do sistema</p>
         </div>
       </div>
@@ -124,7 +124,7 @@ export default function AdminAnuncios() {
             <button
               onClick={sendAnnouncement}
               disabled={sending}
-              className="flex items-center gap-1.5 px-5 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+              className="btn btn-primary disabled:opacity-50"
             >
               {sending ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               {sending ? "A enviar..." : "Enviar para todas as empresas"}

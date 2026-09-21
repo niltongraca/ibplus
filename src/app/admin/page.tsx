@@ -36,7 +36,7 @@ export default function AdminPage() {
   return (
     <AdminLayout>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-ib-primary">Dashboard da Plataforma</h1>
+        <h1 className="page-title">Dashboard da Plataforma</h1>
         <p className="text-sm text-ib-muted mt-1">Visão geral do ecossistema IBPlus+</p>
       </div>
 

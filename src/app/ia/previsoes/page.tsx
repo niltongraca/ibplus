@@ -71,7 +71,7 @@ export default function PrevisoesPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ib-primary">Previsões</h1>
+        <h1 className="page-title">Previsões</h1>
         <p className="text-ib-muted text-sm">Previsões inteligentes baseadas nos dados reais do seu negócio</p>
       </div>
 

@@ -103,7 +103,7 @@ export default function RecomendacoesPage() {
       <div className="flex items-center gap-2 mb-6">
         <Sparkles className="w-6 h-6 text-ib-accent" />
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Recomendações</h1>
+          <h1 className="page-title">Recomendações</h1>
           <p className="text-ib-muted text-sm">Sugestões inteligentes baseadas nos dados reais do seu negócio</p>
         </div>
       </div>

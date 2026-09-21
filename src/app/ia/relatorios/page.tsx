@@ -72,9 +72,9 @@ export default function RelatoriosIAPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Relatórios IA</h1>
+          <h1 className="page-title">Relatórios IA</h1>
           <p className="text-ib-muted text-sm">Relatórios automáticos com análise inteligente</p>
         </div>
       </div>

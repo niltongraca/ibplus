@@ -141,7 +141,7 @@ export default function NovaVendaPage() {
           <ArrowLeft className="w-5 h-5 text-ib-muted" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Nova Venda</h1>
+          <h1 className="page-title">Nova Venda</h1>
           <p className="text-ib-muted text-sm">Registar nova venda</p>
         </div>
       </div>
@@ -292,7 +292,7 @@ export default function NovaVendaPage() {
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-2 bg-ib-accent hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium disabled:opacity-50"
+            className="btn btn-primary disabled:opacity-50"
           >
             <Save className="w-4 h-4" /> {saving ? "A guardar..." : "Finalizar Venda"}
           </button>

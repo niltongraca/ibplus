@@ -77,12 +77,12 @@ export default function PropostasPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Propostas</h1>
+          <h1 className="page-title">Propostas</h1>
           <p className="text-ib-muted text-sm">Criação e gestão de propostas comerciais</p>
         </div>
-        <button onClick={() => setShowForm(true)} className="flex items-center gap-2 px-4 py-2.5 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-ib-accent/90 transition-colors">
+        <button onClick={() => setShowForm(true)} className="btn btn-primary">
           <Plus className="w-4 h-4" /> Nova Proposta
         </button>
       </div>
@@ -149,7 +149,7 @@ export default function PropostasPage() {
                 <p className="text-sm text-ib-muted">Total itens: <span className="font-bold text-ib-primary">{items.length}</span></p>
                 <div className="flex gap-3">
                   <button type="button" onClick={() => { setShowForm(false); setItems([]); }} className="px-4 py-2 text-sm text-ib-muted hover:text-ib-primary transition-colors">Cancelar</button>
-                  <button type="submit" disabled={items.length === 0} className="px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-ib-accent/90 disabled:opacity-50 transition-colors">Criar Proposta</button>
+                  <button type="submit" disabled={items.length === 0} className="btn btn-primary disabled:opacity-50">Criar Proposta</button>
                 </div>
               </div>
             </form>

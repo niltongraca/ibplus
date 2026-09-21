@@ -40,7 +40,7 @@ export default function AdminLogs() {
       <div className="flex items-center gap-3 mb-6">
         <Activity className="w-6 h-6 text-ib-accent" />
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Logs do Sistema</h1>
+          <h1 className="page-title">Logs do Sistema</h1>
           <p className="text-sm text-ib-muted">Registo de actividades e eventos da plataforma</p>
         </div>
       </div>

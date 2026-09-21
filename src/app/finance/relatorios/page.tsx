@@ -185,9 +185,9 @@ export default function RelatoriosPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Relatórios Financeiros</h1>
+          <h1 className="page-title">Relatórios Financeiros</h1>
           <p className="text-gray-500 text-sm">Análise financeira completa do seu negócio</p>
         </div>
         <select

@@ -112,14 +112,14 @@ export default function FaturacaoPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Faturação</h1>
+          <h1 className="page-title">Faturação</h1>
           <p className="text-ib-muted text-sm">Gerir facturas e recibos</p>
         </div>
         <Link
           href="/finance/faturacao/nova"
-          className="flex items-center gap-2 bg-ib-accent hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
+          className="btn btn-primary"
         >
           <Plus className="w-4 h-4" /> Nova Fatura
         </Link>

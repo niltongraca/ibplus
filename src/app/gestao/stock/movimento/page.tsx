@@ -100,7 +100,7 @@ export default function MovimentoStockPage() {
           <input type="text" value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="Ex: Ajuste de inventário" className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
         </div>
 
-        <button type="submit" className="w-full flex items-center justify-center gap-2 bg-ib-accent text-white py-2.5 rounded-lg font-medium text-sm hover:bg-ib-accent/90 transition-colors">
+        <button type="submit" className="btn btn-primary w-full">
           <Save className="w-4 h-4" /> Registar Movimento
         </button>
       </form>

@@ -264,7 +264,7 @@ export default function ProductForm({ mode, type, id, initialData }: ProductForm
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-2 bg-ib-accent hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium disabled:opacity-50"
+            className="btn btn-primary disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
             {saving ? "A guardar..." : mode === "create" ? "Criar" : "Guardar Alterações"}

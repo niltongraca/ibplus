@@ -22,11 +22,11 @@ export default function AdminServicos() {
 
   return (
     <AdminLayout>
-      <div className="flex items-center justify-between mb-6">
+      <div className="page-header">
         <div className="flex items-center gap-3">
           <Wrench className="w-6 h-6 text-ib-accent" />
           <div>
-            <h1 className="text-2xl font-bold text-ib-primary">Serviços da Plataforma</h1>
+            <h1 className="page-title">Serviços da Plataforma</h1>
             <p className="text-sm text-ib-muted">Serviços disponíveis para as empresas na plataforma</p>
           </div>
         </div>

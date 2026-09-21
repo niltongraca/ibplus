@@ -45,14 +45,14 @@ export default function ClientesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Clientes</h1>
+          <h1 className="page-title">Clientes</h1>
           <p className="text-ib-muted text-sm">Gerir base de clientes</p>
         </div>
         <Link
           href="/gestao/clientes/novo"
-          className="flex items-center gap-2 bg-ib-accent hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium"
+          className="btn btn-primary"
         >
           <Plus className="w-4 h-4" /> Novo Cliente
         </Link>

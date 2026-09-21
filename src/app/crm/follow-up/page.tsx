@@ -42,7 +42,7 @@ export default function FollowUpPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ib-primary">Follow-up</h1>
+        <h1 className="page-title">Follow-up</h1>
         <p className="text-ib-muted text-sm">Acompanhamento de leads e clientes</p>
       </div>
 
@@ -53,7 +53,7 @@ export default function FollowUpPage() {
             <textarea value={formNote} onChange={(e) => setFormNote(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" rows={3} placeholder="Notas do acompanhamento..." autoFocus />
             <div className="flex gap-3 justify-end mt-4">
               <button onClick={() => setShowForm(null)} className="px-4 py-2 text-sm text-ib-muted hover:text-ib-primary">Cancelar</button>
-              <button onClick={() => addFollowUp(showForm)} className="px-4 py-2 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-ib-accent/90">Registar</button>
+              <button onClick={() => addFollowUp(showForm)} className="btn btn-primary">Registar</button>
             </div>
           </div>
         </div>

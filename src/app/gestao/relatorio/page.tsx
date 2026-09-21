@@ -221,14 +221,14 @@ export default function RelatorioPage() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 no-print">
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Relatório</h1>
+          <h1 className="page-title">Relatório</h1>
           <p className="text-ib-muted text-sm">Visão geral do desempenho do seu negócio</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={exportCsv} className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-ib-muted hover:bg-gray-50 transition-colors">
             <FileDown className="w-4 h-4" /> Exportar CSV
           </button>
-          <button onClick={handlePrint} className="inline-flex items-center gap-2 px-4 py-2.5 bg-ib-accent text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+          <button onClick={handlePrint} className="btn btn-primary">
             <Printer className="w-4 h-4" /> Imprimir
           </button>
         </div>

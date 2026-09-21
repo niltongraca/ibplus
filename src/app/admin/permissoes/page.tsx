@@ -77,7 +77,7 @@ export default function AdminPermissoes() {
       <div className="flex items-center gap-3 mb-6">
         <Shield className="w-6 h-6 text-ib-accent" />
         <div>
-          <h1 className="text-2xl font-bold text-ib-primary">Permissões</h1>
+          <h1 className="page-title">Permissões</h1>
           <p className="text-sm text-ib-muted">Controlar acesso a recursos por tipo de conta</p>
         </div>
       </div>

@@ -127,7 +127,7 @@ export default function ResetarSenhaPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-ib-accent hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            className="btn btn-primary w-full disabled:opacity-50"
           >
             {loading ? "A redefinir..." : (
               <>

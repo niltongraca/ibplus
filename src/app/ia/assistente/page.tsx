@@ -72,7 +72,7 @@ export default function AssistentePage() {
   return (
     <div className="flex flex-col h-[calc(100vh-10rem)]">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ib-primary">Assistente IA</h1>
+        <h1 className="page-title">Assistente IA</h1>
         <p className="text-ib-muted text-sm">Converse com o assistente inteligente IBPlus</p>
       </div>
 
@@ -111,7 +111,7 @@ export default function AssistentePage() {
             <button
               onClick={handleSend}
               disabled={!input.trim() || !data}
-              className="p-2.5 rounded-lg bg-ib-accent text-white hover:bg-blue-700 disabled:opacity-50"
+              className="btn btn-primary"
             >
               <Send className="w-4 h-4" />
             </button>
