@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { requireFeature, requireTeamManage } from "@/lib/permissions";
+import { checkPlanLimit } from "@/lib/planLimits";
 import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 import { sendEmail, inviteEmail } from "@/lib/email";
 import { parseBody } from "@/lib/validations/helpers";
@@ -22,6 +23,9 @@ export async function POST(request: Request) {
   if (currentUser.accountType === "EMPREENDEDOR") {
     return NextResponse.json({ error: "Contas de empreendedor não podem ter múltiplos utilizadores." }, { status: 403 });
   }
+
+  const limitDenied = await checkPlanLimit(currentUser, "users");
+  if (limitDenied) return limitDenied;
 
   try {
     const parsed = await parseBody(request, inviteCreateSchema);

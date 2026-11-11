@@ -5,6 +5,7 @@ import { parsePagination, buildSearch } from "@/lib/utils";
 import { createNotification } from "@/lib/notifications";
 import { logAction } from "@/lib/audit";
 import { requireFeature, requireWrite } from "@/lib/permissions";
+import { checkPlanLimit } from "@/lib/planLimits";
 import { parseBody } from "@/lib/validations/helpers";
 import { customerCreateSchema } from "@/lib/validations/catalog";
 
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   const denied = await requireWrite(user, "clientes"); if (denied) return denied;
+  const limitDenied = await checkPlanLimit(user, "customers"); if (limitDenied) return limitDenied;
 
   try {
     const parsed = await parseBody(request, customerCreateSchema);

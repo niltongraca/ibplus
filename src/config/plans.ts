@@ -1,11 +1,11 @@
-type PlanId = "FREE" | "PREMIUM" | "BUSINESS";
+export type PlanId = "FREE" | "PREMIUM" | "BUSINESS";
 
-interface PlanFeature {
+export interface PlanFeature {
   text: string;
   included: boolean;
 }
 
-interface Plan {
+export interface Plan {
   id: PlanId;
   name: string;
   price: number;
@@ -19,7 +19,7 @@ interface Plan {
   maxInvoices?: number;
 }
 
-const PLANS: Record<PlanId, Plan> = {
+export const PLANS: Record<PlanId, Plan> = {
   FREE: {
     id: "FREE",
     name: "Grátis",
@@ -30,6 +30,7 @@ const PLANS: Record<PlanId, Plan> = {
     features: [
       { text: "Dashboard básico", included: true },
       { text: "Gestão de perfil", included: true },
+      { text: "1 utilizador", included: true },
       { text: "Até 10 produtos/serviços", included: true },
       { text: "Até 50 clientes", included: true },
       { text: "Facturação básica", included: true },
@@ -54,6 +55,7 @@ const PLANS: Record<PlanId, Plan> = {
     features: [
       { text: "Dashboard completo", included: true },
       { text: "Gestão de perfil", included: true },
+      { text: "Até 5 utilizadores", included: true },
       { text: "Produtos/serviços ilimitados", included: true },
       { text: "Clientes ilimitados", included: true },
       { text: "Facturação avançada", included: true },
@@ -78,6 +80,7 @@ const PLANS: Record<PlanId, Plan> = {
     features: [
       { text: "Dashboard completo", included: true },
       { text: "Gestão de perfil", included: true },
+      { text: "Utilizadores ilimitados", included: true },
       { text: "Produtos/serviços ilimitados", included: true },
       { text: "Clientes ilimitados", included: true },
       { text: "Facturação avançada", included: true },

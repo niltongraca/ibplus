@@ -7,6 +7,7 @@ import { nextInvoiceNumber } from "@/lib/sequence";
 import { toNumber } from "@/lib/money";
 import { parseDateOnly, parsePagination, buildSearch } from "@/lib/utils";
 import { requireFeature, requireWrite } from "@/lib/permissions";
+import { checkPlanLimit, getCompanyPlan, getPlanLimit } from "@/lib/planLimits";
 import { parseBody } from "@/lib/validations/helpers";
 import { invoiceCreateSchema } from "@/lib/validations/finance";
 
@@ -54,7 +55,14 @@ export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   const denied = await requireWrite(user, "faturacao"); if (denied) return denied;
+  const limitDenied = await checkPlanLimit(user, "invoices"); if (limitDenied) return limitDenied;
   const companyId = user.companyId;
+
+  const plan = await getCompanyPlan(user);
+  const catalogLimits = {
+    maxProducts: getPlanLimit(plan, "products"),
+    maxCustomers: getPlanLimit(plan, "customers"),
+  };
 
   try {
     const parsed = await parseBody(request, invoiceCreateSchema);
@@ -92,8 +100,8 @@ export async function POST(request: Request) {
     const paidAmount = status === "paid" ? total : body.paidAmount ?? 0;
 
     const invoice = await prisma.$transaction(async (tx) => {
-    await findOrCreateCustomer(companyId, customer || "", tx, user);
-    await ensureItemsInCatalog(companyId, normalizedItems, tx, user);
+    await findOrCreateCustomer(companyId, customer || "", tx, user, { maxCustomers: catalogLimits.maxCustomers });
+    await ensureItemsInCatalog(companyId, normalizedItems, tx, user, { maxProducts: catalogLimits.maxProducts });
 
     const number = await nextInvoiceNumber(tx, companyId);
 

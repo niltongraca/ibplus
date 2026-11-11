@@ -4,7 +4,13 @@ import { logAction, type AuditActor } from "@/lib/audit";
 
 type CatalogClient = Prisma.TransactionClient | typeof prisma;
 
-export async function findOrCreateCustomer(companyId: string, name: string, db: CatalogClient = prisma, user?: AuditActor): Promise<void> {
+export async function findOrCreateCustomer(
+  companyId: string,
+  name: string,
+  db: CatalogClient = prisma,
+  user?: AuditActor,
+  limits?: { maxCustomers?: number }
+): Promise<void> {
   const trimmed = typeof name === "string" ? name.trim() : "";
   if (!trimmed) return;
 
@@ -13,6 +19,12 @@ export async function findOrCreateCustomer(companyId: string, name: string, db: 
     select: { id: true },
   });
   if (existing) return;
+
+  // A criação automática na faturação não pode furar o limite do plano.
+  if (limits?.maxCustomers !== undefined && limits.maxCustomers >= 0) {
+    const total = await db.customer.count({ where: { companyId } });
+    if (total >= limits.maxCustomers) return;
+  }
 
   const customer = await db.customer.create({
     data: { companyId, name: trimmed },
@@ -24,7 +36,8 @@ export async function ensureItemsInCatalog(
   companyId: string,
   items: { description: string; unitPrice: number; kind?: string }[],
   db: CatalogClient = prisma,
-  user?: AuditActor
+  user?: AuditActor,
+  limits?: { maxProducts?: number }
 ): Promise<void> {
   const [products, services] = await Promise.all([
     db.product.findMany({ where: { companyId }, select: { id: true, name: true } }),
@@ -46,7 +59,12 @@ export async function ensureItemsInCatalog(
     }
   }
 
+  // Limite do plano para produtos/serviços (produtos + serviços já existentes).
+  const max = limits?.maxProducts;
+  let room = max === undefined || max < 0 ? Infinity : Math.max(0, max - (products.length + services.length));
+
   for (const { name, price, kind } of pending.values()) {
+    if (room <= 0) break;
     if (kind === "service") {
       const service = await db.service.create({
         data: { companyId, name, price },
@@ -58,5 +76,6 @@ export async function ensureItemsInCatalog(
       });
       await logAction("create", "product", product.id, `Produto "${name}" criado automaticamente na faturação`, user);
     }
+    room -= 1;
   }
 }

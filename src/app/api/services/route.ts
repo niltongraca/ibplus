@@ -5,6 +5,7 @@ import { parsePagination, buildSearch, parseBool } from "@/lib/utils";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
 import { requireFeature, requireWrite } from "@/lib/permissions";
+import { checkPlanLimit } from "@/lib/planLimits";
 import { parseBody } from "@/lib/validations/helpers";
 import { serviceCreateSchema } from "@/lib/validations/catalog";
 
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   if (!user.companyId) return NextResponse.json({ error: "Sem empresa associada." }, { status: 400 });
   const denied = await requireWrite(user, "servicos"); if (denied) return denied;
+  const limitDenied = await checkPlanLimit(user, "products"); if (limitDenied) return limitDenied;
 
   try {
     const parsed = await parseBody(request, serviceCreateSchema);

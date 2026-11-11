@@ -4,51 +4,20 @@ import { useState } from "react";
 import { Check, Sparkles, ArrowLeft, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { PLAN_LIST, type Plan } from "@/config/plans";
 
-const plans = [
-  {
-    name: "Grátis",
-    price: "0 Kz",
-    period: "/mês",
-    planKey: "FREE",
-    features: ["1 utilizador", "Até 50 clientes", "Até 20 produtos", "Gestão de vendas", "Dashboard básico"],
-    cta: "Plano Actual",
-    ctaStyle: "bg-gray-100 text-gray-500 cursor-default",
-  },
-  {
-    name: "Premium",
-    price: "12.500 Kz",
-    period: "/mês",
-    planKey: "PREMIUM",
-    features: [
-      "Até 5 utilizadores", "Clientes ilimitados", "Produtos ilimitados",
-      "Gestão de stock", "Relatórios financeiros", "IA e recomendações",
-    ],
-    cta: "Seleccionar Premium",
-    ctaStyle: "btn btn-primary",
-    popular: true,
-  },
-  {
-    name: "Business",
-    price: "25.000 Kz",
-    period: "/mês",
-    planKey: "BUSINESS",
-    features: [
-      "Utilizadores ilimitados", "Tudo do Premium", "CRM completo",
-      "API e integrações", "Suporte prioritário", "Loja online",
-    ],
-    cta: "Seleccionar Business",
-    ctaStyle: "bg-gray-900 text-white hover:bg-gray-800",
-  },
-];
+function ctaLabel(plan: Plan): string {
+  if (plan.id === "FREE") return "Plano Base";
+  return `Seleccionar ${plan.name}`;
+}
 
 export default function UpgradePage() {
   const { user } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
-  function handleSelectPlan(planKey: string) {
-    if (planKey === "FREE" || planKey === user?.plan) return;
-    setSelectedPlan(planKey);
+  function handleSelectPlan(plan: Plan) {
+    if (plan.id === "FREE" || plan.id === user?.plan) return;
+    setSelectedPlan(plan.name);
   }
 
   return (
@@ -65,11 +34,12 @@ export default function UpgradePage() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {plans.map((plan) => {
-            const isCurrent = plan.planKey === user?.plan;
+          {PLAN_LIST.map((plan) => {
+            const isCurrent = plan.id === user?.plan;
+            const isFree = plan.id === "FREE";
             return (
-              <div key={plan.name} className={`card p-6 shadow-sm relative ${plan.popular ? "border-blue-500 ring-2 ring-blue-500/20" : ""}`}>
-                {plan.popular && (
+              <div key={plan.id} className={`card p-6 shadow-sm relative ${plan.highlighted ? "border-blue-500 ring-2 ring-blue-500/20" : ""}`}>
+                {plan.highlighted && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
                     Mais Popular
                   </span>
@@ -80,24 +50,24 @@ export default function UpgradePage() {
                   </span>
                 )}
                 <h2 className="text-xl font-bold text-gray-900 mb-1">{plan.name}</h2>
+                <p className="text-sm text-ib-muted mb-4">{plan.description}</p>
                 <div className="mb-6">
-                  <span className="text-3xl font-bold text-gray-900">{plan.price}</span>
-                  <span className="text-gray-500 text-sm">{plan.period}</span>
+                  <span className="text-3xl font-bold text-gray-900">{plan.priceLabel}</span>
                 </div>
                 <ul className="space-y-3 mb-8">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm text-gray-700">
+                  {plan.features.filter((f) => f.included).map((f) => (
+                    <li key={f.text} className="flex items-start gap-2 text-sm text-gray-700">
                       <Check className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
-                      {f}
+                      {f.text}
                     </li>
                   ))}
                 </ul>
                 <button
-                  onClick={() => handleSelectPlan(plan.planKey)}
-                  disabled={isCurrent}
-                  className={`btn w-full ${isCurrent ? "bg-gray-100 text-gray-400 cursor-default" : plan.ctaStyle}`}
+                  onClick={() => handleSelectPlan(plan)}
+                  disabled={isCurrent || isFree}
+                  className={`btn w-full ${isCurrent || isFree ? "bg-gray-100 text-gray-400 cursor-default" : plan.highlighted ? "btn btn-primary" : "bg-gray-900 text-white hover:bg-gray-800"}`}
                 >
-                  {isCurrent ? "Plano Actual" : plan.cta}
+                  {isCurrent ? "Plano Actual" : ctaLabel(plan)}
                 </button>
               </div>
             );

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { findOrCreateCustomer, ensureItemsInCatalog } from "@/lib/catalog";
+import { getCompanyPlan, getPlanLimit } from "@/lib/planLimits";
 import { nextQuoteNumber } from "@/lib/sequence";
 import { toNumber } from "@/lib/money";
 import { parseDateOnly, parsePagination, buildSearch } from "@/lib/utils";
@@ -67,6 +68,12 @@ export async function POST(request: Request) {
   const denied = await requireWrite(user, "orcamentos"); if (denied) return denied;
   const companyId = user.companyId;
 
+  const plan = await getCompanyPlan(user);
+  const catalogLimits = {
+    maxProducts: getPlanLimit(plan, "products"),
+    maxCustomers: getPlanLimit(plan, "customers"),
+  };
+
   try {
     const parsed = await parseBody(request, quoteCreateSchema);
     if ("error" in parsed) return parsed.error;
@@ -101,8 +108,8 @@ export async function POST(request: Request) {
     const bankDetails = body.bankDetails || null;
 
     const quote = await prisma.$transaction(async (tx) => {
-      await findOrCreateCustomer(companyId, customer || "", tx, user);
-      await ensureItemsInCatalog(companyId, normalizedItems, tx, user);
+      await findOrCreateCustomer(companyId, customer || "", tx, user, { maxCustomers: catalogLimits.maxCustomers });
+      await ensureItemsInCatalog(companyId, normalizedItems, tx, user, { maxProducts: catalogLimits.maxProducts });
 
       const number = await nextQuoteNumber(tx, companyId);
 

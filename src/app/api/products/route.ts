@@ -5,6 +5,7 @@ import { parsePagination, buildSearch, parseBool } from "@/lib/utils";
 import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
 import { requireFeature, requireWrite } from "@/lib/permissions";
+import { checkPlanLimit } from "@/lib/planLimits";
 import { parseBody } from "@/lib/validations/helpers";
 import { productSchema } from "@/lib/validations/products";
 
@@ -68,6 +69,7 @@ export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
   const denied = await requireWrite(user, "produtos"); if (denied) return denied;
+  const limitDenied = await checkPlanLimit(user, "products"); if (limitDenied) return limitDenied;
   const companyId = user.companyId;
 
   try {
