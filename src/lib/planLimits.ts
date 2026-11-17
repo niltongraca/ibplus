@@ -38,7 +38,7 @@ export function isUnlimited(limit: number): boolean {
  * uma empresa Business. Se não houver dono identificável, usa-se o plano do
  * próprio utilizador.
  */
-export async function getCompanyPlan(user: AuthUser): Promise<string> {
+export async function getCompanyPlan(user: { companyId: string | null; plan: string }): Promise<string> {
   if (!user.companyId) return user.plan;
 
   const owner = await prisma.employee.findFirst({
@@ -52,8 +52,15 @@ export async function getCompanyPlan(user: AuthUser): Promise<string> {
 
 async function countResource(companyId: string, resource: PlanLimitResource): Promise<number> {
   switch (resource) {
-    case "users":
-      return prisma.user.count({ where: { companyId } });
+    case "users": {
+      // Convites pendentes reservam lugar: sem isto, era possível criar vários
+      // convites com o limite livre e aceitá-los todos depois, excedendo o plano.
+      const [users, pendingInvites] = await Promise.all([
+        prisma.user.count({ where: { companyId } }),
+        prisma.invite.count({ where: { companyId, used: false, expiresAt: { gt: new Date() } } }),
+      ]);
+      return users + pendingInvites;
+    }
     case "products": {
       // O limite é apresentado como "produtos/serviços", por isso conta ambos.
       const [products, services] = await Promise.all([

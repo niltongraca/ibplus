@@ -8,6 +8,7 @@ import { ensureCompanyOwner } from "@/lib/ownership";
 import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 import { sendEmail, welcomeEmail } from "@/lib/email";
 import { parseDateOnly } from "@/lib/utils";
+import { getCompanyPlan, getPlanLimit } from "@/lib/planLimits";
 
 const accountTypeEnum = z.enum(["EMPREENDEDOR", "EMPRESA", "ONG", "ASSOCIACAO", "EDUCACAO", "COOPERATIVA"]);
 
@@ -218,6 +219,22 @@ export async function POST(request: Request) {
         if (invite.expiresAt < new Date()) throw new Error("Este convite expirou.");
         companyId = invite.companyId;
         invited = true;
+
+        // Revalidar o limite de utilizadores no momento da aceitação: o convite
+        // pode ter sido criado antes de o plano mudar ou em paralelo com outros.
+        const owner = await tx.employee.findFirst({
+          where: { companyId, isOwner: true, userId: { not: null } },
+          orderBy: { createdAt: "asc" },
+          select: { user: { select: { plan: true } } },
+        });
+        const userLimit = getPlanLimit(owner?.user?.plan ?? "FREE", "users");
+        if (userLimit >= 0) {
+          const used = await tx.user.count({ where: { companyId } });
+          if (used >= userLimit) {
+            throw new Error("O plano da empresa já atingiu o limite de utilizadores.");
+          }
+        }
+
         await tx.invite.update({ where: { id: invite.id }, data: { used: true } });
 
         const defaultCargo = await tx.cargo.findFirst({
@@ -373,7 +390,9 @@ export async function POST(request: Request) {
       phone: created.phone,
       companyId: created.companyId,
     });
-    const user = { ...created, isOwner: ownerInfo.isOwner, cargoLevel: ownerInfo.cargoLevel };
+    const baseUser = { ...created, isOwner: ownerInfo.isOwner, cargoLevel: ownerInfo.cargoLevel };
+    const companyPlan = await getCompanyPlan(baseUser);
+    const user = { ...baseUser, plan: companyPlan, companyPlan };
 
     const mail = welcomeEmail(user.name, user.accountType);
     await sendEmail(user.email, mail.subject, mail.html);
@@ -395,7 +414,7 @@ export async function POST(request: Request) {
     return response;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "";
-    if (message.includes("Link") || message.includes("convite") || message.includes("expirou") || message.includes("Cargo")) {
+    if (message.includes("Link") || message.includes("convite") || message.includes("expirou") || message.includes("Cargo") || message.includes("limite")) {
       return NextResponse.json({ error: message }, { status: 400 });
     }
     return NextResponse.json({ error: "Erro interno do servidor." }, { status: 500 });

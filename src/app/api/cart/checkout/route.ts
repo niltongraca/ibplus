@@ -5,10 +5,13 @@ import { logAction } from "@/lib/audit";
 import { toNumber } from "@/lib/money";
 import { parseBody } from "@/lib/validations/helpers";
 import { checkoutSchema } from "@/lib/validations/catalog";
+import { requireWrite } from "@/lib/permissions";
+import { checkPlanLimit } from "@/lib/planLimits";
 
 export async function POST(request: Request) {
   const user = await getAuthUser();
   if (!user?.companyId) return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
+  const denied = await requireWrite(user, "vendas"); if (denied) return denied;
   const companyId = user.companyId as string;
 
   try {
@@ -17,6 +20,10 @@ export async function POST(request: Request) {
     const body = parsed.data;
     const customerName = body.customerName || "";
     const paymentMethod = body.paymentMethod ?? "cash";
+
+    // A venda não é bloqueada pelo limite de clientes: se o plano já estiver
+    // cheio, o nome fica registado nas notas da venda em vez de criar cliente.
+    const canCreateCustomer = customerName ? (await checkPlanLimit(user, "customers")) === null : false;
 
     const items = body.items;
 
@@ -49,7 +56,7 @@ export async function POST(request: Request) {
 
     const sale = await prisma.$transaction(async (tx) => {
       let customerId: string | undefined;
-      if (customerName) {
+      if (customerName && canCreateCustomer) {
         const customer = await tx.customer.create({
           data: { name: customerName, companyId: companyId },
         });

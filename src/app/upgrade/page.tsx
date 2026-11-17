@@ -14,9 +14,10 @@ function ctaLabel(plan: Plan): string {
 export default function UpgradePage() {
   const { user } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const currentPlan = user?.companyPlan ?? user?.plan;
 
   function handleSelectPlan(plan: Plan) {
-    if (plan.id === "FREE" || plan.id === user?.plan) return;
+    if (plan.id === "FREE" || plan.id === currentPlan) return;
     setSelectedPlan(plan.name);
   }
 
@@ -35,7 +36,7 @@ export default function UpgradePage() {
 
         <div className="grid md:grid-cols-3 gap-6">
           {PLAN_LIST.map((plan) => {
-            const isCurrent = plan.id === user?.plan;
+            const isCurrent = plan.id === currentPlan;
             const isFree = plan.id === "FREE";
             return (
               <div key={plan.id} className={`card p-6 shadow-sm relative ${plan.highlighted ? "border-blue-500 ring-2 ring-blue-500/20" : ""}`}>

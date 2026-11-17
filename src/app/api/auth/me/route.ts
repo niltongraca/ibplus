@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getAuthUser, signToken, verifyToken } from "@/lib/auth";
 import { getEffectiveFeatureList } from "@/lib/permissions";
+import { getCompanyPlan } from "@/lib/planLimits";
 
 export async function GET() {
   try {
@@ -11,8 +12,10 @@ export async function GET() {
     }
 
     const allowedFeatures = await getEffectiveFeatureList(user.companyId, user.cargoLevel);
+    // O plano efetivo é o da empresa (dono); membros convidados têm `plan` FREE.
+    const companyPlan = await getCompanyPlan(user);
 
-    let response = NextResponse.json({ user: { ...user, allowedFeatures } });
+    let response = NextResponse.json({ user: { ...user, plan: companyPlan, companyPlan, allowedFeatures } });
 
     const cookieStore = await cookies();
     const token = cookieStore.get("ibplus_session")?.value;
@@ -20,7 +23,7 @@ export async function GET() {
 
     if (user.companyId && (payload?.cargoLevel ?? null) !== user.cargoLevel) {
       const fresh = await signToken({
-        userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType, plan: user.plan, tokenVersion: user.tokenVersion, cargoLevel: user.cargoLevel,
+        userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType, plan: companyPlan, tokenVersion: user.tokenVersion, cargoLevel: user.cargoLevel,
       });
       response.cookies.set("ibplus_session", fresh, {
         httpOnly: true,

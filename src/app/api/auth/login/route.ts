@@ -6,6 +6,7 @@ import { ensureCompanyOwner } from "@/lib/ownership";
 import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 import { parseBody } from "@/lib/validations/helpers";
 import { loginSchema } from "@/lib/validations/auth";
+import { getCompanyPlan } from "@/lib/planLimits";
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
@@ -29,11 +30,13 @@ export async function POST(request: Request) {
 
     const ownerInfo = await ensureCompanyOwner(user);
     const cargoLevel = ownerInfo.cargoLevel;
+    // Plano efetivo da empresa: membros convidados têm `plan` FREE na própria conta.
+    const companyPlan = await getCompanyPlan(user);
 
-    const token = await signToken({ userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType, plan: user.plan, tokenVersion: user.tokenVersion, cargoLevel });
+    const token = await signToken({ userId: user.id, companyId: user.companyId, email: user.email, role: user.role, accountType: user.accountType, plan: companyPlan, tokenVersion: user.tokenVersion, cargoLevel });
 
     const response = NextResponse.json({
-      user: { id: user.id, name: user.name, email: user.email, phone: user.phone, avatar: user.avatar, coverPhoto: user.coverPhoto, accountType: user.accountType, plan: user.plan, companyId: user.companyId, role: user.role, isOwner: ownerInfo.isOwner, cargoLevel },
+      user: { id: user.id, name: user.name, email: user.email, phone: user.phone, avatar: user.avatar, coverPhoto: user.coverPhoto, accountType: user.accountType, plan: companyPlan, companyPlan, companyId: user.companyId, role: user.role, isOwner: ownerInfo.isOwner, cargoLevel },
     });
 
     response.cookies.set("ibplus_session", token, {

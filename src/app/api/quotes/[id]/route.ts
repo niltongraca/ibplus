@@ -7,6 +7,7 @@ import { nextInvoiceNumber } from "@/lib/sequence";
 import { toNumber } from "@/lib/money";
 import { parseDateOnly } from "@/lib/utils";
 import { requireFeature, requireWrite, requireDelete } from "@/lib/permissions";
+import { checkPlanLimit } from "@/lib/planLimits";
 import { parseBody } from "@/lib/validations/helpers";
 import { quoteUpdateSchema } from "@/lib/validations/finance";
 
@@ -112,9 +113,24 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
 
   // Auto-generate invoice on approval (avoid duplicates)
+  const approving = data.status === "approved" && quote.status !== "approved";
+  const invoiceNotes = `Gerado a partir do orçamento ${quote.number}`;
+
+  if (approving) {
+    // Se a fatura já foi gerada antes, reaprovar não cria outra e não deve ser
+    // bloqueado pelo limite de faturas.
+    const alreadyGenerated = await prisma.invoice.findFirst({
+      where: { companyId, notes: invoiceNotes },
+      select: { id: true },
+    });
+    if (!alreadyGenerated) {
+      const limitDenied = await checkPlanLimit(user, "invoices");
+      if (limitDenied) return limitDenied;
+    }
+  }
+
   await prisma.$transaction(async (tx) => {
-    if (data.status === "approved" && quote.status !== "approved") {
-      const invoiceNotes = `Gerado a partir do orçamento ${quote.number}`;
+    if (approving) {
       const existing = await tx.invoice.findFirst({
         where: { companyId, notes: invoiceNotes },
       });

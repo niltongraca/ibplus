@@ -12,6 +12,7 @@ interface User {
   coverPhoto?: string | null;
   accountType?: string;
   plan?: string;
+  companyPlan?: string;
   companyId?: string | null;
   role: string;
   isOwner?: boolean;
