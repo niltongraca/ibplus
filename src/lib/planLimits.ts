@@ -1,35 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "./prisma";
-import { PLANS, type PlanId } from "@/config/plans";
+import {
+  canCreate,
+  getPlanLimit,
+  isUnlimited,
+  planLimitMessage,
+  type PlanLimitResource,
+} from "@/config/planLimits";
 import type { AuthUser } from "./permissions";
 
-/** Recursos sujeitos aos limites definidos em `src/config/plans.ts`. */
-export type PlanLimitResource = "users" | "products" | "customers" | "invoices";
-
-const LIMIT_KEYS: Record<PlanLimitResource, "maxUsers" | "maxProducts" | "maxCustomers" | "maxInvoices"> = {
-  users: "maxUsers",
-  products: "maxProducts",
-  customers: "maxCustomers",
-  invoices: "maxInvoices",
-};
-
-const RESOURCE_LABELS: Record<PlanLimitResource, string> = {
-  users: "utilizadores",
-  products: "produtos/serviços",
-  customers: "clientes",
-  invoices: "faturas",
-};
-
-/** Devolve o limite do plano para o recurso. `-1` significa ilimitado. */
-export function getPlanLimit(plan: string, resource: PlanLimitResource): number {
-  const planConfig = PLANS[(plan as PlanId)] ?? PLANS.FREE;
-  const value = planConfig[LIMIT_KEYS[resource]];
-  return typeof value === "number" ? value : 0;
-}
-
-export function isUnlimited(limit: number): boolean {
-  return limit < 0;
-}
+// As regras puras vivem em src/config/planLimits.ts (sem Prisma/Next) para
+// poderem ser testadas. Reexportamos aqui para não quebrar os imports existentes.
+export { getPlanLimit, isUnlimited, type PlanLimitResource } from "@/config/planLimits";
 
 /**
  * O plano é guardado em `User`, mas os recursos limitados são da empresa.
@@ -95,12 +77,11 @@ export async function checkPlanLimit(
   if (isUnlimited(limit)) return null;
 
   const used = await countResource(user.companyId, resource);
-  if (used < limit) return null;
+  if (canCreate(limit, used)) return null;
 
-  const planName = PLANS[(plan as PlanId)]?.name ?? "actual";
   return NextResponse.json(
     {
-      error: `O plano ${planName} permite até ${limit} ${RESOURCE_LABELS[resource]}. Faça upgrade para continuar.`,
+      error: planLimitMessage(plan, resource, limit),
       code: "PLAN_LIMIT_REACHED",
       resource,
       limit,

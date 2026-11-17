@@ -21,6 +21,12 @@ enum PlanType {
   BUSINESS
 }
 
+enum UpgradeRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id           String      @id @default(cuid())
   name         String
@@ -44,6 +50,7 @@ model User {
   ngoProfile      NGOProfile?
   educationProfile EducationProfile?
   employees       Employee[]
+  upgradeRequests UpgradeRequest[]
 
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -180,6 +187,7 @@ opportunities       Opportunity[]
   cargos              Cargo[]
   cargoPermissions    CargoPermission[]
   events              Event[]
+  upgradeRequests     UpgradeRequest[]
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
   acquisitionCode     String?     @unique
@@ -649,6 +657,26 @@ model Invite {
   expiresAt   DateTime
 
   @@index([companyId])
+}
+
+model UpgradeRequest {
+  id         String               @id @default(cuid())
+  userId     String
+  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId  String?
+  company    Company?             @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  fromPlan   PlanType
+  toPlan     PlanType
+  status     UpgradeRequestStatus @default(PENDING)
+  phone      String?
+  note       String?
+  reviewedAt DateTime?
+  reviewedBy String?
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+
+  @@index([companyId])
+  @@index([status])
 }
 
 model AuditLog {
