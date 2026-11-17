@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { PLANS, type PlanId } from "@/config/plans";
 
 function esc(value: string): string {
   return value
@@ -115,6 +116,38 @@ export function welcomeEmail(name: string, accountType: string): { subject: stri
        <p style="text-align:center"><a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/gestao/dashboard" class="btn">Ir para o Painel</a></p>
        <p style="color:#94a3b8;font-size:13px">Se tiver dúvidas, responda a este email ou consulte a nossa central de ajuda.</p>`,
       "Bem-vindo ao IBPlus+"
+    ),
+  };
+}
+
+function planName(plan: string): string {
+  return PLANS[plan as PlanId]?.name ?? plan;
+}
+
+export function upgradeApprovedEmail(name: string, plan: string): { subject: string; html: string } {
+  const url = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/gestao/dashboard`;
+  return {
+    subject: "Upgrade aprovado — IBPlus+",
+    html: baseHtml(
+      `<h2 style="margin-top:0;color:#1e3a5f">Olá ${esc(name)}, o seu upgrade foi aprovado! 🎉</h2>
+       <p>O plano da sua conta passou para <strong>${esc(planName(plan))}</strong> e já pode utilizar todos os recursos incluídos.</p>
+       <p style="text-align:center"><a href="${url}" class="btn">Ir para o Painel</a></p>
+       <p style="color:#94a3b8;font-size:13px">Se a alteração não aparecer de imediato, recarregue a página ou inicie sessão novamente.</p>`,
+      "Upgrade aprovado"
+    ),
+  };
+}
+
+export function upgradeRejectedEmail(name: string, plan: string): { subject: string; html: string } {
+  const url = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/upgrade`;
+  return {
+    subject: "Sobre o seu pedido de upgrade — IBPlus+",
+    html: baseHtml(
+      `<h2 style="margin-top:0;color:#1e3a5f">Olá ${esc(name)}, sobre o seu pedido de upgrade</h2>
+       <p>Não foi possível aprovar, neste momento, a passagem para o plano <strong>${esc(planName(plan))}</strong>.</p>
+       <p>Se tiver dúvidas ou quiser mais informações, responda a este email ou consulte novamente os planos disponíveis.</p>
+       <p style="text-align:center"><a href="${url}" class="btn">Ver Planos</a></p>`,
+      "Pedido de upgrade"
     ),
   };
 }

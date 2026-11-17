@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 interface User {
@@ -104,6 +104,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
     }
   }, []);
+
+  // Mantém o plano actualizado após decisões externas (ex.: aprovação de upgrade
+  // feita por um administrador noutro dispositivo) sem exigir novo login.
+  const lastRefresh = useRef(0);
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "hidden") return;
+      const now = Date.now();
+      if (now - lastRefresh.current < 30_000) return;
+      lastRefresh.current = now;
+      void refresh();
+    };
+    window.addEventListener("focus", onVisible);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", onVisible);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [refresh]);
 
   return (
     <AuthContext.Provider value={{ user, loading, login, register, logout, refresh }}>

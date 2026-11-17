@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, Sparkles, ArrowLeft, MessageCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,7 +13,7 @@ function ctaLabel(plan: Plan): string {
 }
 
 export default function UpgradePage() {
-  const { user } = useAuth();
+  const { user, refresh } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [phone, setPhone] = useState("");
   const [note, setNote] = useState("");
@@ -21,6 +21,11 @@ export default function UpgradePage() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
   const currentPlan = user?.companyPlan ?? user?.plan;
+
+  // Garante que o plano mostrado é o mais recente (ex.: approve enquanto a página esteve aberta).
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
   function handleSelectPlan(plan: Plan) {
     if (plan.id === "FREE" || plan.id === currentPlan) return;
