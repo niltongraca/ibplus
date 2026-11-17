@@ -41,6 +41,15 @@ describe("getBreadcrumbs", () => {
     ]);
   });
 
+  it("reconhece /admin/pedidos como rota literal", () => {
+    const trail = getBreadcrumbs("/admin/pedidos");
+    assert.deepEqual(trail, [
+      { label: "Início", href: "/admin" },
+      { label: "Administração", href: "/admin" },
+      { label: "Pedidos" },
+    ]);
+  });
+
   it("devolve null em páginas públicas sem módulo", () => {
     assert.equal(getBreadcrumbs("/praca"), null);
     assert.equal(getBreadcrumbs("/"), null);

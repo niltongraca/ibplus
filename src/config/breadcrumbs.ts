@@ -117,6 +117,7 @@ const PAGES: Record<string, BreadcrumbItem[]> = {
   "admin/conteudos": [{ label: "Conteúdos" }],
   "admin/conteudos/novo": [{ label: "Conteúdos", href: "/admin/conteudos" }, { label: "Novo Conteúdo" }],
   "admin/anuncios": [{ label: "Anúncios" }],
+  "admin/pedidos": [{ label: "Pedidos" }],
   "admin/logs": [{ label: "Logs" }],
 };
 
@@ -134,7 +135,7 @@ const LITERAL_SEGMENTS = new Set([
   "previsoes", "funcionarios", "permissoes", "ferias", "presencas", "salarios",
   "campanhas", "email-marketing", "fidelizacao", "promocoes", "alunos",
   "catalogo", "encomendas", "loja", "pagamentos", "usuarios", "empresas",
-  "recursos", "anuncios", "logs", "conteudos", "novo", "nova", "editar",
+  "recursos", "anuncios", "pedidos", "logs", "conteudos", "novo", "nova", "editar",
   "bilhetes",
 ]);
 

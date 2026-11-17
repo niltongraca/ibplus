@@ -20,11 +20,25 @@ export default function UpgradePage() {
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+  const [stripeEnabled, setStripeEnabled] = useState(false);
+  const [checkoutNotice, setCheckoutNotice] = useState("");
   const currentPlan = user?.companyPlan ?? user?.plan;
 
   // Garante que o plano mostrado é o mais recente (ex.: approve enquanto a página esteve aberta).
   useEffect(() => {
     void refresh();
+
+    fetch("/api/upgrade/checkout")
+      .then((res) => (res.ok ? res.json() : { enabled: false }))
+      .then((data: { enabled?: boolean }) => setStripeEnabled(Boolean(data.enabled)))
+      .catch(() => setStripeEnabled(false));
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("checkout") === "success") {
+      setCheckoutNotice("Pagamento recebido. O seu plano será activado de imediato.");
+    } else if (params.get("checkout") === "cancelled") {
+      setCheckoutNotice("Pagamento cancelado. Pode tentar novamente ou pedir aprovação.");
+    }
   }, [refresh]);
 
   function handleSelectPlan(plan: Plan) {
@@ -60,6 +74,29 @@ export default function UpgradePage() {
     }
   }
 
+  async function handlePay() {
+    if (!selectedPlan) return;
+    setSubmitting(true);
+    setError("");
+    try {
+      const { url } = await apiFetch<{ url: string | null }>("/api/upgrade/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          toPlan: selectedPlan.id,
+          phone: phone || null,
+          note: note || null,
+        }),
+      });
+      if (!url) throw new Error("Não foi possível iniciar o pagamento.");
+      window.location.href = url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível iniciar o pagamento.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       <div className="max-w-5xl mx-auto px-4 py-12">
@@ -72,6 +109,12 @@ export default function UpgradePage() {
           <h1 className="page-title text-3xl">Escolha o seu Plano</h1>
           <p className="text-ib-muted mt-2">Comece grátis e faça upgrade conforme o seu negócio cresce</p>
         </div>
+
+        {checkoutNotice && (
+          <p role="status" className="mb-6 rounded-lg bg-blue-50 px-4 py-3 text-center text-sm text-blue-800">
+            {checkoutNotice}
+          </p>
+        )}
 
         <div className="grid md:grid-cols-3 gap-6">
           {PLAN_LIST.map((plan) => {
@@ -136,7 +179,7 @@ export default function UpgradePage() {
                     Upgrade para {selectedPlan.name}
                   </h3>
                   <p className="text-gray-500 text-sm mb-5">
-                    Envie o pedido e a nossa equipa activa o novo plano após confirmação.
+                    Pague com cartão para activação imediata ou envie o pedido para a nossa equipa analisar.
                   </p>
 
                   <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="upgrade-phone">
@@ -169,9 +212,24 @@ export default function UpgradePage() {
                     <p role="alert" className="text-sm text-red-600 mb-4">{error}</p>
                   )}
 
-                  <button type="submit" disabled={submitting} className="btn btn-primary w-full flex items-center justify-center gap-2">
-                    {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                    {submitting ? "A enviar..." : "Enviar pedido"}
+                  {stripeEnabled && (
+                    <button
+                      type="button"
+                      onClick={handlePay}
+                      disabled={submitting}
+                      className="btn btn-primary w-full flex items-center justify-center gap-2"
+                    >
+                      {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                      Pagar com cartão
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className={stripeEnabled ? "btn btn-outline w-full mt-2" : "btn btn-primary w-full flex items-center justify-center gap-2"}
+                  >
+                    {!stripeEnabled && submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                    {stripeEnabled ? "Pedir aprovação" : submitting ? "A enviar..." : "Enviar pedido"}
                   </button>
                   <div className="flex flex-col gap-2 mt-2">
                     <a

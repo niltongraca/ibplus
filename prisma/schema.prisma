@@ -27,6 +27,13 @@ enum UpgradeRequestStatus {
   REJECTED
 }
 
+enum UpgradePaymentStatus {
+  NONE
+  PENDING
+  PAID
+  FAILED
+}
+
 model User {
   id           String      @id @default(cuid())
   name         String
@@ -660,20 +667,24 @@ model Invite {
 }
 
 model UpgradeRequest {
-  id         String               @id @default(cuid())
-  userId     String
-  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  companyId  String?
-  company    Company?             @relation(fields: [companyId], references: [id], onDelete: SetNull)
-  fromPlan   PlanType
-  toPlan     PlanType
-  status     UpgradeRequestStatus @default(PENDING)
-  phone      String?
-  note       String?
-  reviewedAt DateTime?
-  reviewedBy String?
-  createdAt  DateTime             @default(now())
-  updatedAt  DateTime             @updatedAt
+  id                   String               @id @default(cuid())
+  userId               String
+  user                 User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId            String?
+  company              Company?             @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  fromPlan             PlanType
+  toPlan               PlanType
+  status               UpgradeRequestStatus @default(PENDING)
+  paymentStatus        UpgradePaymentStatus @default(NONE)
+  stripeSessionId      String?              @unique
+  stripeSubscriptionId String?
+  paidAt               DateTime?
+  phone                String?
+  note                 String?
+  reviewedAt           DateTime?
+  reviewedBy           String?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
 
   @@index([companyId])
   @@index([status])
