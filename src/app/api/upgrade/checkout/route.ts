@@ -9,6 +9,7 @@ import { logAction } from "@/lib/audit";
 import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 import { parseBody } from "@/lib/validations/helpers";
 import { upgradeRequestSchema } from "@/lib/validations/plans";
+import { planAmount } from "@/config/payments";
 import { getStripe, isCheckoutEnabled, stripePriceId } from "@/lib/stripe";
 
 /** Permite à UI esconder o botão de pagamento quando o Stripe não está configurado. */
@@ -112,6 +113,8 @@ export async function POST(request: Request) {
       phone: phone || null,
       note: note || null,
       paymentStatus: "PENDING",
+      paymentMethod: "stripe",
+      amount: planAmount(toPlan),
       stripeSessionId: session.id,
     },
   });

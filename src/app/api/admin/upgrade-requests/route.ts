@@ -6,6 +6,12 @@ import { parsePagination } from "@/lib/utils";
 
 const STATUSES: UpgradeRequestStatus[] = ["PENDING", "APPROVED", "REJECTED"];
 
+/**
+ * Lista de pedidos para o painel administrativo.
+ * O comprovativo (potencialmente uma data-URL grande) nunca é devolvido aqui:
+ * apenas o indicador `hasProof`, e o ficheiro é servido por
+ * GET /api/admin/upgrade-requests/[id]/proof.
+ */
 export async function GET(request: Request) {
   const user = await getAuthUser();
   if (!user || user.role !== "admin") {
@@ -21,7 +27,20 @@ export async function GET(request: Request) {
   const [requests, total] = await Promise.all([
     prisma.upgradeRequest.findMany({
       where,
-      include: {
+      select: {
+        id: true,
+        fromPlan: true,
+        toPlan: true,
+        status: true,
+        paymentStatus: true,
+        paymentMethod: true,
+        paymentRef: true,
+        amount: true,
+        paidAt: true,
+        phone: true,
+        note: true,
+        reviewedAt: true,
+        createdAt: true,
         user: { select: { id: true, name: true, email: true } },
         company: { select: { id: true, name: true } },
       },
@@ -32,5 +51,21 @@ export async function GET(request: Request) {
     prisma.upgradeRequest.count({ where }),
   ]);
 
-  return NextResponse.json({ requests, total, page, totalPages: Math.ceil(total / limit) });
+  const proofIds = requests.length
+    ? await prisma.upgradeRequest.findMany({
+        where: {
+          id: { in: requests.map((r) => r.id) },
+          paymentProofUrl: { not: null },
+        },
+        select: { id: true },
+      })
+    : [];
+  const withProof = new Set(proofIds.map((r) => r.id));
+
+  return NextResponse.json({
+    requests: requests.map((r) => ({ ...r, hasProof: withProof.has(r.id) })),
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  });
 }

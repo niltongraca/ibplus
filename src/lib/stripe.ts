@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import { activePaymentProvider } from "@/config/payments";
 
 /** Cliente Stripe preguiçoso: a app continua a funcionar sem credenciais (modo aprovação manual). */
 let cached: Stripe | null | undefined;
@@ -17,12 +18,18 @@ export function stripePriceId(plan: PaidPlanId): string | null {
   return process.env[env] || null;
 }
 
-/** Checkout disponível quando há chave e preços configurados para os dois planos pagos. */
+/** Checkout disponível quando o gateway activo é o Stripe e há chave e preços configurados. */
 export function isCheckoutEnabled(): boolean {
-  return Boolean(getStripe() && stripePriceId("PREMIUM") && stripePriceId("BUSINESS"));
+  return (
+    activePaymentProvider(process.env.PAYMENT_PROVIDER) === "stripe" &&
+    Boolean(getStripe() && stripePriceId("PREMIUM") && stripePriceId("BUSINESS"))
+  );
 }
 
-/** Webhook só pode ser verificado quando o segredo está configurado. */
+/** Webhook só pode ser verificado quando o Stripe está activo e o segredo está configurado. */
 export function isWebhookEnabled(): boolean {
-  return Boolean(getStripe() && process.env.STRIPE_WEBHOOK_SECRET);
+  return (
+    activePaymentProvider(process.env.PAYMENT_PROVIDER) === "stripe" &&
+    Boolean(getStripe() && process.env.STRIPE_WEBHOOK_SECRET)
+  );
 }

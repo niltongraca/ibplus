@@ -1,8 +1,8 @@
 # Upgrade de planos — fluxo completo
 
 Este documento descreve como os planos, limites e upgrades funcionam no IBPlus+,
-incluindo o pedido manual, a aprovação administrativa, a cobrança com Stripe e a
-actualização da sessão.
+incluindo o pedido manual com comprovativo, a aprovação administrativa e a
+reactivação opcional da cobrança com Stripe, para além da actualização da sessão.
 
 ## 1. Fonte única de verdade
 
@@ -55,9 +55,13 @@ A auto-criação de clientes/produtos a partir de faturas e orçamentos também
 respeita os limites: quando o limite foi atingido, o registo auxiliar é
 simplesmente ignorado (sem quebrar a criação do documento).
 
-## 3. Pedido manual (sem pagamento)
+## 3. Pedido e cobrança manual (modo ativo)
 
-Rota: `POST /api/upgrade/request`
+O gateway está desligado por omissão (`PAYMENT_PROVIDER="none"`). O upgrade faz-se
+por **transferência bancária / Multicaixa** com referência e comprovativo,
+seguido de aprovação administrativa.
+
+### 3.1 Criar o pedido — `POST /api/upgrade/request`
 
 1. Rate limit `strict` por IP.
 2. Exige autenticação.
@@ -65,12 +69,45 @@ Rota: `POST /api/upgrade/request`
 4. O plano de destino tem de ser um upgrade do plano atual (`isUpgrade`).
 5. Não pode existir outro pedido `PENDING` para a mesma empresa (ou para o
    utilizador, em contas sem empresa) — devolve `409` com
-   `code: "UPGRADE_REQUEST_PENDING"`.
-6. Cria o `UpgradeRequest` com `status: PENDING` e regista auditoria.
+   `code: "UPGRADE_REQUEST_PENDING"` e os campos `requestId` e `paymentRef` do
+   pedido existente.
+6. Gera o `id` com `randomUUID()` **antes** do `create`, para que a referência de
+   pagamento (`IBP-XXXXXXXX`) seja estável e derivada do id.
+7. Cria o `UpgradeRequest` com `status: PENDING`, `paymentMethod: "manual"`,
+   `paymentRef` e `amount` (lido de `src/config/plans.ts`), e regista auditoria.
 
-A página `/upgrade` apresenta os planos e este formulário. Sem Stripe
-configurado, este é o único caminho disponível, com botão «Enviar pedido» e
-fallback `mailto:` para contacto.
+A página `/upgrade` mostra os planos, o formulário de contacto e, depois de
+criado o pedido, as **instruções de pagamento**: referência do pedido, IBAN,
+titular, entidade Multicaixa e o valor mensal — cada campo com botão de copiar.
+Os dados vêm de variáveis `NEXT_PUBLIC_PAYMENT_*` (ver `.env.example`); se não
+estiverem configurados, a UI avisa e oferece contacto com o suporte.
+
+### 3.2 Retomar o pedido — `GET /api/upgrade/request`
+
+Devolve `{ request }` com o pedido `PENDING` mais recente do utilizador/empresa
+(ou `null`). O comprovativo nunca é devolvido: apenas `hasProof`. A UI mostra um
+banner «Pedido pendente» e retoma as instruções sem obrigar a criar outro pedido.
+
+### 3.3 Anexar comprovativo — `PATCH /api/upgrade/request/[id]`
+
+- Rate limit `medium`; exige autenticação e que o pedido pertença ao
+  utilizador/empresa (caso contrário `404`).
+- Só aceita pedidos `PENDING` (`409` se já analisado).
+- Aceita `paymentRef` (≤ 60 caracteres) e/ou `proofUrl`; pelo menos um é
+  obrigatório.
+- O comprovativo é uma imagem enviada por `POST /api/upload` (máx. 5MB,
+  `.png/.jpg/.jpeg/.gif/.webp`). Sem `BLOB_READ_WRITE_TOKEN` o upload devolve uma
+  data-URL guardada em BD; com token devolve uma URL do Vercel Blob.
+- Marca `paymentMethod: "manual"` e `paymentStatus: PENDING` (em análise) e
+  regista auditoria. A referência de pagamento original (`IBP-…`) mantém-se; a
+  `paymentRef` enviada aqui serve para o comprovativo do banco.
+
+### 3.4 Ver o comprovativo — `GET /api/admin/upgrade-requests/[id]/proof`
+
+Apenas administradores. Redireciona para a URL externa (Blob) ou serve a
+data-URL como bytes com `Content-Type` da imagem e `Cache-Control: private,
+no-store`. A listagem administrativa devolve só `hasProof`, nunca o ficheiro —
+evita transferir vários MB por página.
 
 ## 4. Aprovação / rejeição administrativa
 
@@ -78,13 +115,18 @@ Rota: `PATCH /api/admin/upgrade-requests/[id]` (apenas `role === "admin"`)
 
 - Só aceita pedidos `PENDING`; caso contrário devolve `409`.
 - **Aprovação**: `activateUpgrade()` atualiza o `User.plan` do dono, marca o
-  pedido como `APPROVED`, cria notificação interna, regista auditoria e envia o
-  e-mail de aprovação.
+  pedido como `APPROVED` e o pagamento como `PAID` + `paymentMethod: "manual"` +
+  `paidAt`, cria notificação interna, regista auditoria e envia o e-mail de
+  aprovação.
 - **Rejeição**: marca o pedido como `REJECTED`, cria notificação, auditoria e
   envia o e-mail de rejeição.
 
-Esta via continua disponível mesmo com Stripe ativo — funciona como fallback
-para acordos comerciais, testes ou quando o pagamento online falha.
+A página `/admin/pedidos` mostra valor, método, referência e badge de pagamento
+(`NÃO PAGO`, `EM ANÁLISE`, `PAGO`, `FALHOU`) e abre o comprovativo num modal. O
+administrador pode aprovar mesmo sem comprovativo (acordos comerciais ou
+pagamentos confirmados por outra via).
+
+Esta via funciona também como fallback quando o Stripe está ativo.
 
 ## 5. E-mails
 
@@ -117,27 +159,37 @@ No cliente:
 - A página `/upgrade` chama `refresh()` ao montar, para refletir de imediato uma
   aprovação que ocorreu enquanto a página esteve aberta.
 
-## 7. Cobrança real com Stripe
+## 7. Reactivar a cobrança com Stripe
 
-### Configuração
+A cobrança online está **inactiva** por omissão. `activePaymentProvider()` em
+`src/config/payments.ts` mapeia `PAYMENT_PROVIDER`: só o valor `"stripe"` activa
+o gateway; qualquer outro valor (ou ausência) resulta em `"none"`.
 
-Ver `.env.example`. É necessário:
+`isCheckoutEnabled()` e `isWebhookEnabled()` (`src/lib/stripe.ts`) exigem
+`PAYMENT_PROVIDER="stripe"` **e** as credenciais correspondentes. Assim, ter
+chaves guardadas no ambiente não reactiva acidentalmente a cobrança — o modo
+manual continua a ser o caminho por omissão.
+
+Para reactivar:
 
 ```env
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-STRIPE_SECRET_KEY="sk_test_..."
+PAYMENT_PROVIDER="stripe"
+NEXT_PUBLIC_APP_URL="https://app.exemplo.ao"
+STRIPE_SECRET_KEY="sk_live_..."
 STRIPE_WEBHOOK_SECRET="whsec_..."
 STRIPE_PRICE_PREMIUM="price_..."
 STRIPE_PRICE_BUSINESS="price_..."
 ```
 
-Sem estas variáveis o checkout é desativado: `GET /api/upgrade/checkout`
-devolve `{ enabled: false }`, o botão «Pagar com cartão» é escondido e o fluxo
-continua apenas com aprovação manual.
-
-Os preços devem ser **recorrentes** (`mode: "subscription"`). Os IDs
-`STRIPE_PRICE_*` são lidos por `stripePriceId()` em `src/lib/stripe.ts`. O
-cliente Stripe é `lazy` (`getStripe()`), pelo que a app arranca sem credenciais.
+- `GET /api/upgrade/checkout` passa a devolver `{ enabled: true }` e a página
+  `/upgrade` mostra o botão «Pagar com cartão» ao lado de «Pagar por
+  transferência».
+- Sem estas variáveis, o checkout devolve `{ enabled: false }` / `503` e a UI
+  mantém apenas a cobrança manual.
+- Os preços devem ser **recorrentes** (`mode: "subscription"`). Os IDs
+  `STRIPE_PRICE_*` são lidos por `stripePriceId()` em `src/lib/stripe.ts`. O
+  cliente Stripe é `lazy` (`getStripe()`), pelo que a app arranca sem
+  credenciais.
 
 ### Checkout
 
@@ -155,12 +207,10 @@ Rota: `POST /api/upgrade/checkout`
   - `subscription_data.metadata` com `upgradeRequestId` e `toPlan`;
   - `success_url: /upgrade?checkout=success&request=<id>`;
   - `cancel_url: /upgrade?checkout=cancelled`.
-- Só depois cria o `UpgradeRequest` com `paymentStatus: PENDING` e
+- Só depois cria o `UpgradeRequest` com `paymentStatus: PENDING`,
+  `paymentMethod: "stripe"`, `amount` (lido de `src/config/plans.ts`) e
   `stripeSessionId`, e regista auditoria.
 - Devolve `{ url }` e o browser é redirecionado para o checkout hospedado.
-
-A página `/upgrade` mostra avisos de sucesso/cancelamento através dos parâmetros
-de query.
 
 ### Webhook
 
@@ -171,9 +221,10 @@ Rota: `POST /api/upgrade/webhook` (`runtime = "nodejs"`)
 - Rejeita pedidos sem assinatura ou com assinatura inválida (`400`).
 - Em `checkout.session.completed` com `payment_status === "paid"`, obtém o id do
   pedido via `client_reference_id` ou `metadata.upgradeRequestId` e chama
-  `activateUpgrade()` com `paymentStatus: PAID`, `stripeSubscriptionId` e
-  `paidAt`.
-- O e-mail e a notificação são os mesmos da aprovação administrativa.
+  `activateUpgrade()` com `{ method: "stripe", stripeSubscriptionId, paidAt }`.
+- A activação marca `paymentStatus: PAID`, `paymentMethod: "stripe"`,
+  `stripeSubscriptionId` e `paidAt`; o e-mail e a notificação são os mesmos da
+  aprovação administrativa.
 
 **Idempotência**: `activateUpgrade()` usa
 `update({ where: { id, status: "PENDING" } })` e o webhook verifica
@@ -185,7 +236,11 @@ pedidos já aprovados são ignorados com `200`, para o Stripe não reenviar.
 
 ## 8. Modelo de dados
 
-Migration: `prisma/migrations/20261117100000_add_upgrade_payments`
+Migrations:
+
+- `prisma/migrations/20261117100000_add_upgrade_payments` — pagamento Stripe.
+- `prisma/migrations/20261117120000_add_upgrade_request_manual_payment` — dados
+  da cobrança manual.
 
 `UpgradeRequest` ganhou:
 
@@ -195,15 +250,24 @@ Migration: `prisma/migrations/20261117100000_add_upgrade_payments`
 | `stripeSessionId` | `String?` (único) | Id da sessão de checkout |
 | `stripeSubscriptionId` | `String?` | Id da subscrição Stripe |
 | `paidAt` | `DateTime?` | Momento do pagamento |
+| `paymentMethod` | `String?` | `manual` ou `stripe` |
+| `paymentRef` | `String?` | Referência do pedido (`IBP-…`) ou do comprovativo |
+| `paymentProofUrl` | `String?` | URL do Blob ou data-URL da imagem |
+| `amount` | `Decimal?` | Valor mensal em Kz no momento do pedido |
+
+`paymentProofUrl` nunca sai na listagem administrativa nem na rota de pedido do
+utilizador: ambas devolvem apenas `hasProof`; o ficheiro é servido por
+`GET /api/admin/upgrade-requests/[id]/proof`.
 
 A aplicação é Postgres/Neon exclusiva; a antiga pasta `prisma/migrations-sqlite`
 foi removida por estar órfã.
 
 ## 9. Testes e verificação
 
-- `npm test` — 142 testes, incluindo 16 testes de integração das rotas de upgrade
+- `npm test` — 156 testes, incluindo 25 testes de integração das rotas de upgrade
   (`src/app/api/upgrade/routes.test.ts`) com mocks de módulo (`node:test`
-  `mock.module`, que requer `--experimental-test-module-mocks` no script `test`).
+  `mock.module`, que requer `--experimental-test-module-mocks` no script `test`)
+  e 5 testes do módulo de pagamentos (`src/config/payments.test.ts`).
 - `npm run lint` — 0 erros; 1 warning pré-existente em `InvoiceTemplate.tsx`
   (`<img>` em vez de `next/image`).
 - `npm run build` — compila e gera as páginas estáticas com sucesso.

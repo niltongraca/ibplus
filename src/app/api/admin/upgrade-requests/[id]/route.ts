@@ -35,7 +35,11 @@ export async function PATCH(request: Request, { params }: Context) {
   let emailSent = false;
 
   if (status === "APPROVED") {
-    const result = await activateUpgrade(upgrade, { id: admin.id, companyId: upgrade.companyId });
+    const result = await activateUpgrade(
+      upgrade,
+      { id: admin.id, companyId: upgrade.companyId },
+      { method: "manual", paidAt: new Date() }
+    );
     emailSent = result.emailSent;
   } else {
     await prisma.upgradeRequest.update({

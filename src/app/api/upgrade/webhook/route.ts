@@ -55,6 +55,6 @@ async function activatePaidUpgrade(requestId: string, session: Stripe.Checkout.S
   await activateUpgrade(
     upgrade,
     { id: "stripe", companyId: upgrade.companyId },
-    { stripeSubscriptionId: subscription, paidAt: new Date() }
+    { method: "stripe", stripeSubscriptionId: subscription, paidAt: new Date() }
   );
 }

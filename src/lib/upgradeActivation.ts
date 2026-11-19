@@ -14,6 +14,14 @@ export interface UpgradeForActivation {
   user: { name: string; email: string };
 }
 
+export type UpgradePaymentMethod = "stripe" | "manual";
+
+export interface UpgradePaymentInfo {
+  method: UpgradePaymentMethod;
+  stripeSubscriptionId?: string | null;
+  paidAt?: Date | null;
+}
+
 export interface ActivationResult {
   targetUserId: string;
   emailSent: boolean;
@@ -27,7 +35,7 @@ export interface ActivationResult {
 export async function activateUpgrade(
   upgrade: UpgradeForActivation,
   actor: AuditActor,
-  payment?: { stripeSubscriptionId?: string | null; paidAt?: Date | null }
+  payment: UpgradePaymentInfo = { method: "manual" }
 ): Promise<ActivationResult> {
   // Só o dono detém o plano da empresa; em contas sem empresa, é o próprio.
   const owner = upgrade.companyId
@@ -48,13 +56,10 @@ export async function activateUpgrade(
         status: "APPROVED",
         reviewedAt: new Date(),
         reviewedBy: actor.id ?? "system",
-        ...(payment
-          ? {
-              paymentStatus: "PAID" as const,
-              stripeSubscriptionId: payment.stripeSubscriptionId ?? null,
-              paidAt: payment.paidAt ?? new Date(),
-            }
-          : {}),
+        paymentStatus: "PAID",
+        paymentMethod: payment.method,
+        stripeSubscriptionId: payment.stripeSubscriptionId ?? null,
+        paidAt: payment.paidAt ?? new Date(),
       },
     }),
   ]);
@@ -68,11 +73,12 @@ export async function activateUpgrade(
     );
   }
 
+  const via = payment.method === "stripe" ? " via Stripe" : " por pagamento manual";
   await logAction(
     "update",
     "upgrade_request",
     upgrade.id,
-    `Pedido aprovado (${upgrade.fromPlan} → ${upgrade.toPlan})${payment ? " via Stripe" : ""}`,
+    `Pedido aprovado (${upgrade.fromPlan} → ${upgrade.toPlan})${via}`,
     { ...actor, companyId: upgrade.companyId }
   );
 

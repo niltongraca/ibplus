@@ -679,6 +679,10 @@ model UpgradeRequest {
   stripeSessionId      String?              @unique
   stripeSubscriptionId String?
   paidAt               DateTime?
+  paymentMethod        String?
+  paymentRef           String?
+  paymentProofUrl      String?
+  amount               Decimal?             @db.Decimal(18, 2)
   phone                String?
   note                 String?
   reviewedAt           DateTime?

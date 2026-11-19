@@ -4,9 +4,11 @@ import { useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import {
   ArrowUpRight,
+  Banknote,
   Building2,
   Calendar,
   Check,
+  Eye,
   Loader2,
   Mail,
   MessageSquare,
@@ -21,12 +23,19 @@ import { useConfirm } from "@/components/ConfirmModal";
 import { apiFetch } from "@/lib/api";
 
 type RequestStatus = "PENDING" | "APPROVED" | "REJECTED";
+type PaymentStatus = "NONE" | "PENDING" | "PAID" | "FAILED";
 
 interface UpgradeRequestRow {
   id: string;
   fromPlan: string;
   toPlan: string;
   status: RequestStatus;
+  paymentStatus: PaymentStatus;
+  paymentMethod: string | null;
+  paymentRef: string | null;
+  amount: string | number | null;
+  paidAt: string | null;
+  hasProof: boolean;
   phone: string | null;
   note: string | null;
   reviewedAt: string | null;
@@ -47,17 +56,43 @@ const statusLabels: Record<RequestStatus, string> = {
   REJECTED: "Rejeitado",
 };
 
+const paymentStyles: Record<PaymentStatus, string> = {
+  NONE: "bg-gray-50 text-gray-600 border-gray-200",
+  PENDING: "bg-amber-50 text-amber-700 border-amber-200",
+  PAID: "bg-green-50 text-green-700 border-green-200",
+  FAILED: "bg-red-50 text-red-700 border-red-200",
+};
+
+const paymentLabels: Record<PaymentStatus, string> = {
+  NONE: "Não pago",
+  PENDING: "Em análise",
+  PAID: "Pago",
+  FAILED: "Falhou",
+};
+
+const methodLabels: Record<string, string> = {
+  manual: "Manual",
+  stripe: "Stripe",
+};
+
 const planStyles: Record<string, string> = {
   FREE: "bg-gray-50 text-gray-600 border-gray-200",
   PREMIUM: "bg-amber-50 text-amber-700 border-amber-200",
   BUSINESS: "bg-purple-50 text-purple-700 border-purple-200",
 };
 
+function formatAmount(value: string | number | null): string {
+  if (value === null) return "—";
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? `${parsed.toLocaleString("pt-AO")} Kz` : "—";
+}
+
 export default function AdminPedidos() {
   const { toast } = useToast();
   const { confirm } = useConfirm();
   const [status, setStatus] = useState<"" | RequestStatus>("PENDING");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [proofFor, setProofFor] = useState<UpgradeRequestRow | null>(null);
 
   const { data, total, page, setPage, totalPages, refetch } = useList<UpgradeRequestRow>(
     "/api/admin/upgrade-requests",
@@ -66,11 +101,13 @@ export default function AdminPedidos() {
   );
 
   async function review(request: UpgradeRequestRow, decision: "APPROVED" | "REJECTED") {
+    const reference =
+      request.paymentRef ? ` Referência: ${request.paymentRef}.` : " Sem comprovativo anexado.";
     const accepted = await confirm({
       title: decision === "APPROVED" ? "Aprovar upgrade?" : "Rejeitar pedido?",
       message:
         decision === "APPROVED"
-          ? `O plano de ${request.company?.name ?? request.user.name} passará para ${request.toPlan}.`
+          ? `O plano de ${request.company?.name ?? request.user.name} passará para ${request.toPlan}.${reference}`
           : `O pedido de ${request.company?.name ?? request.user.name} para ${request.toPlan} será rejeitado.`,
       confirmLabel: decision === "APPROVED" ? "Aprovar" : "Rejeitar",
       variant: decision === "APPROVED" ? "info" : "danger",
@@ -103,7 +140,7 @@ export default function AdminPedidos() {
           <ArrowUpRight className="w-6 h-6 text-ib-accent" />
           <div>
             <h1 className="page-title">Pedidos de Upgrade</h1>
-            <p className="text-sm text-ib-muted">Analise e active os novos planos solicitados</p>
+            <p className="text-sm text-ib-muted">Analise os pagamentos e active os novos planos</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -136,6 +173,7 @@ export default function AdminPedidos() {
                 <th className="tbl-th">Requerente</th>
                 <th className="tbl-th">Empresa</th>
                 <th className="tbl-th">Upgrade</th>
+                <th className="tbl-th">Pagamento</th>
                 <th className="tbl-th">Contacto</th>
                 <th className="tbl-th">Data</th>
                 <th className="tbl-th"> Estado</th>
@@ -182,6 +220,30 @@ export default function AdminPedidos() {
                           <span className="truncate">{request.note}</span>
                         </div>
                       )}
+                    </td>
+                    <td className="tbl-td">
+                      <div className="flex items-center gap-1.5 text-sm font-medium">
+                        <Banknote className="w-3.5 h-3.5 text-ib-muted" />
+                        {formatAmount(request.amount)}
+                      </div>
+                      <div className="text-[11px] text-ib-muted mt-0.5">
+                        {request.paymentMethod ? methodLabels[request.paymentMethod] ?? request.paymentMethod : "—"}
+                        {request.paymentRef ? ` · ${request.paymentRef}` : ""}
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${paymentStyles[request.paymentStatus] ?? paymentStyles.NONE}`}>
+                          {paymentLabels[request.paymentStatus] ?? request.paymentStatus}
+                        </span>
+                        {request.hasProof && (
+                          <button
+                            type="button"
+                            onClick={() => setProofFor(request)}
+                            className="inline-flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-800"
+                          >
+                            <Eye className="w-3 h-3" /> Ver comprovativo
+                          </button>
+                        )}
+                      </div>
                     </td>
                     <td className="tbl-td text-ib-muted text-sm">
                       {request.phone ? (
@@ -236,7 +298,7 @@ export default function AdminPedidos() {
               })}
               {data.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="p-12 text-center text-ib-muted">
+                  <td colSpan={8} className="p-12 text-center text-ib-muted">
                     <Sparkles className="w-8 h-8 mx-auto mb-3 opacity-40" />
                     Nenhum pedido encontrado.
                   </td>
@@ -248,6 +310,48 @@ export default function AdminPedidos() {
       </div>
 
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+
+      {proofFor && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setProofFor(null)}
+          role="presentation"
+        >
+          <div
+            className="card w-full max-w-2xl p-4"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Comprovativo de pagamento"
+          >
+            <div className="mb-3 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Comprovativo de pagamento</h2>
+                <p className="text-xs text-ib-muted">
+                  {proofFor.company?.name ?? proofFor.user.name} · {proofFor.toPlan} ·{" "}
+                  {proofFor.paymentRef ?? "sem referência"}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setProofFor(null)}
+                className="text-ib-muted hover:text-gray-900"
+                aria-label="Fechar"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="rounded-lg bg-gray-50 p-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/api/admin/upgrade-requests/${proofFor.id}/proof`}
+                alt={`Comprovativo de ${proofFor.user.name}`}
+                className="mx-auto max-h-[70vh] w-auto rounded"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }

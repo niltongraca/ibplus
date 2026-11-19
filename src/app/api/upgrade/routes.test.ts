@@ -117,21 +117,26 @@ mock.module("@/lib/stripe", {
 });
 
 let requestUpgrade: typeof import("@/app/api/upgrade/request/route").POST;
+let getUpgradeRequest: typeof import("@/app/api/upgrade/request/route").GET;
+let updateUpgradeProof: typeof import("@/app/api/upgrade/request/[id]/route").PATCH;
+let getProof: typeof import("@/app/api/admin/upgrade-requests/[id]/proof/route").GET;
 let reviewUpgrade: typeof import("@/app/api/admin/upgrade-requests/[id]/route").PATCH;
 let checkout: typeof import("@/app/api/upgrade/checkout/route");
 let stripeWebhook: typeof import("@/app/api/upgrade/webhook/route").POST;
 
 // Importações dinâmicas depois de registar os mocks (evita top-level await em CJS).
 before(async () => {
-  ({ POST: requestUpgrade } = await import("@/app/api/upgrade/request/route"));
+  ({ POST: requestUpgrade, GET: getUpgradeRequest } = await import("@/app/api/upgrade/request/route"));
+  ({ PATCH: updateUpgradeProof } = await import("@/app/api/upgrade/request/[id]/route"));
+  ({ GET: getProof } = await import("@/app/api/admin/upgrade-requests/[id]/proof/route"));
   ({ PATCH: reviewUpgrade } = await import("@/app/api/admin/upgrade-requests/[id]/route"));
   checkout = await import("@/app/api/upgrade/checkout/route");
   ({ POST: stripeWebhook } = await import("@/app/api/upgrade/webhook/route"));
 });
 
-function jsonRequest(url: string, body: unknown): Request {
+function jsonRequest(url: string, body: unknown, method = "POST"): Request {
   return new Request(url, {
-    method: "POST",
+    method,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
@@ -181,8 +186,104 @@ describe("rotas de upgrade", () => {
     it("cria o pedido e regista auditoria", async () => {
       const res = await requestUpgrade(jsonRequest("http://localhost/api/upgrade/request", upgradeBody));
       assert.equal(res.status, 201);
-      assert.equal((await res.json()).request.toPlan, "PREMIUM");
+      const { request } = await res.json();
+      assert.equal(request.toPlan, "PREMIUM");
+      assert.equal(request.paymentMethod, "manual");
+      assert.match(request.paymentRef, /^IBP-[A-Z0-9]{8}$/);
+      assert.equal(request.amount, 5000);
       assert.equal(state.audits.length, 1);
+    });
+  });
+
+  describe("GET /api/upgrade/request", () => {
+    it("devolve null sem pedido pendente", async () => {
+      const res = await getUpgradeRequest();
+      assert.equal(res.status, 200);
+      assert.deepEqual(await res.json(), { request: null });
+    });
+
+    it("devolve o pedido pendente sem expor o comprovativo", async () => {
+      state.existing = {
+        id: "req1",
+        toPlan: "PREMIUM",
+        paymentStatus: "PENDING",
+        paymentRef: "IBP-REQ1",
+        paymentProofUrl: "data:image/png;base64,AAAA",
+        createdAt: new Date(),
+      };
+      const res = await getUpgradeRequest();
+      const { request } = await res.json();
+      assert.equal(request.id, "req1");
+      assert.equal(request.hasProof, true);
+      assert.equal(request.paymentProofUrl, undefined);
+    });
+  });
+
+  describe("PATCH /api/upgrade/request/[id]", () => {
+    const params = { params: Promise.resolve({ id: "req1" }) };
+    const proofRequest = (body: unknown) =>
+      jsonRequest("http://localhost/api/upgrade/request/req1", body, "PATCH");
+
+    beforeEach(() => {
+      state.byId.set("req1", pendingRequest());
+    });
+
+    it("exige pelo menos a referência ou o comprovativo", async () => {
+      const res = await updateUpgradeProof(proofRequest({}), params);
+      assert.equal(res.status, 400);
+    });
+
+    it("recusa pedidos de outro utilizador", async () => {
+      state.byId.set("req1", { ...pendingRequest(), userId: "outro" });
+      const res = await updateUpgradeProof(proofRequest({ paymentRef: "TRX1" }), params);
+      assert.equal(res.status, 404);
+    });
+
+    it("recusa pedidos já analisados", async () => {
+      state.byId.set("req1", { ...pendingRequest(), status: "APPROVED" });
+      const res = await updateUpgradeProof(proofRequest({ paymentRef: "TRX1" }), params);
+      assert.equal(res.status, 409);
+    });
+
+    it("anexa referência e comprovativo e marca pagamento pendente", async () => {
+      const res = await updateUpgradeProof(
+        proofRequest({ paymentRef: "TRX1", proofUrl: "data:image/png;base64,AAAA" }),
+        params
+      );
+      assert.equal(res.status, 200);
+      const { request } = await res.json();
+      assert.equal(request.paymentStatus, "PENDING");
+      assert.equal(request.paymentRef, "TRX1");
+      assert.equal(request.hasProof, true);
+      assert.equal(state.audits.length, 1);
+    });
+  });
+
+  describe("GET /api/admin/upgrade-requests/[id]/proof", () => {
+    const params = { params: Promise.resolve({ id: "req1" }) };
+
+    it("exige administrador", async () => {
+      const res = await getProof(new Request("http://localhost/proof"), params);
+      assert.equal(res.status, 403);
+    });
+
+    it("devolve 404 sem comprovativo", async () => {
+      state.user = { ...state.user, role: "admin" };
+      state.byId.set("req1", pendingRequest());
+      const res = await getProof(new Request("http://localhost/proof"), params);
+      assert.equal(res.status, 404);
+    });
+
+    it("serve a data-URL como imagem", async () => {
+      state.user = { ...state.user, role: "admin" };
+      state.byId.set("req1", {
+        ...pendingRequest(),
+        paymentProofUrl: "data:image/png;base64,QUJD",
+      });
+      const res = await getProof(new Request("http://localhost/proof"), params);
+      assert.equal(res.status, 200);
+      assert.equal(res.headers.get("content-type"), "image/png");
+      assert.equal(await res.text(), "ABC");
     });
   });
 
@@ -216,6 +317,8 @@ describe("rotas de upgrade", () => {
       assert.equal((await res.json()).emailSent, true);
       assert.deepEqual(state.planUpdates, [{ id: "owner1", plan: "PREMIUM" }]);
       assert.equal(state.byId.get("req1").status, "APPROVED");
+      assert.equal(state.byId.get("req1").paymentStatus, "PAID");
+      assert.equal(state.byId.get("req1").paymentMethod, "manual");
       assert.equal(state.emails[0][1], "aprovado");
     });
 
@@ -253,6 +356,8 @@ describe("rotas de upgrade", () => {
       const created = [...state.byId.values()][0] as any;
       assert.equal(created.id, ref);
       assert.equal(created.paymentStatus, "PENDING");
+      assert.equal(created.paymentMethod, "stripe");
+      assert.equal(created.amount, 5000);
       assert.equal(created.stripeSessionId, "cs_test_1");
     });
   });
@@ -295,6 +400,7 @@ describe("rotas de upgrade", () => {
       assert.deepEqual(state.planUpdates, [{ id: "u1", plan: "PREMIUM" }]);
       assert.equal(state.byId.get("req1").status, "APPROVED");
       assert.equal(state.byId.get("req1").paymentStatus, "PAID");
+      assert.equal(state.byId.get("req1").paymentMethod, "stripe");
       assert.equal(state.byId.get("req1").stripeSubscriptionId, "sub_1");
       assert.equal(state.emails[0][1], "aprovado");
     });
