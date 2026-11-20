@@ -264,10 +264,11 @@ foi removida por estar órfã.
 
 ## 9. Testes e verificação
 
-- `npm test` — 156 testes, incluindo 25 testes de integração das rotas de upgrade
+- `npm test` — 159 testes, incluindo 25 testes de integração das rotas de upgrade
   (`src/app/api/upgrade/routes.test.ts`) com mocks de módulo (`node:test`
-  `mock.module`, que requer `--experimental-test-module-mocks` no script `test`)
-  e 5 testes do módulo de pagamentos (`src/config/payments.test.ts`).
+  `mock.module`, que requer `--experimental-test-module-mocks` no script `test`),
+  5 testes do módulo de pagamentos (`src/config/payments.test.ts`) e 3 testes do
+  mapeamento de datas de documentos (`src/lib/documentDates.test.ts`).
 - `npm run lint` — 0 erros; 1 warning pré-existente em `InvoiceTemplate.tsx`
   (`<img>` em vez de `next/image`).
 - `npm run build` — compila e gera as páginas estáticas com sucesso.

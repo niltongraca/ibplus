@@ -6,6 +6,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import { buildDocumentHtml } from "@/lib/exportDocument";
 import { getCspNonce } from "@/lib/cspNonce";
 import { useConfirm } from "@/components/ConfirmModal";
+import { useToast } from "@/components/Toast";
 import Link from "next/link";
 import Pagination from "@/components/Pagination";
 import { DataTable } from "@/components/ui/DataTable";
@@ -23,6 +24,7 @@ interface Invoice {
 
 export default function FaturacaoPage() {
   const { confirm } = useConfirm();
+  const { toast } = useToast();
   const [company, setCompany] = useState<{ name: string; nif?: string | null; email?: string | null; phone?: string | null; address?: string | null; logo?: string | null } | null>(null);
   const [search, setSearch] = useState("");
   const { data: invoices, setData: setInvoices, loading, page, setPage, totalPages } = useList<Invoice>("/api/invoices", "invoices", { limit: 20, params: { search } });
@@ -67,12 +69,19 @@ export default function FaturacaoPage() {
   }
 
   async function handleExportPDF(inv: Invoice) {
+    // Abrir a janela antes de qualquer await: os bloqueadores de popup só
+    // permitem aberturas dentro do gesto do utilizador.
+    const win = window.open("", "_blank");
+    if (!win) {
+      toast("O navegador bloqueou a janela de impressão. Active os popups e tente novamente.", "error");
+      return;
+    }
     try {
       const res = await fetch(`/api/invoices/${inv.id}`);
+      if (!res.ok) throw new Error("Não foi possível carregar a fatura.");
       const d = await res.json();
       const full = d.invoice;
-      const win = window.open("", "_blank");
-      if (!win || !full) return;
+      if (!full) throw new Error("Fatura não encontrada.");
       win.document.write(
         buildDocumentHtml(
           {
@@ -106,7 +115,9 @@ export default function FaturacaoPage() {
       );
       win.document.close();
     } catch (err) {
+      win.close();
       console.error("Erro ao exportar fatura:", err);
+      toast(err instanceof Error ? err.message : "Não foi possível gerar o PDF da fatura.", "error");
     }
   }
 

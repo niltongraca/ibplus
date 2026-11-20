@@ -6,6 +6,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import { buildDocumentHtml } from "@/lib/exportDocument";
 import { getCspNonce } from "@/lib/cspNonce";
 import { useConfirm } from "@/components/ConfirmModal";
+import { useToast } from "@/components/Toast";
 import Link from "next/link";
 import Pagination from "@/components/Pagination";
 import { useList } from "@/hooks/useList";
@@ -22,6 +23,7 @@ interface Quote {
 
 export default function OrcamentosPage() {
   const { confirm } = useConfirm();
+  const { toast } = useToast();
   const [company, setCompany] = useState<{ name: string; nif?: string | null; email?: string | null; phone?: string | null; address?: string | null; logo?: string | null } | null>(null);
   const [search, setSearch] = useState("");
   const { data: quotes, setData: setQuotes, loading, page, setPage, totalPages } = useList<Quote>("/api/quotes", "quotes", { limit: 20, params: { search } });
@@ -64,12 +66,19 @@ export default function OrcamentosPage() {
   }
 
   async function handleExportPDF(q: Quote) {
+    // Abrir a janela antes de qualquer await: os bloqueadores de popup só
+    // permitem aberturas dentro do gesto do utilizador.
+    const win = window.open("", "_blank");
+    if (!win) {
+      toast("O navegador bloqueou a janela de impressão. Active os popups e tente novamente.", "error");
+      return;
+    }
     try {
       const res = await fetch(`/api/quotes/${q.id}`);
+      if (!res.ok) throw new Error("Não foi possível carregar o orçamento.");
       const d = await res.json();
       const full = d.quote;
-      const win = window.open("", "_blank");
-      if (!win || !full) return;
+      if (!full) throw new Error("Orçamento não encontrado.");
       win.document.write(
         buildDocumentHtml(
           {
@@ -102,7 +111,9 @@ export default function OrcamentosPage() {
       );
       win.document.close();
     } catch (err) {
+      win.close();
       console.error("Erro ao exportar orçamento:", err);
+      toast(err instanceof Error ? err.message : "Não foi possível gerar o PDF do orçamento.", "error");
     }
   }
 

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { formatCurrency, SUPPORTED_CURRENCIES } from "@/lib/utils";
 import { CatalogPicker } from "@/components/finance/CatalogPicker";
 import { apiFetch } from "@/lib/api";
+import { documentDatePayload } from "@/lib/documentDates";
 
 interface LineItem {
   description: string;
@@ -195,7 +196,7 @@ export default function DocumentForm({ mode, id }: { mode: "invoice" | "quote"; 
         customerPhone: phone || null,
         customerEmail: email || null,
         customerNif: nif || null,
-        dueDate: dueDate || null,
+        ...documentDatePayload(isInvoice ? "invoice" : "quote", dueDate || null),
         notes,
         items,
         subtotal,
