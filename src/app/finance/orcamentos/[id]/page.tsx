@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, FileDown, Printer, Trash2, CheckCircle, RotateCcw, FileText, Pencil, Mail } from "lucide-react";
 import Link from "next/link";
 import { useConfirm } from "@/components/ConfirmModal";
+import { useToast } from "@/components/Toast";
 import { InvoiceTemplate } from "@/components/invoice/InvoiceTemplate";
 import { buildDocumentHtml } from "@/lib/exportDocument";
 import { getCspNonce } from "@/lib/cspNonce";
@@ -41,6 +42,7 @@ interface Quote {
 }
 
 export default function OrcamentoDetailPage() {
+  const { toast } = useToast();
   const params = useParams();
   const id = (params?.id as string) || "";
   const router = useRouter();
@@ -114,38 +116,51 @@ export default function OrcamentoDetailPage() {
 
   function handleExportPDF() {
     const win = window.open("", "_blank");
-    if (!win || !quote) return;
-    win.document.write(
-      buildDocumentHtml(
-        {
-          type: "ORÇAMENTO",
-          typeLabel: "do Orçamento",
-          number: quote.number,
-          customer: quote.customer,
-          customerEmail: quote.customerEmail,
-          customerPhone: quote.customerPhone,
-          customerNif: quote.customerNif,
-          date: quote.date,
-          secondaryDateLabel: "Validade",
-          secondaryDate: quote.validUntil,
-          status: quote.status,
-          notes: quote.notes,
-          items: quote.items,
-          subtotal: quote.subtotal,
-          discountType: quote.discountType,
-          discountValue: quote.discountValue,
-          discount: quote.discount,
-          installments: quote.installments,
-          currency: quote.currency,
-          paymentMethod: quote.paymentMethod,
-          bankDetails: quote.bankDetails,
-          total: quote.total,
-        },
-        company,
-        getCspNonce()
-      )
-    );
-    win.document.close();
+    if (!win) {
+      toast("O navegador bloqueou a janela de impressão. Active os popups e tente novamente.", "error");
+      return;
+    }
+    if (!quote) {
+      win.close();
+      return;
+    }
+    try {
+      win.document.write(
+        buildDocumentHtml(
+          {
+            type: "ORÇAMENTO",
+            typeLabel: "do Orçamento",
+            number: quote.number,
+            customer: quote.customer,
+            customerEmail: quote.customerEmail,
+            customerPhone: quote.customerPhone,
+            customerNif: quote.customerNif,
+            date: quote.date,
+            secondaryDateLabel: "Validade",
+            secondaryDate: quote.validUntil,
+            status: quote.status,
+            notes: quote.notes,
+            items: quote.items,
+            subtotal: quote.subtotal,
+            discountType: quote.discountType,
+            discountValue: quote.discountValue,
+            discount: quote.discount,
+            installments: quote.installments,
+            currency: quote.currency,
+            paymentMethod: quote.paymentMethod,
+            bankDetails: quote.bankDetails,
+            total: quote.total,
+          },
+          company,
+          getCspNonce()
+        )
+      );
+      win.document.close();
+    } catch (err) {
+      win.close();
+      console.error("Erro ao exportar orçamento:", err);
+      toast("Não foi possível gerar o PDF do orçamento.", "error");
+    }
   }
 
   if (loading) return <div className="p-12 text-center text-ib-muted">A carregar...</div>;

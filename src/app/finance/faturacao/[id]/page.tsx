@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, FileDown, Printer, Trash2, Save, RotateCcw, CheckCircle, Wallet, Pencil, Mail } from "lucide-react";
 import Link from "next/link";
 import { useConfirm } from "@/components/ConfirmModal";
+import { useToast } from "@/components/Toast";
 import { InvoiceTemplate } from "@/components/invoice/InvoiceTemplate";
 import { buildDocumentHtml } from "@/lib/exportDocument";
 import { getCspNonce } from "@/lib/cspNonce";
@@ -43,6 +44,7 @@ interface Invoice {
 }
 
 export default function FaturaDetailPage() {
+  const { toast } = useToast();
   const params = useParams();
   const id = (params?.id as string) || "";
   const router = useRouter();
@@ -127,39 +129,52 @@ export default function FaturaDetailPage() {
 
   function handleExportPDF() {
     const win = window.open("", "_blank");
-    if (!win || !invoice) return;
-    win.document.write(
-      buildDocumentHtml(
-        {
-          type: "FATURA",
-          typeLabel: "da Factura",
-          number: invoice.number,
-          customer: invoice.customer,
-          customerEmail: invoice.customerEmail,
-          customerPhone: invoice.customerPhone,
-          customerNif: invoice.customerNif,
-          date: invoice.date,
-          secondaryDateLabel: "Vencimento",
-          secondaryDate: invoice.dueDate,
-          status: invoice.status,
-          notes: invoice.notes,
-          items: invoice.items,
-          subtotal: invoice.subtotal,
-          discountType: invoice.discountType,
-          discountValue: invoice.discountValue,
-          discount: invoice.discount,
-          installments: invoice.installments,
-          currency: invoice.currency,
-          paymentMethod: invoice.paymentMethod,
-          bankDetails: invoice.bankDetails,
-          paidAmount: invoice.paidAmount,
-          total: invoice.total,
-        },
-        company,
-        getCspNonce()
-      )
-    );
-    win.document.close();
+    if (!win) {
+      toast("O navegador bloqueou a janela de impressão. Active os popups e tente novamente.", "error");
+      return;
+    }
+    if (!invoice) {
+      win.close();
+      return;
+    }
+    try {
+      win.document.write(
+        buildDocumentHtml(
+          {
+            type: "FATURA",
+            typeLabel: "da Factura",
+            number: invoice.number,
+            customer: invoice.customer,
+            customerEmail: invoice.customerEmail,
+            customerPhone: invoice.customerPhone,
+            customerNif: invoice.customerNif,
+            date: invoice.date,
+            secondaryDateLabel: "Vencimento",
+            secondaryDate: invoice.dueDate,
+            status: invoice.status,
+            notes: invoice.notes,
+            items: invoice.items,
+            subtotal: invoice.subtotal,
+            discountType: invoice.discountType,
+            discountValue: invoice.discountValue,
+            discount: invoice.discount,
+            installments: invoice.installments,
+            currency: invoice.currency,
+            paymentMethod: invoice.paymentMethod,
+            bankDetails: invoice.bankDetails,
+            paidAmount: invoice.paidAmount,
+            total: invoice.total,
+          },
+          company,
+          getCspNonce()
+        )
+      );
+      win.document.close();
+    } catch (err) {
+      win.close();
+      console.error("Erro ao exportar fatura:", err);
+      toast("Não foi possível gerar o PDF da fatura.", "error");
+    }
   }
 
   if (loading) return <div className="p-12 text-center text-ib-muted">A carregar...</div>;

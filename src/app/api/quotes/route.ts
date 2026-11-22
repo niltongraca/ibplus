@@ -141,8 +141,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ quote: serializeQuote(quote as never) }, { status: 201 });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "";
-    const error = /descrição|quantidade|preço/.test(message) ? message : "Erro ao criar orçamento.";
-    return NextResponse.json({ error }, { status: 400 });
+    // Os dados do utilizador já foram validados por `parseBody`. Qualquer erro
+    // aqui é do servidor/BD: regista-o nos logs e devolve 500 sem expor detalhes.
+    console.error("Erro ao criar orçamento:", err);
+    return NextResponse.json({ error: "Não foi possível criar o orçamento. Tente novamente." }, { status: 500 });
   }
 }
