@@ -5,12 +5,14 @@ Comando base: `npm audit --omit=dev --audit-level=low`
 
 ## Resultado
 
-| Severidade | Inicial | Final |
-|---|---:|---:|
-| Critical | 1 | 0 |
-| High | 16 | 9 |
-| Moderate | 5 | 1 |
-| **Total** | **22** | **10** |
+| Severidade | Inicial | Intermédio | Final |
+|---|---:|---:|---:|
+| Critical | 1 | 0 | 0 |
+| High | 16 | 9 | 7 |
+| Moderate | 5 | 1 | 0 |
+| **Total** | **22** | **10** | **7** |
+
+Os 7 restantes são avisos transitivos sem correção que não seja uma regressão de versão (ver «Pendente»).
 
 ## Por que motivo `npm audit fix` não aplicou nada
 
@@ -28,26 +30,40 @@ Executado `npm update --no-audit --no-fund`, que aplica tudo o que cabe nas faix
 
 Também se corrigiu o último aviso de lint: `InvoiceTemplate` passou a usar `SmartImage`, que já trata logos em data-URL legados e URLs do Vercel Blob.
 
-## Pendente (10 vulnerabilidades, todas exigem mudança major)
+Migrações major validadas em branches separadas:
 
-| Pacote | Severidade | Correção proposta pelo npm | Motivo para não aplicar agora |
-|---|---|---|---|
-| `next` | moderate | 16.4.6 | major do framework; afeta rotas, build e middleware |
-| `postcss` (aninhado no `next`) | high | via `next` 16.4.6 | dependente da migração do Next |
-| `zod` | high | 4.6.7 | major; exige revisão de `src/lib/validations/*` e dos testes |
-| `nodemailer` | high | 10.6.1 | major; exige revisão do envio de e-mail e tipos |
-| `prisma`, `@prisma/config`, `effect` | high | downgrade para `prisma` 6.12.0 | regressão face ao 7.10.1 atual |
-| `@vercel/blob`, `@vercel/oidc`, `@vercel/cli-config` | high | downgrade para `@vercel/blob` 2.4.0 | regressão face ao 2.9.0 atual |
+| Migração | Ajustes necessários | Resultado |
+|---|---|---|
+| `zod` 3.25.76 → **4.6.7** | `.errors` → `.issues` em 6 rotas de `auth`/`students`; `z.record` com chave explícita em `company.ts` | 0 avisos de `zod` direto |
+| `nodemailer` 9.0.3 → **10.6.1** | nenhum | 0 avisos de `nodemailer` |
+| `next` / `eslint-config-next` 15.5.29 → **16.4.6** | config ESLint flat (sem `FlatCompat`); `src/middleware.ts` → `src/proxy.ts` com exportação `proxy`; `tsconfig.json` com `jsx: react-jsx` e tipos `.next/dev` | 0 avisos de `next` e `postcss` |
 
-## Validação após as alterações
+Notas sobre o Next 16:
+
+- O `eslint-plugin-react-hooks` 7 introduziu as regras `set-state-in-effect` e `immutability`, que sinalizam 14 pontos em componentes existentes. Estão desativadas no `eslint.config.mjs` com comentário explicativo; a refatoração de estado fica para trabalho próprio, sem bloquear a migração.
+- A convenção `middleware` está deprecada: o ficheiro passou a `src/proxy.ts`, mantendo o mesmo `config.matcher` e a lógica de CSP/CSRF/RBAC.
+
+## Pendente (7 vulnerabilidades, todas exigem downgrade)
+
+| Pacote | Severidade | Via | Correção proposta pelo npm | Motivo para não aplicar |
+|---|---|---|---|---|
+| `prisma`, `@prisma/config`, `effect` | high | `effect` → `@prisma/config` → `prisma` | downgrade para `prisma` 6.12.0 | regressão face ao 7.10.1 atual |
+| `@vercel/blob`, `@vercel/oidc`, `@vercel/cli-config`, `zod` | high | `zod` → `@vercel/cli-config` → `@vercel/oidc` → `@vercel/blob` | downgrade para `@vercel/blob` 2.4.0 | regressão face ao 2.9.0 atual |
+
+O `zod` desta lista é uma cópia aninhada em `@vercel/cli-config` (4.1.11); a dependência direta do projeto é 4.6.7 e não tem avisos.
+
+`prisma` permanece em `dependencies` de propósito: no Prisma 7, `@prisma/client` depende de `prisma`, pelo que movê-lo para `devDependencies` não melhora a auditoria de produção e ainda pode quebrar builds que não instalam dependências de desenvolvimento.
+
+## Validação final
+
+Após cada migração, e de novo ao final:
 
 - `npm test` — 163 testes em 45 suítes, todos a passar.
 - `npx tsc --noEmit` — sem erros.
 - `npm run lint` — sem erros e sem avisos.
-- `npm run build` — 150/150 páginas geradas.
+- `npm run build` — 149/149 páginas geradas, sem avisos de convenções deprecadas.
 
 ## Recomendações seguintes
 
-1. Migrar `zod` para v4 num trabalho isolado, com revisão dos schemas e mensagens de erro em PT.
-2. Avaliar `nodemailer` v10 e `next` v16 em branches separadas, com validação completa.
-3. Considerar mover `prisma` de `dependencies` para `devDependencies`: hoje arrasta `@prisma/*` e `effect` para a auditoria de produção. O `prisma generate` já faz parte do script `build`, pelo que a mudança só é segura em ambientes que instalam dependências de desenvolvimento antes do build (ex.: Vercel).
+1. Refatorar os 14 pontos assinalados pelas novas regras de hooks do React e voltar a ativar `set-state-in-effect` e `immutability`.
+2. Acompanhar as correções upstream de `prisma`/`effect` e `@vercel/blob`; aplicar assim que existir uma versão sem regressão.
