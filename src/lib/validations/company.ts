@@ -67,6 +67,6 @@ export type CompanyAcquisitionInput = z.infer<typeof companyAcquisitionSchema>;
 
 // ---- Matriz de permissões ----
 export const companyPermissionsSchema = z.object({
-  matrix: z.record(z.record(z.boolean(), { message: "Permissões inválidas para um nível." }), { message: "Matriz de permissões inválida." }),
+  matrix: z.record(z.string(), z.record(z.string(), z.boolean(), { message: "Permissões inválidas para um nível." }), { message: "Matriz de permissões inválida." }),
 });
 export type CompanyPermissionsInput = z.infer<typeof companyPermissionsSchema>;

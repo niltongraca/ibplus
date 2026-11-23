@@ -171,14 +171,14 @@ export async function POST(request: Request) {
     if (inviteToken) {
       const inviteParse = baseSchema.safeParse(body);
       if (!inviteParse.success) {
-        const firstError = inviteParse.error.errors[0];
+        const firstError = inviteParse.error.issues[0];
         return NextResponse.json({ error: firstError.message }, { status: 400 });
       }
       parsed = inviteParse.data as RegisterPayload;
     } else {
       const registerParse = registerSchema.safeParse(body);
       if (!registerParse.success) {
-        const firstError = registerParse.error.errors[0];
+        const firstError = registerParse.error.issues[0];
         return NextResponse.json({ error: firstError.message }, { status: 400 });
       }
       parsed = registerParse.data as RegisterPayload;
