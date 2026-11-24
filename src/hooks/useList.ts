@@ -16,11 +16,13 @@ export function useList<T>(url: string, key: string, options: UseListOptions<T> 
   const extractor = extract ?? ((d: ListResponse) => (d[key] as T[] | undefined) ?? []);
 
   const [data, setData] = useState<T[]>([]);
-  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [nonce, setNonce] = useState(0);
+  // `loading` é derivado da diferença entre o pedido actual e o último concluído:
+  // evita setState síncrono no efeito e mantém o estado correcto em mudanças rápidas.
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
 
   const paramsKey = useMemo(() => {
     if (!params) return "";
@@ -32,6 +34,8 @@ export function useList<T>(url: string, key: string, options: UseListOptions<T> 
   }, [params]);
 
   const [debouncedKey, setDebouncedKey] = useState(paramsKey);
+  const requestKey = `${url}|${page}|${debouncedKey}|${limit ?? ""}|${nonce}`;
+  const loading = loadedKey !== requestKey;
 
   useEffect(() => {
     if (paramsKey === debouncedKey) return;
@@ -45,7 +49,6 @@ export function useList<T>(url: string, key: string, options: UseListOptions<T> 
   useEffect(() => {
     let cancelled = false;
     if (debouncedKey !== paramsKey) return undefined;
-    setLoading(true);
 
     const sep = url.includes("?") ? "&" : "?";
     const paramObj = debouncedKey ? JSON.parse(debouncedKey) : null;
@@ -67,7 +70,7 @@ export function useList<T>(url: string, key: string, options: UseListOptions<T> 
       })
       .catch((err) => console.error("Erro ao carregar dados:", err))
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setLoadedKey(requestKey);
       });
 
     return () => {

@@ -25,16 +25,20 @@ export default function PermissoesPage() {
 
   const canManage = Boolean(user?.companyId && user?.isOwner);
 
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch("/api/company/permissions");
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      setMatrix(data.matrix as Matrix);
-      setError("");
-    } catch {
-      setError("Não foi possível carregar as permissões.");
-    }
+  // As actualizações de estado ocorrem em callbacks de promise (fora do corpo do efeito).
+  const load = useCallback(() => {
+    return fetch("/api/company/permissions")
+      .then(async (res) => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then((data: { matrix: Matrix }) => {
+        setMatrix(data.matrix);
+        setError("");
+      })
+      .catch(() => {
+        setError("Não foi possível carregar as permissões.");
+      });
   }, []);
 
   useEffect(() => {

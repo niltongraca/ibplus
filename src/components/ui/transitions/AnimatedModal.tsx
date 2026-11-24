@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, ReactNode } from "react";
+import { useState, useCallback, type ReactNode } from "react";
 import { useInjectStyles } from "./useInjectStyles";
 
 const __STYLES = `
@@ -59,22 +59,15 @@ export function AnimatedModal({
   closeOnBackdrop = true,
 }: AnimatedModalProps) {
   useInjectStyles("transitions-p7", __STYLES);
-  const [mounted, setMounted] = useState(false);
   const [exiting, setExiting] = useState(false);
-
-  useEffect(() => {
-    if (open) {
-      setMounted(true);
-      setExiting(false);
-    }
-  }, [open]);
+  // Continua montado enquanto a animação de saída decorre.
+  const mounted = open || exiting;
 
   const requestClose = useCallback(() => {
     if (exiting) return;
     setExiting(true);
     // Wait for exit animation to finish before unmounting.
     setTimeout(() => {
-      setMounted(false);
       setExiting(false);
       onClose();
     }, 300);

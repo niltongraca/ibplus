@@ -271,9 +271,13 @@ foi removida por estar órfã.
   mapeamento de datas de documentos (`src/lib/documentDates.test.ts`) e 4 testes
   de regressão do tratamento de erros na criação de faturas/orçamentos
   (`src/app/api/invoices/create-errors.test.ts`).
-- `npm run lint` — 0 erros; 1 warning pré-existente em `InvoiceTemplate.tsx`
-  (`<img>` em vez de `next/image`).
-- `npm run build` — compila e gera as páginas estáticas com sucesso.
+- `npm run lint` — 0 erros e 0 avisos, incluindo as regras
+  `react-hooks/set-state-in-effect` e `react-hooks/immutability` do
+  `eslint-plugin-react-hooks` 7 (Next 16) — os estados derivados e os efeitos
+  foram refatorados em `useList`, `ThemeContext`, `AnimatedModal`, páginas de
+  eventos/RH/perfil/cadastro e gestores de empresa/RH. O antigo aviso de
+  `InvoiceTemplate.tsx` (`<img>`) foi removido com `SmartImage`.
+- `npm run build` — compila e gera 149 páginas estáticas com sucesso (Next 16).
 
 Para correr os testes localmente, o script `test` já inclui a flag de mocks:
 

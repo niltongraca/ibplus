@@ -29,6 +29,25 @@ interface EventForm {
   published: boolean;
 }
 
+// Converte o instante UTC do evento para o valor de <input type="datetime-local">,
+// expresso no fuso da empresa (Africa/Luanda).
+function startDateTimeLocal(iso: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Luanda",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(d);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
+}
+
 export default function EditarEventoPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
@@ -87,25 +106,6 @@ export default function EditarEventoPage() {
       }
     })();
   }, [id]);
-
-  // Converter ISO (instante UTC do evento) para o valor esperado por <input type="datetime-local">,
-  // expresso no fuso da empresa (Africa/Luanda).
-  function startDateTimeLocal(iso: string): string {
-    if (!iso) return "";
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return "";
-    const parts = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Africa/Luanda",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hourCycle: "h23",
-    }).formatToParts(d);
-    const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
-    return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
-  }
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];

@@ -133,7 +133,7 @@ export async function POST(request: Request) {
           total,
           status,
           notes,
-          items: { create: normalizedItems },
+          items: { create: normalizedItems.map(({ kind: _kind, ...rest }) => rest) },
         },
         include: { items: true },
       });

@@ -34,16 +34,16 @@ export function CargosManager({ compact = false }: { compact?: boolean }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch("/api/company/cargos?all=true");
-      if (res.ok) {
-        const d = await res.json();
-        setCargos(d.cargos || []);
-      }
-    } catch {
-      // ignora
-    }
+  // As actualizações de estado ocorrem em callbacks de promise (fora do corpo do efeito).
+  const load = useCallback(() => {
+    return fetch("/api/company/cargos?all=true")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((d) => {
+        if (d) setCargos(d.cargos || []);
+      })
+      .catch(() => {
+        // ignora
+      });
   }, []);
 
   useEffect(() => {
