@@ -20,6 +20,11 @@ jobs:
 
   typecheck:
     runs-on: ubuntu-latest
+    env:
+      # Valores fictícios apenas para gerar o Prisma Client e compilar a app em CI.
+      DATABASE_URL: "postgresql://fake:fake@localhost:5432/fake"
+      JWT_SECRET: "ci-only-jwt-secret-not-for-production"
+      ENCRYPTION_KEY: "ci-only-encryption-key-not-for-production-32chars"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -28,6 +33,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx prisma generate
-        env:
-          DATABASE_URL: "postgresql://fake:fake@localhost:5432/fake"
       - run: npx tsc --noEmit
+      - run: npm test
+      - run: npm run build

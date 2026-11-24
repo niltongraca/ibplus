@@ -37,19 +37,20 @@ export default function EventoDetalhePage({ params }: { params: Promise<{ id: st
   const { toast } = useToast();
   const { confirm } = useConfirm();
   const [id, setId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  // `undefined` = ainda não resolvemos os parâmetros; depois guardamos o id carregado.
+  const [loadedId, setLoadedId] = useState<string | null | undefined>(undefined);
+  const loading = loadedId !== id;
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [tab, setTab] = useState<TabKey>("overview");
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    params.then(({ id: pid }) => setId(pid)).catch(() => setLoading(false));
+    params.then(({ id: pid }) => setId(pid)).catch(() => setLoadedId(null));
   }, [params]);
 
   useEffect(() => {
     if (!id) return;
-    setLoading(true);
     (async () => {
       try {
         const data = await apiFetch<{ event: EventDetail }>(`/api/events/${id}`);
@@ -57,7 +58,7 @@ export default function EventoDetalhePage({ params }: { params: Promise<{ id: st
       } catch (err) {
         setError(err instanceof Error ? err.message : "Erro ao carregar evento.");
       } finally {
-        setLoading(false);
+        setLoadedId(id);
       }
     })();
   }, [id]);

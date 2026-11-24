@@ -39,7 +39,13 @@ export default function PerfilPage() {
   const tabParam = typeof searchParams.get("tab") === "string" ? searchParams.get("tab") : null;
   const [activeTab, setActiveTab] = useState(tabParam || "perfil");
 
-  const [profile, setProfile] = useState({ name: "", email: "", phone: "" });
+  // Estado derivado do utilizador autenticado + edições locais (sem sincronizar por efeito).
+  const [profileEdits, setProfileEdits] = useState<{ name?: string; phone?: string }>({});
+  const profile = {
+    name: profileEdits.name ?? user?.name ?? "",
+    email: user?.email ?? "",
+    phone: profileEdits.phone ?? user?.phone ?? "",
+  };
   const [company, setCompany] = useState<CompanyData>({
     name: "", nif: "", phone: "", email: "", address: "", logo: "",
     whatsappNumber: "", whatsappStore: "", provinciaOperacao: "",
@@ -47,12 +53,6 @@ export default function PerfilPage() {
     descricaoLoja: "", sobreNos: "",
   });
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      setProfile({ name: user.name, email: user.email, phone: user.phone || "" });
-    }
-  }, [user]);
 
   useEffect(() => {
     fetch("/api/company")
@@ -181,7 +181,7 @@ export default function PerfilPage() {
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-ib-primary mb-1">Nome Completo</label>
-                <input type="text" value={profile.name} onChange={(e) => setProfile((p) => ({ ...p, name: e.target.value }))} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+                <input type="text" value={profile.name} onChange={(e) => setProfileEdits((p) => ({ ...p, name: e.target.value }))} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-ib-primary mb-1">Email</label>
@@ -189,7 +189,7 @@ export default function PerfilPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-ib-primary mb-1">Telefone Pessoal</label>
-                <input type="text" value={profile.phone} onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value }))} placeholder="+244 XXX XXX XXX" className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
+                <input type="text" value={profile.phone} onChange={(e) => setProfileEdits((p) => ({ ...p, phone: e.target.value }))} placeholder="+244 XXX XXX XXX" className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ib-accent/40" />
               </div>
             </div>
             <div className="flex justify-end mt-4">

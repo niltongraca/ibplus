@@ -65,5 +65,6 @@ Após cada migração, e de novo ao final:
 
 ## Recomendações seguintes
 
-1. Refatorar os 14 pontos assinalados pelas novas regras de hooks do React e voltar a ativar `set-state-in-effect` e `immutability`.
-2. Acompanhar as correções upstream de `prisma`/`effect` e `@vercel/blob`; aplicar assim que existir uma versão sem regressão.
+1. ~~Refatorar os 14 pontos assinalados pelas novas regras de hooks do React e voltar a ativar `set-state-in-effect` e `immutability`.~~ **✔ CONCLUÍDO (follow-up Next 16)**: estados derivados em `useList`, detalhe de evento, `AnimatedModal` e perfil; subscrição externa com `useSyncExternalStore` em `ThemeContext`; `load()` convertido em cadeias de promise em RH/empresas; `form.cargoId/cargoName` deixaram de ser mutados em `cadastro`; `startDateTimeLocal` movida para fora do componente. Regras activas a `error` e `npm run lint` limpo.
+2. CI alargada: `.github/workflows/ci.yml` passou a executar `npm test` e `npm run build` além de lint/typecheck, com env fictícias (`DATABASE_URL`, `JWT_SECRET`, `ENCRYPTION_KEY`) apenas para compilação.
+3. Acompanhar as correções upstream de `prisma`/`effect` e `@vercel/blob`; aplicar assim que existir uma versão sem regressão.

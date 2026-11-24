@@ -175,18 +175,13 @@ function CadastroPage() {
       setFieldErrors(errs);
       return;
     }
-    if (isInviteFlow) {
-      const cargo = inviteData?.cargos?.find((c) => c.id === form.cargoId);
-      if (cargo) {
-        form.cargoId = cargo.id;
-      } else if (form.cargoName && form.cargoName.trim()) {
-        form.cargoName = form.cargoName.trim();
-      }
-    }
     setLoading(true);
     const payload: Record<string, string> = { ...form, ...(accountType ? { accountType } : {}) };
     if (inviteToken) payload.invite = inviteToken;
     if (isInviteFlow) {
+      const cargo = inviteData?.cargos?.find((c) => c.id === form.cargoId);
+      if (cargo) payload.cargoId = cargo.id;
+      else if (form.cargoName?.trim()) payload.cargoName = form.cargoName.trim();
       payload.accountType = inviteData?.accountType || accountType || "EMPRESA";
     }
     const result = await register(payload);

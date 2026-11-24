@@ -16,18 +16,17 @@ export function AcquisitionSection() {
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
 
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch("/api/company/acquisition");
-      if (res.ok) {
-        const d = await res.json();
-        setCode(d.company?.acquisitionCode || null);
-      }
-    } catch {
-      // ignora
-    } finally {
-      setLoading(false);
-    }
+  // As actualizações de estado ocorrem em callbacks de promise (fora do corpo do efeito).
+  const load = useCallback(() => {
+    return fetch("/api/company/acquisition")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((d) => {
+        setCode(d?.company?.acquisitionCode || null);
+      })
+      .catch(() => {
+        // ignora
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {

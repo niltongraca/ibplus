@@ -1,6 +1,15 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 
 export type Theme = "light" | "dark" | "system";
 
@@ -22,55 +31,70 @@ export function useTheme() {
   return useContext(ThemeContext);
 }
 
-function systemPrefersDark() {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+const STORAGE_KEY = "ibplus_theme";
+const DARK_QUERY = "(prefers-color-scheme: dark)";
+type ResolvedTheme = "light" | "dark";
+
+function readStoredTheme(): Theme | null {
+  const value = localStorage.getItem(STORAGE_KEY);
+  return value === "light" || value === "dark" ? value : null;
+}
+
+function subscribeStoredTheme(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  return () => window.removeEventListener("storage", onChange);
+}
+
+function getStoredTheme(): Theme | null {
+  return readStoredTheme();
+}
+
+// No servidor ainda não existe localStorage: `undefined` distingue "não hidratado".
+function getServerStoredTheme(): undefined {
+  return undefined;
+}
+
+function subscribeSystemTheme(onChange: () => void) {
+  const mq = window.matchMedia(DARK_QUERY);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+}
+
+function getSystemTheme(): ResolvedTheme {
+  return window.matchMedia(DARK_QUERY).matches ? "dark" : "light";
+}
+
+function getServerSystemTheme(): ResolvedTheme {
+  return "light";
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("system");
-  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
-  const [mounted, setMounted] = useState(false);
+  const [override, setOverride] = useState<Theme | null>(null);
+  const stored = useSyncExternalStore<Theme | null | undefined>(
+    subscribeStoredTheme,
+    getStoredTheme,
+    getServerStoredTheme
+  );
+  const systemTheme = useSyncExternalStore<ResolvedTheme>(
+    subscribeSystemTheme,
+    getSystemTheme,
+    getServerSystemTheme
+  );
 
-  // Aplica o tema resolvido (ligado ao documento <html className="dark">).
-  const apply = useCallback((t: "light" | "dark") => {
-    setResolvedTheme(t);
-    document.documentElement.classList.toggle("dark", t === "dark");
-  }, []);
+  const hydrated = stored !== undefined;
+  const theme: Theme = override ?? stored ?? "system";
+  const resolvedTheme: ResolvedTheme = theme === "system" ? systemTheme : theme;
 
-  // Segue mudanças do sistema quando o tema == "system".
+  // O efeito apenas sincroniza um sistema externo (a classe do <html>), sem setState.
   useEffect(() => {
-    if (theme !== "system") return;
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    apply(mq.matches ? "dark" : "light");
-    const onChange = (e: MediaQueryListEvent) => apply(e.matches ? "dark" : "light");
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, [theme, apply]);
-
-  useEffect(() => {
-    setMounted(true);
-    const stored = localStorage.getItem("ibplus_theme") as Theme | null;
-    if (stored === "light" || stored === "dark") {
-      setThemeState(stored);
-      apply(stored);
-    } else {
-      setThemeState("system");
-      // aplica via preferência do sistema (o effect acima cobre o restante)
-      apply(systemPrefersDark() ? "dark" : "light");
-    }
-  }, [apply]);
+    document.documentElement.classList.toggle("dark", resolvedTheme === "dark");
+  }, [resolvedTheme]);
 
   const setTheme = useCallback((t: Theme) => {
-    setThemeState(t);
-    if (t === "system") {
-      localStorage.removeItem("ibplus_theme");
-      apply(systemPrefersDark() ? "dark" : "light");
-    } else {
-      localStorage.setItem("ibplus_theme", t);
-      apply(t);
-    }
-  }, [apply]);
+    setOverride(t);
+    if (t === "system") localStorage.removeItem(STORAGE_KEY);
+    else localStorage.setItem(STORAGE_KEY, t);
+  }, []);
 
   const toggle = useCallback(() => {
     setTheme(resolvedTheme === "light" ? "dark" : "light");
@@ -81,8 +105,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     [theme, resolvedTheme, toggle, setTheme]
   );
 
-  // Evita flash de tema errado antes de montar (SSR).
-  if (!mounted) {
+  // Evita flash de tema errado antes de hidratar (SSR).
+  if (!hydrated) {
     return <>{children}</>;
   }
 
