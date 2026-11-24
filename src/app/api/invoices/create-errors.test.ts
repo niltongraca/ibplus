@@ -8,13 +8,15 @@ const state: any = {};
 function resetState() {
   state.user = { id: "u1", companyId: "c1", email: "ana@exemplo.com", name: "Ana", role: "user" };
   state.failWith = null as string | null;
+  state.lastInvoiceData = null as any;
+  state.lastQuoteData = null as any;
 }
 
 resetState();
 
 const txMock: any = {
-  invoice: { create: async ({ data }: any) => ({ id: "inv1", number: "FT-1", ...data, items: [] }) },
-  quote: { create: async ({ data }: any) => ({ id: "qt1", number: "OR-1", ...data, items: [] }) },
+  invoice: { create: async ({ data }: any) => { state.lastInvoiceData = data; return { id: "inv1", number: "FT-1", ...data, items: [] }; } },
+  quote: { create: async ({ data }: any) => { state.lastQuoteData = data; return { id: "qt1", number: "OR-1", ...data, items: [] }; } },
 };
 
 const prismaMock: any = {
@@ -123,5 +125,27 @@ describe("criação de documentos — tratamento de erros", () => {
     const res = await createInvoice(request(validBody));
     assert.equal(res.status, 201);
     assert.equal((await res.json()).invoice.number, "FT-1");
+  });
+
+  // `kind` serve apenas para decidir se o item vai para Produto ou Serviço no
+  // catálogo. O Prisma não tem esse campo em InvoiceItem/QuoteItem e rejeita a
+  // escrita se ele chegar ao `create`.
+  const bodyWithKind = {
+    ...validBody,
+    items: [{ description: "Consultoria", quantity: 2, unitPrice: 100, kind: "service" }],
+  };
+
+  it("não envia o campo kind ao Prisma ao criar fatura", async () => {
+    const res = await createInvoice(request(bodyWithKind));
+    assert.equal(res.status, 201);
+    const item = state.lastInvoiceData.items.create[0];
+    assert.equal("kind" in item, false);
+  });
+
+  it("não envia o campo kind ao Prisma ao criar orçamento", async () => {
+    const res = await createQuote(request(bodyWithKind));
+    assert.equal(res.status, 201);
+    const item = state.lastQuoteData.items.create[0];
+    assert.equal("kind" in item, false);
   });
 });
