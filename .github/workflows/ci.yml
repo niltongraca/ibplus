@@ -8,6 +8,7 @@ on:
 
 # Node 24 (npm 11) alinhado com o lockfile gerado localmente; npm 10 (Node 20)
 # rejeita as entradas inBundle de @emnapi/* das dependências opcionais.
+# O workflow entra na chave de cache para não reaproveitar caches antigos de npm 10.
 
 jobs:
   lint:
@@ -18,6 +19,9 @@ jobs:
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            .github/workflows/ci.yml
       - run: npm ci
       - run: npm run lint
 
@@ -34,6 +38,9 @@ jobs:
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            .github/workflows/ci.yml
       - run: npm ci
       - run: npx prisma generate
       - run: npx tsc --noEmit
