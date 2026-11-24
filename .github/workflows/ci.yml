@@ -6,9 +6,9 @@ on:
   pull_request:
     branches: [main]
 
-# Node 24 (npm 11) alinhado com o lockfile gerado localmente; npm 10 (Node 20)
-# rejeita as entradas inBundle de @emnapi/* das dependências opcionais.
-# O workflow entra na chave de cache para não reaproveitar caches antigos de npm 10.
+# Node 24 (npm 11) alinhado com o lockfile. O lockfile foi regenerado com npm 11.19.1
+# e passa a ser aceite também por npm 10/11. O workflow entra na chave de cache para
+# não reaproveitar caches antigos gerados antes dessa correção.
 
 jobs:
   lint:
