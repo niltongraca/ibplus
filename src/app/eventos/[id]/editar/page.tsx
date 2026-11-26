@@ -153,6 +153,7 @@ export default function EditarEventoPage() {
           localPurchaseValue: Number(form.localPurchaseValue) || 0,
           totalTickets: Number(form.totalTickets) || 0,
           notes: form.notes.trim() || null,
+          coverImage: form.coverImage?.trim() || null,
           published: form.published,
         }),
       });
@@ -250,7 +251,7 @@ export default function EditarEventoPage() {
               <option value="RASCUNHO">Rascunho</option>
               <option value="PUBLICADO">Publicado</option>
               <option value="CANCELADO">Cancelado</option>
-              <option value="CONCLUIDO">Concluído</option>
+              <option value="TERMINADO">Terminado</option>
             </select>
           </div>
         </div>

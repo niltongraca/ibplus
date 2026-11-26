@@ -1,13 +1,22 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { buildSearch, parseBool, parsePagination } from "@/lib/utils";
 import { toNumber } from "@/lib/money";
 import { logAction } from "@/lib/audit";
 import { requireFeature, requireWrite } from "@/lib/permissions";
+import { checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 import { parseBody } from "@/lib/validations/helpers";
 import { ticketIssueSchema } from "@/lib/validations/events";
 import { generateTicketCode } from "@/lib/events";
+import { getReservedByTicketType, remainingTickets } from "@/lib/eventRegistrations";
+
+class TicketIssueError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+  }
+}
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -82,6 +91,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const denied = await requireWrite(user, "eventos");
     if (denied) return denied;
 
+    const limit = await checkRateLimit(`ticket-issue:${user.id}`, "medium");
+    if (!limit.allowed) return rateLimitResponse(limit.retryAfter!);
+
     const event = await prisma.event.findFirst({ where: { id, companyId: user.companyId } });
     if (!event) return NextResponse.json({ error: "Evento não encontrado." }, { status: 404 });
 
@@ -90,42 +102,57 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const data = parsed.data;
     const quantity = data.quantity ?? 1;
 
-    const ticketType = await prisma.eventTicketType.findFirst({
-      where: { id: data.ticketTypeId, eventId: id },
-    });
-    if (!ticketType) {
-      return NextResponse.json({ error: "Tipo de bilhete não encontrado." }, { status: 404 });
-    }
-    if (!ticketType.active) {
-      return NextResponse.json({ error: "Este tipo de bilhete está inactivo." }, { status: 409 });
-    }
+    let ticketType: { name: string };
+    let tickets: Awaited<ReturnType<typeof prisma.eventTicket.createManyAndReturn>>;
+    try {
+      // Recontagem + escrita no mesmo snapshot serializável: emissões
+      // concorrentes não podem ultrapassar a capacidade (inclui reservas de
+      // inscrições pendentes).
+      const result = await prisma.$transaction(
+        async (tx) => {
+          const type = await tx.eventTicketType.findFirst({
+            where: { id: data.ticketTypeId, eventId: id, active: true },
+          });
+          if (!type) {
+            throw new TicketIssueError("Este tipo de bilhete não está disponível.", 409);
+          }
 
-    const issued = await prisma.eventTicket.count({ where: { ticketTypeId: ticketType.id } });
-    if (ticketType.quantity > 0 && issued + quantity > ticketType.quantity) {
-      const available = Math.max(0, ticketType.quantity - issued);
-      return NextResponse.json(
-        {
-          error: `Quantidade indisponível: restam ${available} de ${ticketType.quantity} bilhete(s) deste tipo.`,
+          const reserved = await getReservedByTicketType(event.id, [type.id], { client: tx });
+          const left = remainingTickets(type.quantity, reserved.get(type.id) ?? 0);
+          if (left !== null && quantity > left) {
+            throw new TicketIssueError(
+              `Quantidade indisponível: restam ${left} de ${type.quantity} bilhete(s) deste tipo.`,
+              409
+            );
+          }
+
+          const codes = new Set<string>();
+          while (codes.size < quantity) codes.add(generateTicketCode());
+
+          const created = await tx.eventTicket.createManyAndReturn({
+            data: [...codes].map((code) => ({
+              eventId: id,
+              ticketTypeId: type.id,
+              code,
+              holderName: data.holderName ?? null,
+              holderEmail: data.holderEmail ?? null,
+              holderPhone: data.holderPhone ?? null,
+              price: type.price,
+              notes: data.notes ?? null,
+            })),
+          });
+          return { type, created };
         },
-        { status: 409 }
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
       );
+      ticketType = result.type;
+      tickets = result.created;
+    } catch (err) {
+      if (err instanceof TicketIssueError) {
+        return NextResponse.json({ error: err.message }, { status: err.status });
+      }
+      throw err;
     }
-
-    const codes = new Set<string>();
-    while (codes.size < quantity) codes.add(generateTicketCode());
-
-    const tickets = await prisma.eventTicket.createManyAndReturn({
-      data: [...codes].map((code) => ({
-        eventId: id,
-        ticketTypeId: ticketType.id,
-        code,
-        holderName: data.holderName ?? null,
-        holderEmail: data.holderEmail ?? null,
-        holderPhone: data.holderPhone ?? null,
-        price: ticketType.price,
-        notes: data.notes ?? null,
-      })),
-    });
 
     await logAction(
       "create",

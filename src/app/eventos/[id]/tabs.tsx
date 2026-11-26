@@ -65,6 +65,7 @@ export interface EventDetail {
   totalTickets: number;
   status: string;
   published: boolean;
+  registrationToken: string | null;
   notes: string | null;
   createdAt: string;
   updatedAt: string;

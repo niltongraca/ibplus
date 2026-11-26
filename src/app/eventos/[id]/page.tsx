@@ -22,11 +22,13 @@ import { cn, formatCurrency, formatDateTime } from "@/lib/utils";
 import { EVENT_STATUS_LABELS, EVENT_STATUS_BADGES } from "@/config/events";
 import { StatCard, OverviewTab, TypesTab, TicketsTab, CheckinTab } from "./tabs";
 import type { EventDetail } from "./tabs";
+import { RegistrationsTab } from "./registrationsTab";
 
 const TABS = [
   { key: "overview", label: "Visão Geral" },
   { key: "types", label: "Tipos de Bilhete" },
   { key: "tickets", label: "Bilhetes" },
+  { key: "registrations", label: "Inscrições" },
   { key: "checkin", label: "Check-in" },
 ] as const;
 
@@ -171,6 +173,9 @@ export default function EventoDetalhePage({ params }: { params: Promise<{ id: st
           {tab === "types" && <TypesTab event={event} onChanged={(e) => setEvent(e)} />}
           {tab === "tickets" && (
             <TicketsTab eventId={event.id} event={event} setEvent={(e) => setEvent(e)} />
+          )}
+          {tab === "registrations" && (
+            <RegistrationsTab event={event} onChanged={(e) => setEvent(e)} />
           )}
           {tab === "checkin" && <CheckinTab eventId={event.id} setEvent={(e) => setEvent(e)} />}
         </>

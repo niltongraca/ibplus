@@ -152,6 +152,83 @@ export function upgradeRejectedEmail(name: string, plan: string): { subject: str
   };
 }
 
+export interface EventRegistrationMailData {
+  name: string;
+  eventTitle: string;
+  eventDate: string;
+  reference: string;
+  amount: string;
+  tickets: string;
+}
+
+function eventMailBody(data: EventRegistrationMailData, message: string): string {
+  return `
+    <h2 style="margin-top:0;color:#1e3a5f">Olá ${esc(data.name)},</h2>
+    <p>${message} do evento <strong>${esc(data.eventTitle)}</strong> (${esc(data.eventDate)}).</p>
+    <table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:14px">
+      <tr><td style="padding:6px 0;color:#64748b">Referência</td><td style="padding:6px 0"><strong>${esc(data.reference)}</strong></td></tr>
+      <tr><td style="padding:6px 0;color:#64748b">Bilhetes</td><td style="padding:6px 0">${esc(data.tickets)}</td></tr>
+      <tr><td style="padding:6px 0;color:#64748b">Total</td><td style="padding:6px 0"><strong>${esc(data.amount)}</strong></td></tr>
+    </table>`;
+}
+
+export function eventRegistrationSubmittedEmail(
+  data: EventRegistrationMailData
+): { subject: string; html: string } {
+  return {
+    subject: `Inscrição recebida — ${data.eventTitle}`,
+    html: baseHtml(
+      eventMailBody(
+        data,
+        "Recebemos a sua inscrição e o comprovativo de pagamento. A sua inscrição ficará pendente até validação pela organização."
+      ) +
+        `<p style="color:#64748b;font-size:13px">Não responda a este email.</p>`,
+      "Inscrição recebida"
+    ),
+  };
+}
+
+export function eventRegistrationApprovedEmail(
+  data: EventRegistrationMailData
+): { subject: string; html: string } {
+  return {
+    subject: `Inscrição confirmada — ${data.eventTitle}`,
+    html: baseHtml(
+      eventMailBody(data, "A sua inscrição foi confirmada e os seus bilhetes emitidos. Apresente o código no dia do evento.") +
+        `<p style="text-align:center"><a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/eventos" class="btn">Ver detalhes</a></p>`,
+      "Inscrição confirmada"
+    ),
+  };
+}
+
+export function eventRegistrationRejectedEmail(
+  data: EventRegistrationMailData,
+  reason?: string | null
+): { subject: string; html: string } {
+  return {
+    subject: `Sobre a sua inscrição — ${data.eventTitle}`,
+    html: baseHtml(
+      eventMailBody(data, "Não foi possível confirmar a sua inscrição.") +
+        (reason ? `<p><strong>Motivo:</strong> ${esc(reason)}</p>` : ""),
+      "Inscrição não confirmada"
+    ),
+  };
+}
+
+export function eventRegistrationOrganizerNotice(
+  data: EventRegistrationMailData,
+  adminUrl: string
+): { subject: string; html: string } {
+  return {
+    subject: `Nova inscrição pendente — ${data.eventTitle}`,
+    html: baseHtml(
+      eventMailBody(data, "Recebeu uma nova inscrição pendente de validação.") +
+        `<p style="text-align:center"><a href="${esc(adminUrl)}" class="btn">Validar inscrição</a></p>`,
+      "Nova inscrição"
+    ),
+  };
+}
+
 export async function sendEmail(
   to: string,
   subject: string,

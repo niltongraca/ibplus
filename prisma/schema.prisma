@@ -794,9 +794,12 @@ model Event {
   // RASCUNHO | PUBLICADO | ESGOTADO | CANCELADO | TERMINADO
   status             String    @default("RASCUNHO")
   published          Boolean   @default(false)
+  // Link público opaco de inscrição: só funciona com published=true.
+  registrationToken  String?   @unique
   notes              String?
   ticketTypes        EventTicketType[]
   tickets            EventTicket[]
+  registrations      EventRegistration[]
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
@@ -817,6 +820,7 @@ model EventTicketType {
   quantity    Int           @default(0)
   active      Boolean       @default(true)
   tickets     EventTicket[]
+  registrationItems EventRegistrationItem[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
@@ -829,6 +833,8 @@ model EventTicket {
   event        Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
   ticketTypeId String?
   ticketType   EventTicketType? @relation(fields: [ticketTypeId], references: [id], onDelete: SetNull)
+  registrationId String?
+  registration   EventRegistration? @relation(fields: [registrationId], references: [id], onDelete: SetNull)
   code         String           @unique
   holderName   String?
   holderEmail  String?
@@ -844,6 +850,55 @@ model EventTicket {
   updatedAt    DateTime         @updatedAt
 
   @@index([eventId])
+  @@index([ticketTypeId])
+  @@index([registrationId])
+}
+
+/**
+ * Inscrição feita através do link público do evento. Fica PENDENTE até o
+ * organizador validar o comprovativo; só depois são emitidos os bilhetes.
+ * PENDENTE | PAGA | REJEITADA | CANCELADA
+ */
+model EventRegistration {
+  id              String                  @id @default(cuid())
+  eventId         String
+  event           Event                   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  code            String                  @unique
+  holderName      String
+  holderEmail     String
+  holderPhone     String
+  consent         Boolean                 @default(false)
+  status          String                  @default("PENDENTE")
+  amount          Decimal                 @default(0) @db.Decimal(18, 2)
+  paymentRef      String
+  proofUrl        String
+  proofMime       String
+  proofName       String?
+  notes           String?
+  rejectionReason String?
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  items           EventRegistrationItem[]
+  tickets         EventTicket[]
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  @@index([eventId, status])
+  @@index([eventId, createdAt])
+}
+
+model EventRegistrationItem {
+  id             String            @id @default(cuid())
+  registrationId String
+  registration   EventRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  ticketTypeId   String
+  ticketType     EventTicketType   @relation(fields: [ticketTypeId], references: [id], onDelete: Restrict)
+  quantity       Int
+  unitPrice      Decimal           @db.Decimal(18, 2)
+  subtotal       Decimal           @db.Decimal(18, 2)
+  createdAt      DateTime          @default(now())
+
+  @@index([registrationId])
   @@index([ticketTypeId])
 }
 

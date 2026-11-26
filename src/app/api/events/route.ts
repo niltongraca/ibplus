@@ -6,8 +6,8 @@ import { toNumber } from "@/lib/money";
 import { logAction } from "@/lib/audit";
 import { requireFeature, requireWrite } from "@/lib/permissions";
 import { parseBody } from "@/lib/validations/helpers";
-import { eventCreateSchema } from "@/lib/validations/events";
-import { parseEventDateTime } from "@/lib/events";
+import { eventCreateWithTypesSchema } from "@/lib/validations/events";
+import { generateRegistrationToken, parseEventDateTime } from "@/lib/events";
 
 export async function GET(request: Request) {
   try {
@@ -64,6 +64,7 @@ export async function GET(request: Request) {
         endDate: e.endDate,
         status: e.status,
         published: e.published,
+        registrationToken: e.registrationToken,
         coverImage: e.coverImage,
         localPurchaseValue: toNumber(e.localPurchaseValue),
         totalTickets: e.totalTickets,
@@ -90,7 +91,7 @@ export async function POST(request: Request) {
     const denied = await requireWrite(user, "eventos");
     if (denied) return denied;
 
-    const parsed = await parseBody(request, eventCreateSchema);
+    const parsed = await parseBody(request, eventCreateWithTypesSchema);
     if ("error" in parsed) return parsed.error;
     const data = parsed.data;
 
@@ -109,25 +110,47 @@ export async function POST(request: Request) {
       );
     }
 
-    const event = await prisma.event.create({
-      data: {
-        companyId: user.companyId,
-        title: data.title,
-        description: data.description ?? null,
-        category: data.category ?? null,
-        venue: data.venue ?? null,
-        address: data.address ?? null,
-        province: data.province ?? null,
-        municipality: data.municipality ?? null,
-        startDate,
-        endDate,
-        coverImage: data.coverImage ?? null,
-        localPurchaseValue: data.localPurchaseValue ?? 0,
-        totalTickets: data.totalTickets ?? 0,
-        status: data.status ?? "RASCUNHO",
-        published: data.published ?? false,
-        notes: data.notes ?? null,
-      },
+    const companyId = user.companyId;
+
+    // Evento + tipos de bilhete numa só transação: um tipo inválido não deixa
+    // um evento órfão no painel, e o link público nasce com o evento.
+    const event = await prisma.$transaction(async (tx) => {
+      const created = await tx.event.create({
+        data: {
+          companyId,
+          title: data.title,
+          description: data.description ?? null,
+          category: data.category ?? null,
+          venue: data.venue ?? null,
+          address: data.address ?? null,
+          province: data.province ?? null,
+          municipality: data.municipality ?? null,
+          startDate,
+          endDate,
+          coverImage: data.coverImage ?? null,
+          localPurchaseValue: data.localPurchaseValue ?? 0,
+          totalTickets: data.totalTickets ?? 0,
+          status: data.status ?? "RASCUNHO",
+          published: data.published ?? false,
+          registrationToken: generateRegistrationToken(),
+          notes: data.notes ?? null,
+        },
+      });
+
+      for (const type of data.ticketTypes ?? []) {
+        await tx.eventTicketType.create({
+          data: {
+            eventId: created.id,
+            name: type.name,
+            kind: type.kind ?? "INGRESSO",
+            description: type.description ?? null,
+            price: type.price ?? 0,
+            quantity: type.quantity ?? 0,
+            active: type.active ?? true,
+          },
+        });
+      }
+      return created;
     });
 
     await logAction("create", "event", event.id, `Evento "${event.title}" criado`, user);

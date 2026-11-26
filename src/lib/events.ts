@@ -13,6 +13,22 @@ export function generateTicketCode(prefix = "IB"): string {
   return `${prefix}-${out.slice(0, 5)}-${out.slice(5, 10)}`;
 }
 
+/** Token opaco do link público (não expõe o id do evento nem é adivinhável). */
+export function generateRegistrationToken(): string {
+  return randomBytes(24).toString("base64url");
+}
+
+/** Código legível da inscrição, usado como referência de pagamento. */
+export function generateRegistrationCode(): string {
+  return generateTicketCode("INS");
+}
+
+/** Referência estável para a transferência/depósito do comprovativo. */
+export function registrationPaymentReference(code: string): string {
+  const clean = code.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+  return `EVT-${clean.slice(0, 12) || "000000000000"}`;
+}
+
 /**
  * Converte uma data/hora local da empresa (ex.: valor de `<input datetime-local>`
  * ou "2026-12-01T18:30") no instante UTC correspondente, respeitando o fuso.

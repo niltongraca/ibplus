@@ -9,10 +9,13 @@ export function jsonToCsv(data: Record<string, any>[], headers: Record<string, s
 }
 
 function escapeCsv(value: string): string {
-  if (value.includes(",") || value.includes('"') || value.includes("\n")) {
-    return `"${value.replace(/"/g, '""')}"`;
+  // Neutraliza injeção de fórmula em Excel/Sheets: qualquer valor que comece
+  // (eventualmente após espaços) por = + - @ é forçado a texto literal.
+  const safe = /^\s*[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+  if (safe.includes(",") || safe.includes('"') || safe.includes("\n")) {
+    return `"${safe.replace(/"/g, '""')}"`;
   }
-  return value;
+  return safe;
 }
 
 export function downloadCsv(csv: string, filename: string) {

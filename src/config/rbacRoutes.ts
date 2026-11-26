@@ -28,4 +28,15 @@ export const ROUTE_PERMISSIONS: Record<string, string[]> = {
   "/admin/anuncios": ["admin"],
 };
 
-export const PUBLIC_ROUTES = ["/", "/login", "/cadastro", "/onboarding", "/praca", "/sobre", "/rede", "/unauthorized"];
+export const PUBLIC_ROUTES = [
+  "/",
+  "/login",
+  "/cadastro",
+  "/onboarding",
+  "/praca",
+  "/sobre",
+  "/rede",
+  "/unauthorized",
+  // Link opaco de inscrição em eventos: acesso público sem sessão.
+  "/e",
+];

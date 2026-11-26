@@ -93,19 +93,10 @@ export default function NovoEventoPage() {
           status: form.status,
           published: form.published,
           notes: form.notes.trim() || null,
+          // Criados na mesma transação do evento (ver POST /api/events).
+          ticketTypes,
         }),
       });
-
-      // Cria os tipos de bilhete após criar o evento
-      if (res.event?.id && ticketTypes.length > 0) {
-        for (const tt of ticketTypes) {
-          await apiFetch(`/api/events/${res.event.id}/ticket-types`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(tt),
-          });
-        }
-      }
 
       toast("Evento criado com sucesso!");
       router.push(`/eventos/${res.event.id}`);

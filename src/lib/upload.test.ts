@@ -1,6 +1,13 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { resolveUpload, isDataUrl, buildInlineDataUrl, UPLOAD_MAX_SIZE } from "./upload";
+import {
+  resolveUpload,
+  resolveProofUpload,
+  isPdfBuffer,
+  isDataUrl,
+  buildInlineDataUrl,
+  UPLOAD_MAX_SIZE,
+} from "./upload";
 
 describe("resolveUpload", () => {
   it("aceita png/jpg/jpeg/gif/webp com tipo correspondente", () => {
@@ -47,6 +54,30 @@ describe("resolveUpload", () => {
     assert.deepEqual(empty, { ok: false, error: "Ficheiro vazio." });
     const noName = resolveUpload({ name: "", size: 10, type: "image/png" });
     assert.deepEqual(noName, { ok: false, error: "Nenhum ficheiro enviado." });
+  });
+});
+
+describe("comprovativos", () => {
+  it("aceita PDF e imagem, mas não outros tipos", () => {
+    assert.deepEqual(resolveProofUpload({ name: "recibo.pdf", size: 10, type: "application/pdf" }), {
+      ok: true,
+      mime: "application/pdf",
+      ext: ".pdf",
+    });
+    assert.deepEqual(resolveProofUpload({ name: "foto.png", size: 10, type: "image/png" }), {
+      ok: true,
+      mime: "image/png",
+      ext: ".png",
+    });
+    assert.equal(
+      resolveProofUpload({ name: "nota.txt", size: 10, type: "text/plain" }).ok,
+      false
+    );
+  });
+
+  it("valida assinatura binária de PDF", () => {
+    assert.equal(isPdfBuffer(new TextEncoder().encode("%PDF-1.7\n")), true);
+    assert.equal(isPdfBuffer(new TextEncoder().encode("falso.pdf")), false);
   });
 });
 

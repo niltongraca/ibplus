@@ -22,6 +22,9 @@ const API_PUBLIC_PREFIXES = [
   "/api/plans",
   "/api/praca",
   "/api/cron",
+  // Inscrição pública em eventos: token opaco na rota, rate limit + validação
+  // de Origin na submissão (sem sessão/CSRF).
+  "/api/public/events",
   // Web Vitals: beacon anónimo do browser (sem sessão/CSRF; validado na rota)
   "/api/vitals",
 ];

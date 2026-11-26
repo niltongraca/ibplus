@@ -74,6 +74,15 @@ export type TicketTypeCreateInput = z.infer<typeof ticketTypeCreateSchema>;
 export const ticketTypeUpdateSchema = ticketTypeCreateSchema.partial();
 export type TicketTypeUpdateInput = z.infer<typeof ticketTypeUpdateSchema>;
 
+/**
+ * Criação do evento e dos seus tipos numa só operação atómica: se um tipo for
+ * inválido, nenhum evento fica órfão no painel.
+ */
+export const eventCreateWithTypesSchema = eventCreateSchema.extend({
+  ticketTypes: z.array(ticketTypeCreateSchema).max(50).optional(),
+});
+export type EventCreateWithTypesInput = z.infer<typeof eventCreateWithTypesSchema>;
+
 // ---- Emissão de bilhetes ----
 export const ticketIssueSchema = z.object({
   ticketTypeId: z
@@ -113,3 +122,65 @@ export const checkinSchema = z.object({
     .max(100, "O código é demasiado longo."),
 });
 export type CheckinInput = z.infer<typeof checkinSchema>;
+
+// ---- Inscrição pública (link do evento) ----
+// Referência de pagamento gerada no browser antes de o participante pagar,
+// para que possa indicá-la na transferência e anexar o comprovativo no POST.
+// Deve coincidir com o formato de generateRegistrationCode().
+export const registrationReferenceSchema = z
+  .string()
+  .trim()
+  .regex(/^INS-[A-HJ-NP-Z2-9]{5}-[A-HJ-NP-Z2-9]{5}$/, "Referência de pagamento inválida.");
+
+export const publicRegistrationSchema = z.object({
+  reference: registrationReferenceSchema.optional(),
+  holderName: z
+    .string()
+    .trim()
+    .min(2, "Indique o seu nome completo.")
+    .max(200, "O nome excede 200 caracteres."),
+  holderEmail: z
+    .string()
+    .trim()
+    .email("O email não é válido.")
+    .max(255, "O email excede 255 caracteres."),
+  holderPhone: z
+    .string()
+    .trim()
+    .min(6, "Indique um telefone válido.")
+    .max(50, "O telefone é demasiado longo.")
+    .regex(/^[0-9+()\s-]+$/, "O telefone contém caracteres inválidos."),
+  consent: z.boolean().refine((v) => v === true, {
+    message: "É necessário autorizar o tratamento dos dados.",
+  }),
+  items: z
+    .array(
+      z.object({
+        ticketTypeId: z.string().trim().min(1).max(100),
+        quantity: z.coerce
+          .number()
+          .int("A quantidade deve ser um número inteiro.")
+          .min(1, "Indique pelo menos 1 bilhete.")
+          .max(50, "Máximo de 50 bilhetes por tipo."),
+      })
+    )
+    .min(1, "Selecione pelo menos um tipo de bilhete.")
+    .max(10, "Máximo de 10 tipos de bilhete por inscrição.")
+    .refine(
+      (items) => new Set(items.map((i) => i.ticketTypeId)).size === items.length,
+      { message: "Não repita tipos de bilhete." }
+    ),
+  notes: optionalText(2000),
+});
+export type PublicRegistrationInput = z.infer<typeof publicRegistrationSchema>;
+
+export const registrationDecisionSchema = z
+  .object({
+    action: z.enum(["APROVAR", "REJEITAR", "CANCELAR"]),
+    reason: optionalText(500),
+  })
+  .refine((v) => v.action !== "REJEITAR" || Boolean(v.reason?.trim()), {
+    message: "Indique o motivo da rejeição.",
+    path: ["reason"],
+  });
+export type RegistrationDecisionInput = z.infer<typeof registrationDecisionSchema>;

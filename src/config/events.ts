@@ -90,3 +90,20 @@ export const TICKET_STATUS_BADGES: Record<TicketStatus, string> = {
   USADO: "badge-neutral",
   CANCELADO: "badge-danger",
 };
+
+export const REGISTRATION_STATUSES = ["PENDENTE", "PAGA", "REJEITADA", "CANCELADA"] as const;
+export type RegistrationStatus = (typeof REGISTRATION_STATUSES)[number];
+
+export const REGISTRATION_STATUS_LABELS: Record<RegistrationStatus, string> = {
+  PENDENTE: "Pendente",
+  PAGA: "Paga",
+  REJEITADA: "Rejeitada",
+  CANCELADA: "Cancelada",
+};
+
+export const REGISTRATION_STATUS_BADGES: Record<RegistrationStatus, string> = {
+  PENDENTE: "badge-warning",
+  PAGA: "badge-success",
+  REJEITADA: "badge-danger",
+  CANCELADA: "badge-neutral",
+};

@@ -73,6 +73,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
         totalTickets: event.totalTickets,
         status: event.status,
         published: event.published,
+        registrationToken: event.registrationToken,
         notes: event.notes,
         createdAt: event.createdAt,
         updatedAt: event.updatedAt,
